@@ -634,3 +634,94 @@ body {
 .link-card .link-info-trigger:hover {
 	color: var(--medium);
 }
+
+/* ---- Exporter / Library Packager ---- */
+.exporter-container {
+	overflow-y: auto;
+	background-color: var(--body-background);
+}
+
+.exporter-inner {
+	max-width: 100%;
+}
+
+.exporter-card .card-header {
+	background-color: var(--method-background);
+	font-weight: 600;
+	color: var(--dark1);
+	font-size: 0.95rem;
+}
+
+.exporter-card .card-body {
+	background-color: var(--method-background);
+}
+
+.exporter-card .form-control:focus {
+	border-color: var(--medium);
+	box-shadow: 0 0 0 0.15rem rgba(var(--medium-rgb), 0.25);
+}
+
+.pkg-file-list {
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	min-height: 60px;
+	max-height: 220px;
+	overflow-y: auto;
+	background: #f8f9fa;
+}
+
+.pkg-file-item {
+	padding: 5px 12px;
+	border-bottom: 1px solid #eee;
+	cursor: pointer;
+	font-size: 0.85rem;
+	display: flex;
+	align-items: center;
+	user-select: none;
+}
+
+.pkg-file-item:last-child {
+	border-bottom: none;
+}
+
+.pkg-file-item:hover {
+	background: rgba(var(--medium-rgb), 0.06);
+}
+
+.pkg-file-item.selected {
+	background: rgba(var(--medium-rgb), 0.15);
+}
+
+.pkg-file-item .pkg-file-icon {
+	margin-right: 8px;
+	color: var(--medium);
+	flex-shrink: 0;
+}
+
+.pkg-file-item .pkg-file-name {
+	font-weight: 500;
+	color: var(--dark1);
+	white-space: nowrap;
+}
+
+.pkg-file-item .pkg-file-dir {
+	margin-left: auto;
+	padding-left: 12px;
+	color: #aaa;
+	font-size: 0.78rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 50%;
+	text-align: right;
+}
+
+.pkg-empty-msg {
+	color: #bbb;
+	font-size: 0.9rem;
+}
+
+#pkg-create {
+	padding-left: 30px;
+	padding-right: 30px;
+}

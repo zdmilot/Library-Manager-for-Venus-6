@@ -27,8 +27,6 @@
     
         // Diskdb init
 		var db = require('diskdb');
-		
-
 		var db_links = db.connect('db', ['links']);
 		var db_groups = db.connect('db', ['groups']);
 		var db_settings = db.connect('db', ['settings']);
@@ -38,7 +36,7 @@
 
 		var bool_treeChanged = false; //tracks if the tree of groups/methods has been edited to re-create groups when coming back to Home screen from Settings screen.
 
-		var linksDirectoryPath = "C:\\Program Files (x86)\\Hamilton\\Library";
+		var linksDirectoryPath = "C:\\Users\\admin\\Desktop\\hsltest";
 
 		var int_maxRecent = 10;
 
@@ -62,7 +60,6 @@
 		//**********************************************************************
 
 // *******  Executor DLL declarations *************
-
 var LogOnDialog = edge.func({
     assemblyFile: 'MethodManagerHelper.dll',
     typeName: 'MethodManagerHelper.Class1',
@@ -164,21 +161,27 @@ var DetachDatabase = edge.func({
 			waitForFinalEvent(function () {
 				fitNavBarItems();
 				fitMainDivHeight();
-				fitSettingsDivHeight() 
+				fitSettingsDivHeight();
+				fitExporterHeight();
 			}, 150, "");
 		});
 
         //Window load
 		$(window).load(function () {
 			waitForFinalEvent(function () {
-				// fitNavBarItems();
-				// fitMainDivHeight();
-				
-				// createGroups();
-				scanLinksDirectory();
-				$.when(initVENUSData()).then(createGroups()).then(
-					setTimeout(function(){historyCleanup()},100)
-				).then(fitSettingsDivHeight());
+				try {
+					scanLinksDirectory();
+				} catch(e) {
+					console.log("Error in scanLinksDirectory: " + e);
+				}
+				try {
+					$.when(initVENUSData()).then(createGroups()).then(
+						setTimeout(function(){historyCleanup()},100)
+					).then(fitSettingsDivHeight());
+				} catch(e) {
+					console.log("Error in startup chain: " + e);
+					try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
+				}
 			}, 150, "");
         });
 
@@ -273,15 +276,24 @@ var DetachDatabase = edge.func({
 			var group_id = $(this).attr('data-group-id');
 			$('.group-container').addClass('d-none');
 
-			
-			if(group_id == "gAll"){
-				//If this is ALL , display all custom group containers that are displayed in the navbar.
-				$(".navbarLeft>.custom-group:not('.d-none'), hidden-nav-items>.custom-group:not('.d-none')").each(function(){
-					var g = $(this).attr("data-group-id");
-					$('.group-container[data-group-id="' + g + '"').removeClass('d-none');
-				  });
-			}else{
-				$('.group-container[data-group-id="' + group_id + '"').removeClass('d-none');
+			// Show/hide Library Packager exporter tool
+			if(group_id == "gEditors"){
+				$(".links-container").addClass("d-none");
+				$(".exporter-container").removeClass("d-none");
+				fitExporterHeight();
+			} else {
+				$(".links-container").removeClass("d-none");
+				$(".exporter-container").addClass("d-none");
+
+				if(group_id == "gAll"){
+					//If this is ALL , display all custom group containers that are displayed in the navbar.
+					$(".navbarLeft>.custom-group:not('.d-none'), hidden-nav-items>.custom-group:not('.d-none')").each(function(){
+						var g = $(this).attr("data-group-id");
+						$('.group-container[data-group-id="' + g + '"').removeClass('d-none');
+					  });
+				}else{
+					$('.group-container[data-group-id="' + group_id + '"').removeClass('d-none');
+				}
 			}
 
 			//if "last tab opened" setting is checked, save this group id as the "startup-tab" in settings.json
@@ -399,8 +411,16 @@ var DetachDatabase = edge.func({
 				if (bool_treeChanged){
 					createGroups();
 				}else{
-					fitNavBarItems();
-					fitMainDivHeight();
+					// Check if exporter tab is active and show it properly
+					var activeGroup = $(".navbar-custom").find(".active").attr("data-group-id");
+					if(activeGroup == "gEditors"){
+						$(".links-container").addClass("d-none");
+						$(".exporter-container").removeClass("d-none");
+						fitExporterHeight();
+					} else {
+						fitNavBarItems();
+						fitMainDivHeight();
+					}
 				}
 			}  
 			return false;
@@ -605,6 +625,9 @@ var DetachDatabase = edge.func({
 		});
 
 		$(document).on("change", "input[type='file']", function() {
+			// Skip packager-specific file inputs (handled separately)
+			if($(this).attr('id') && $(this).attr('id').indexOf('pkg-') === 0){ return; }
+
 			var text_control = $(this).attr("data-text-input");
 			var str = $(this).val();
 			$("." + text_control).val(str);
@@ -2523,6 +2546,7 @@ var DetachDatabase = edge.func({
 
 				// Keep manually-added links and auto-scanned links whose files still exist
 				var validIds = [];
+				var staleIds = [];
 				existingMethodIds.forEach(function(id) {
 					var link = db_links.links.findOne({"_id": id});
 					if (link) {
@@ -2531,7 +2555,7 @@ var DetachDatabase = edge.func({
 							if (currentFilePaths.indexOf(link.path) !== -1) {
 								validIds.push(id);
 							} else {
-								db_links.links.remove({"_id": id});
+								staleIds.push(id);
 							}
 						} else {
 							// Manually added link: always keep
@@ -2539,6 +2563,28 @@ var DetachDatabase = edge.func({
 						}
 					}
 				});
+
+				// Batch remove stale links in a single file write instead of one-by-one
+				if (staleIds.length > 0) {
+					try {
+						// Use absolute path based on process.cwd() for NW.js compatibility
+						var linksFilePath = path.join(process.cwd(), 'db', 'links.json');
+						if (!fs.existsSync(linksFilePath)) {
+							// Fallback: resolve relative path
+							linksFilePath = path.resolve('db', 'links.json');
+						}
+						var allLinksData = JSON.parse(fs.readFileSync(linksFilePath, 'utf8'));
+						var staleSet = {};
+						staleIds.forEach(function(id) { staleSet[id] = true; });
+						var filteredLinks = allLinksData.filter(function(link) { return !staleSet[link._id]; });
+						fs.writeFileSync(linksFilePath, JSON.stringify(filteredLinks));
+						db_links = db.connect('db', ['links']); // reconnect to refresh diskdb cache
+						console.log("Batch removed " + staleIds.length + " stale scanned links");
+					} catch(e) {
+						console.log("Error during batch stale link removal: " + e);
+						// Skip removal rather than freeze with one-by-one fallback
+					}
+				}
 
 				var updatedMethodIds = validIds.concat(newLinkIds);
 				db_tree.tree.update({"group-id": groupId}, {"method-ids": updatedMethodIds}, {multi: false, upsert: false});
@@ -2572,45 +2618,63 @@ var DetachDatabase = edge.func({
 		}
 
 		function initVENUSData(){
+			try {
+				GetVENUSPathsFromRegistry("null",function (error, result){
+					try {
+						if (error) { console.log("GetVENUSPathsFromRegistry error: " + error); return; }
+						var jsondata = JSON.parse(result.toString());
+						// jsondata contains bin-folder, cfg-folder, lib-folder, log-folder, lbw-folder, sys-folder,met-folder
+						
+						saveLinkKey("bin-folder","path",jsondata["bin-folder"]);
+						saveLinkKey("cfg-folder","path",jsondata["cfg-folder"]);
+						saveLinkKey("lbw-folder","path",jsondata["lbw-folder"]);
+						saveLinkKey("lib-folder","path",jsondata["lib-folder"]);
+						saveLinkKey("log-folder","path",jsondata["log-folder"]);
+						saveLinkKey("met-folder","path",jsondata["met-folder"]);
+					
+						HxFolder_LogFiles = jsondata["log-folder"];
+						HxFolder_Methods = jsondata["met-folder"];
+						HxFolder_Bin = jsondata["bin-folder"];
+						HxRun = jsondata["bin-folder"] + "\\" + HxRun;
+					
+						saveLinkKey("method-editor","path",jsondata["bin-folder"] + "\\" + HxMethodEditor);
+						saveLinkKey("lc-editor","path",jsondata["bin-folder"] + "\\" + HxLiquidEditor);
+						saveLinkKey("lbw-editor","path",jsondata["bin-folder"] + "\\" + HxLabwareEditor);
+						saveLinkKey("hsl-editor","path",jsondata["bin-folder"] + "\\" + HxHSLEditor);
+						saveLinkKey("sysCfg-editor","path",jsondata["bin-folder"] + "\\" + HxConfigEditor);
+						saveLinkKey("run-control","path", HxRun);
+						saveLinkKey("ham-version","path",jsondata["bin-folder"] + "\\" + HxVersion);
+					
+						//Set working dir for the method file browse
+						$("#input-methodfile").attr("nwworkingdir",HxFolder_Methods);
+						// console.log(jsondata);
+					} catch(e) {
+						console.log("Error in GetVENUSPathsFromRegistry callback: " + e);
+					}
+				});
+			} catch(e) {
+				console.log("Error calling GetVENUSPathsFromRegistry: " + e);
+			}
 
-			GetVENUSPathsFromRegistry("null",function (error, result){
-				var jsondata = JSON.parse(result.toString());
-				// jsondata contains bin-folder, cfg-folder, lib-folder, log-folder, lbw-folder, sys-folder,met-folder
-				
-				saveLinkKey("bin-folder","path",jsondata["bin-folder"]);
-				saveLinkKey("cfg-folder","path",jsondata["cfg-folder"]);
-				saveLinkKey("lbw-folder","path",jsondata["lbw-folder"]);
-				saveLinkKey("lib-folder","path",jsondata["lib-folder"]);
-				saveLinkKey("log-folder","path",jsondata["log-folder"]);
-				saveLinkKey("met-folder","path",jsondata["met-folder"]);
-			
-				HxFolder_LogFiles = jsondata["log-folder"];
-				HxFolder_Methods = jsondata["met-folder"];
-				HxFolder_Bin = jsondata["bin-folder"];
-				HxRun = jsondata["bin-folder"] + "\\" + HxRun;
-			
-				saveLinkKey("method-editor","path",jsondata["bin-folder"] + "\\" + HxMethodEditor);
-				saveLinkKey("lc-editor","path",jsondata["bin-folder"] + "\\" + HxLiquidEditor);
-				saveLinkKey("lbw-editor","path",jsondata["bin-folder"] + "\\" + HxLabwareEditor);
-				saveLinkKey("hsl-editor","path",jsondata["bin-folder"] + "\\" + HxHSLEditor);
-				saveLinkKey("sysCfg-editor","path",jsondata["bin-folder"] + "\\" + HxConfigEditor);
-				saveLinkKey("run-control","path", HxRun);
-				saveLinkKey("ham-version","path",jsondata["bin-folder"] + "\\" + HxVersion);
-			
-				//Set working dir for the method file browse
-				$("#input-methodfile").attr("nwworkingdir",HxFolder_Methods);
-				// console.log(jsondata);
-			})
+			try {
+				GetSimulation("null",function (error, result){
+					try {
+						if (error) { console.log("GetSimulation error: " + error); return; }
+						console.log("simulation=" + result);
+						updateSimulationSwitch(result);
+					} catch(e) {
+						console.log("Error in GetSimulation callback: " + e);
+					}
+				});
+			} catch(e) {
+				console.log("Error calling GetSimulation: " + e);
+			}
 
-			GetSimulation("null",function (error, result){
-
-				console.log("simulation=" + result);
-				updateSimulationSwitch(result);
-			
-			})
-			
-			 GetFunctionProtection("null",HandleFunctionProtection);
-			
+			try {
+				GetFunctionProtection("null",HandleFunctionProtection);
+			} catch(e) {
+				console.log("Error calling GetFunctionProtection: " + e);
+			}
 		}
 	
 
@@ -2635,6 +2699,347 @@ var DetachDatabase = edge.func({
 
 
 		
+		//**************************************************************************************
+		//******  LIBRARY PACKAGER / EXPORTER **************************************************
+		//**************************************************************************************
+
+		var AdmZip = require('adm-zip');
+		var pkg_libraryFiles = [];
+		var pkg_demoMethodFiles = [];
+
+		// Fit exporter container height to window
+		function fitExporterHeight() {
+			if($(".methods-page").hasClass("d-none")){return;}
+			var exporterDiv = $(".exporter-container");
+			var height = window.innerHeight - $(".header1").outerHeight() - $(".header2").outerHeight();
+			exporterDiv.height(height);
+		}
+
+		// ---- File input button triggers ----
+		$(document).on("click", "#pkg-addLibFiles", function() {
+			$("#pkg-input-libfiles").trigger("click");
+		});
+		$(document).on("click", "#pkg-addLibFolder", function() {
+			$("#pkg-input-libfolder").trigger("click");
+		});
+		$(document).on("click", "#pkg-addDemoFiles", function() {
+			$("#pkg-input-demofiles").trigger("click");
+		});
+		$(document).on("click", "#pkg-addDemoFolder", function() {
+			$("#pkg-input-demofolder").trigger("click");
+		});
+
+		// ---- Library file inputs ----
+		$(document).on("change", "#pkg-input-libfiles", function() {
+			var fileInput = this;
+			for (var i = 0; i < fileInput.files.length; i++) {
+				var filePath = fileInput.files[i].path;
+				if (filePath && pkg_libraryFiles.indexOf(filePath) === -1) {
+					pkg_libraryFiles.push(filePath);
+				}
+			}
+			pkgUpdateLibFileList();
+			$(this).val('');
+		});
+
+		$(document).on("change", "#pkg-input-libfolder", function() {
+			var folderPath = $(this).val();
+			if (folderPath) {
+				try {
+					var files = fs.readdirSync(folderPath);
+					files.forEach(function(file) {
+						var filePath = path.join(folderPath, file);
+						try {
+							if (fs.statSync(filePath).isFile() && pkg_libraryFiles.indexOf(filePath) === -1) {
+								pkg_libraryFiles.push(filePath);
+							}
+						} catch(e) {}
+					});
+					pkgUpdateLibFileList();
+				} catch(e) {
+					alert("Error reading folder: " + e.message);
+				}
+			}
+			$(this).val('');
+		});
+
+		// ---- Demo method file inputs ----
+		$(document).on("change", "#pkg-input-demofiles", function() {
+			var fileInput = this;
+			for (var i = 0; i < fileInput.files.length; i++) {
+				var filePath = fileInput.files[i].path;
+				if (filePath && pkg_demoMethodFiles.indexOf(filePath) === -1) {
+					pkg_demoMethodFiles.push(filePath);
+				}
+			}
+			pkgUpdateDemoFileList();
+			$(this).val('');
+		});
+
+		$(document).on("change", "#pkg-input-demofolder", function() {
+			var folderPath = $(this).val();
+			if (folderPath) {
+				try {
+					var files = fs.readdirSync(folderPath);
+					files.forEach(function(file) {
+						var filePath = path.join(folderPath, file);
+						try {
+							if (fs.statSync(filePath).isFile() && pkg_demoMethodFiles.indexOf(filePath) === -1) {
+								pkg_demoMethodFiles.push(filePath);
+							}
+						} catch(e) {}
+					});
+					pkgUpdateDemoFileList();
+				} catch(e) {
+					alert("Error reading folder: " + e.message);
+				}
+			}
+			$(this).val('');
+		});
+
+		// ---- Remove selected files ----
+		$(document).on("click", "#pkg-removeLibFiles", function() {
+			var selected = [];
+			$("#pkg-lib-list .pkg-file-item.selected").each(function() {
+				selected.push($(this).attr("data-path"));
+			});
+			if (selected.length === 0) { return; }
+			pkg_libraryFiles = pkg_libraryFiles.filter(function(f) {
+				return selected.indexOf(f) === -1;
+			});
+			pkgUpdateLibFileList();
+		});
+
+		$(document).on("click", "#pkg-removeDemoFiles", function() {
+			var selected = [];
+			$("#pkg-demo-list .pkg-file-item.selected").each(function() {
+				selected.push($(this).attr("data-path"));
+			});
+			if (selected.length === 0) { return; }
+			pkg_demoMethodFiles = pkg_demoMethodFiles.filter(function(f) {
+				return selected.indexOf(f) === -1;
+			});
+			pkgUpdateDemoFileList();
+		});
+
+		// ---- Toggle file selection (click to select, ctrl+click for multi) ----
+		$(document).on("click", ".pkg-file-item", function(e) {
+			if (e.ctrlKey || e.metaKey) {
+				$(this).toggleClass("selected");
+			} else {
+				$(this).siblings().removeClass("selected");
+				$(this).toggleClass("selected");
+			}
+		});
+
+		// ---- Update file list displays ----
+		function pkgUpdateLibFileList() {
+			var $list = $("#pkg-lib-list");
+			$list.empty();
+			if (pkg_libraryFiles.length === 0) {
+				$list.html('<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No library files added</div>');
+			} else {
+				pkg_libraryFiles.forEach(function(f) {
+					var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+					$list.append(
+						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
+						'<i class="far fa-file pkg-file-icon"></i>' +
+						'<span class="pkg-file-name">' + path.basename(f) + '</span>' +
+						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'</div>'
+					);
+				});
+			}
+			$("#pkg-lib-count").text(pkg_libraryFiles.length + " file" + (pkg_libraryFiles.length !== 1 ? "s" : ""));
+		}
+
+		function pkgUpdateDemoFileList() {
+			var $list = $("#pkg-demo-list");
+			$list.empty();
+			if (pkg_demoMethodFiles.length === 0) {
+				$list.html('<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No demo method files added</div>');
+			} else {
+				pkg_demoMethodFiles.forEach(function(f) {
+					var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+					$list.append(
+						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
+						'<i class="far fa-file pkg-file-icon"></i>' +
+						'<span class="pkg-file-name">' + path.basename(f) + '</span>' +
+						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'</div>'
+					);
+				});
+			}
+			$("#pkg-demo-count").text(pkg_demoMethodFiles.length + " file" + (pkg_demoMethodFiles.length !== 1 ? "s" : ""));
+		}
+
+		// ---- Reset form ----
+		$(document).on("click", "#pkg-reset", function() {
+			$("#pkg-author").val('');
+			$("#pkg-organization").val('');
+			$("#pkg-version").val('');
+			$("#pkg-venus-compat").val('');
+			$("#pkg-description").val('');
+			$("#pkg-tags").val('');
+			pkg_libraryFiles = [];
+			pkg_demoMethodFiles = [];
+			pkgUpdateLibFileList();
+			pkgUpdateDemoFileList();
+		});
+
+		// ---- Create Package button ----
+		$(document).on("click", "#pkg-create", function() {
+			// Validate required fields
+			var author = $("#pkg-author").val().trim();
+			var version = $("#pkg-version").val().trim();
+
+			if (!author) {
+				alert("Author Name is required.");
+				$("#pkg-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (!version) {
+				alert("Library Version Number is required.");
+				$("#pkg-version").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (pkg_libraryFiles.length === 0) {
+				alert("Please add at least one library file.");
+				return;
+			}
+
+			// Verify all files still exist
+			for (var i = 0; i < pkg_libraryFiles.length; i++) {
+				if (!fs.existsSync(pkg_libraryFiles[i])) {
+					alert("Library file not found:\n" + pkg_libraryFiles[i]);
+					return;
+				}
+			}
+			for (var i = 0; i < pkg_demoMethodFiles.length; i++) {
+				if (!fs.existsSync(pkg_demoMethodFiles[i])) {
+					alert("Demo method file not found:\n" + pkg_demoMethodFiles[i]);
+					return;
+				}
+			}
+
+			// Detect library name from first .hsl file
+			var libName = "Unknown";
+			for (var i = 0; i < pkg_libraryFiles.length; i++) {
+				if (pkg_libraryFiles[i].toLowerCase().endsWith(".hsl")) {
+					libName = path.basename(pkg_libraryFiles[i], path.extname(pkg_libraryFiles[i]));
+					break;
+				}
+			}
+
+			// Set default filename and trigger save dialog
+			$("#pkg-save-dialog").attr("nwsaveas", libName + ".hxlibpkg");
+			$("#pkg-save-dialog").trigger("click");
+		});
+
+		// Clear red styling when user types in required fields
+		$(document).on("input", "#pkg-author, #pkg-version", function() {
+			$(this).css({"border": "", "background": ""});
+		});
+
+		// ---- Save dialog result ----
+		$(document).on("change", "#pkg-save-dialog", function() {
+			var savePath = $(this).val();
+			if (!savePath) return;
+			$(this).val('');
+			pkgCreatePackageFile(savePath);
+		});
+
+		// ---- Core packaging function ----
+		function pkgCreatePackageFile(savePath) {
+			try {
+				var author = $("#pkg-author").val().trim();
+				var organization = $("#pkg-organization").val().trim();
+				var version = $("#pkg-version").val().trim();
+				var venusCompat = $("#pkg-venus-compat").val().trim();
+				var description = $("#pkg-description").val().trim();
+				var tagsRaw = $("#pkg-tags").val().trim();
+
+				// Parse tags
+				var tags = [];
+				if (tagsRaw) {
+					tagsRaw.split(",").forEach(function(t) {
+						t = t.trim();
+						if (t) tags.push(t);
+					});
+				}
+
+				// Detect library name from the first .hsl file
+				var libName = "Unknown";
+				for (var i = 0; i < pkg_libraryFiles.length; i++) {
+					if (pkg_libraryFiles[i].toLowerCase().endsWith(".hsl")) {
+						libName = path.basename(pkg_libraryFiles[i], path.extname(pkg_libraryFiles[i]));
+						break;
+					}
+				}
+
+				// Find matching BMP image (same name as .hsl file)
+				var libImageFilename = null;
+				var libImageBase64 = null;
+				if (libName !== "Unknown") {
+					var targetBmp = libName + ".bmp";
+					for (var i = 0; i < pkg_libraryFiles.length; i++) {
+						if (path.basename(pkg_libraryFiles[i]).toLowerCase() === targetBmp.toLowerCase()) {
+							try {
+								libImageFilename = path.basename(pkg_libraryFiles[i]);
+								libImageBase64 = fs.readFileSync(pkg_libraryFiles[i]).toString('base64');
+							} catch(e) {}
+							break;
+						}
+					}
+				}
+
+				// Build manifest JSON (matches C# HxLibPkgManifest.ToJson() format)
+				var manifest = {
+					format_version: "1.0",
+					library_name: libName,
+					author: author,
+					organization: organization,
+					version: version,
+					venus_compatibility: venusCompat,
+					description: description,
+					tags: tags,
+					created_date: new Date().toISOString(),
+					library_image: libImageFilename,
+					library_image_base64: libImageBase64,
+					library_files: pkg_libraryFiles.map(function(f) { return path.basename(f); }),
+					demo_method_files: pkg_demoMethodFiles.map(function(f) { return path.basename(f); })
+				};
+
+				// Create ZIP package using adm-zip
+				var zip = new AdmZip();
+
+				// Add manifest.json
+				zip.addFile("manifest.json", Buffer.from(JSON.stringify(manifest, null, 2), "utf8"));
+
+				// Add library files under library/ directory
+				pkg_libraryFiles.forEach(function(fpath) {
+					zip.addLocalFile(fpath, "library");
+				});
+
+				// Add demo method files under demo_methods/ directory
+				pkg_demoMethodFiles.forEach(function(fpath) {
+					zip.addLocalFile(fpath, "demo_methods");
+				});
+
+				// Write the ZIP file
+				zip.writeZip(savePath);
+
+				alert("Package created successfully!\n\n" +
+					savePath + "\n\n" +
+					"Library: " + libName + "\n" +
+					"Library files: " + pkg_libraryFiles.length + "\n" +
+					"Demo method files: " + pkg_demoMethodFiles.length);
+
+			} catch(e) {
+				alert("Error creating package:\n" + e.message);
+			}
+		}
+
         //**************************************************************************************
         //******  FUNCTION DECLARATIONS END ****************************************************
         //**************************************************************************************
