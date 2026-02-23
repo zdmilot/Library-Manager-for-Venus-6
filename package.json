@@ -1,14 +1,14 @@
 {
-  "name": "Method Manager",
+  "name": "Library Manager",
   "main": "html/index.html",
-  "description": "Method Manager",
+  "description": "Library Manager",
   "version": "1.0.0",
   "keywords": [
     "VENUS",
     "Hamilton"
   ],
   "window": {
-    "title": "Method Manager",
+    "title": "Library Manager",
     "icon": "/Hamilton_icon.png",
     "toolbar": true,
     "frame": true,
