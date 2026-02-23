@@ -496,3 +496,141 @@ body {
 				margin-top: 7px;
 			}
 
+/* ---- Detail Modal ---- */
+#detailModal .modal-backdrop {
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.detail-modal-content {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+	overflow: hidden;
+}
+
+.detail-modal-header {
+	background: var(--dark1);
+	color: white;
+	border-bottom: 3px solid var(--medium);
+	padding: 20px 24px;
+}
+
+.detail-modal-header .close {
+	color: white;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.detail-modal-header .close:hover {
+	opacity: 1;
+}
+
+.detail-modal-icon i {
+	color: var(--medium);
+}
+
+.detail-modal-icon img {
+	max-width: 56px;
+	max-height: 56px;
+	border-radius: 6px;
+}
+
+.detail-modal-name {
+	font-weight: 600;
+	font-size: 1.25rem;
+}
+
+.detail-modal-type {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	background-color: var(--medium);
+	color: white;
+}
+
+.detail-modal-body {
+	padding: 24px;
+	background: var(--method-background);
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.detail-section {
+	margin-bottom: 16px;
+}
+
+.detail-section:last-child {
+	margin-bottom: 0;
+}
+
+.detail-section-label {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.8px;
+	color: var(--medium2);
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.detail-section p {
+	margin-bottom: 0;
+	font-size: 0.95rem;
+}
+
+.detail-modal-path {
+	word-break: break-all;
+	font-family: 'Consolas', 'Courier New', monospace;
+	font-size: 0.85rem !important;
+	background: var(--body-background);
+	padding: 6px 10px;
+	border-radius: 6px;
+}
+
+.detail-custom-fields-list .detail-field-row {
+	display: flex;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--body-background);
+}
+
+.detail-custom-fields-list .detail-field-row:last-child {
+	border-bottom: none;
+}
+
+.detail-field-key {
+	font-weight: 600;
+	color: var(--dark1);
+	min-width: 140px;
+	font-size: 0.9rem;
+}
+
+.detail-field-value {
+	color: #555;
+	font-size: 0.9rem;
+}
+
+.detail-attachments-list a {
+	display: block;
+	padding: 4px 0;
+	color: var(--medium2);
+	font-size: 0.9rem;
+}
+
+.detail-attachments-list a:hover {
+	color: var(--medium);
+}
+
+.detail-modal-footer {
+	background: var(--method-background);
+	border-top: 1px solid var(--body-background);
+	padding: 12px 24px;
+}
+
+.link-card .link-info-trigger {
+	cursor: pointer;
+	color: var(--gray_blue);
+	transition: color 0.15s;
+}
+
+.link-card .link-info-trigger:hover {
+	color: var(--medium);
+}

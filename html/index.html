@@ -37,13 +37,7 @@
 									<div class="progress-bar cleanup-progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 								</div>
 							</div>
-							<div class="custom-control custom-switch simulation-status">
-								<input type="checkbox" class="custom-control-input" id="simulation-switch">
-								<label class="custom-control-label cursor-pointer" for="simulation-switch">Simulation <span class="sim-on-off ml-1">Off</span></label>
-							</div>
-							<div class="simulation-text">
-									</label>
-							</div>
+
 							<button class="btn btn-sm my-2 ml-4 solid-button btn-settings d-none">
 								Settings
 							</button>
@@ -119,13 +113,7 @@
 					<!----Settings > Links end--->
 					<!----Settings > Settings start--->
 					<div class="settings-settings row no-gutters col-md-12 d-none">
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Simulation</h6>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input" id="chk_settingSimulation" checked> 
-								<label class="custom-control-label" for="chk_settingSimulation">Allow switch simulation on/off</label>
-							</div>
-						</div>
+
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Run Control</h6>
 							<div class="custom-control custom-checkbox">
@@ -512,6 +500,24 @@
 									</div>
 
 								</div>
+
+								<hr class="mt-3 mb-3">
+								<div class="form-group">
+									<label class="text-muted small mb-1">Version</label>
+									<input class="form-control form-control-sm txt-version" type="text"
+										placeholder="e.g. 1.0.0">
+								</div>
+								<div class="form-group">
+									<label class="text-muted small mb-1">VENUS Build Number</label>
+									<input class="form-control form-control-sm txt-buildnumber" type="text"
+										placeholder="e.g. 4.7.2.6437">
+								</div>
+								<div class="form-group">
+									<label class="text-muted small mb-1">Custom Fields <span class="text-muted small">(key=value, one per line)</span></label>
+									<textarea class="form-control form-control-sm txt-customfields" rows="3"
+										placeholder="Author=John Doe&#10;Department=Assay Dev&#10;Status=Validated"></textarea>
+								</div>
+
 							</div>
 						</form>
 
@@ -852,7 +858,69 @@
 		</div><!-- /.modal-dialog -->
 	  </div><!-- /.modal -->
 
-	  	<!--Modal pass start --->
+	  	<!----modal detail start--->
+	<div class="modal" tabindex="-1" role="dialog" id="detailModal">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="detail-modal-icon mr-3">
+							<i class="fad fa-dna fa-3x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title detail-modal-name mb-0"></h5>
+							<span class="detail-modal-type badge badge-secondary mt-1"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<div class="detail-section">
+						<h6 class="detail-section-label">Description</h6>
+						<p class="detail-modal-description text-muted"></p>
+					</div>
+					<div class="detail-section">
+						<h6 class="detail-section-label">File Path</h6>
+						<p class="detail-modal-path text-muted text-sm"></p>
+					</div>
+					<div class="row detail-row">
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Version</h6>
+								<p class="detail-modal-version text-muted"></p>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">VENUS Build Number</h6>
+								<p class="detail-modal-buildnumber text-muted"></p>
+							</div>
+						</div>
+					</div>
+					<div class="detail-section detail-custom-fields">
+						<h6 class="detail-section-label">Details</h6>
+						<div class="detail-custom-fields-list">
+							<!-- populated dynamically -->
+						</div>
+					</div>
+					<div class="detail-section detail-attachments-section d-none">
+						<h6 class="detail-section-label">Attachments</h6>
+						<div class="detail-attachments-list">
+							<!-- populated dynamically -->
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--Modal Detail end --->
+
+	<!--Modal pass start --->
 		  <div class="modal" tabindex="-1" role="dialog" id="passModal">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">

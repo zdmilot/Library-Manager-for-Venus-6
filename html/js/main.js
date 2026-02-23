@@ -1200,6 +1200,7 @@ var DetachDatabase = edge.func({
 													'<i class="' + ellipsis_class + ' far fa-ellipsis-v fa-md color-grayblue"></i>' +
 													'</span><div class="dropdown-menu" aria-labelledby="' + ddownMenu_id + '">' + divAttachments +
 														'<div class="dropdown-divider"></div>' +
+														'<a class="dropdown-item link-detail-trigger cursor-pointer" href="#" onclick="showDetailModal(\'' + id + '\');"><i class="far fa-info-circle fa-sm mr-2 color-blue"></i>View Details</a>' +
 														'<a class="dropdown-item ' + strTmpClass2 + ' link-OpenMethEditor  cursor-pointer" href="#"><i class="far fa-pencil fa-sm mr-2 color-blue"></i>Open in Method Editor</a>' +
 														'<a class="dropdown-item ' + strTmpClass2 + ' link-OpenMethLocation  cursor-pointer" href="#" data-dir="' + path.dirname(method_path) + '"><i class="far fa-folder fa-sm mr-2 color-blue"></i>Open method location</a>' +
 														'<a class="dropdown-item text-muted tooltip-delay500 link-run-trigger cursor-pointer" href="#" data-toggle="tooltip" title="' + method_path + '">' +
@@ -1368,6 +1369,100 @@ var DetachDatabase = edge.func({
 			confirmDeleteModal(id, "link");
 		}
 
+		function showDetailModal(id){
+			var method = db_links.links.findOne({"_id": id});
+			if(!method) return;
+
+			var name = method["name"] || "";
+			var description = method["description"] || "";
+			var icon_customImage = method["icon-customImage"] || "";
+			var icon_class = method["icon-class"] || "fa-file";
+			var icon_color = method["icon-color"] || "color-dark";
+			var method_path = method["path"] || "";
+			var method_type = method["type"] || "";
+			var attachments = method["attachments"] || [];
+			var version = method["version"] || "—";
+			var buildNumber = method["build-number"] || "—";
+			var customFields = method["custom-fields"] || {};
+
+			// Set icon or image
+			var $icon = $("#detailModal .detail-modal-icon");
+			$icon.empty();
+			if(icon_customImage && icon_customImage !== "" && icon_customImage !== "placeholder"){
+				var imgExists = false;
+				try { imgExists = fs.existsSync(icon_customImage); } catch(e){}
+				if(!imgExists && method["default"]){
+					try { imgExists = fs.existsSync("html/img/" + icon_customImage); } catch(e){}
+					if(imgExists) icon_customImage = "img/" + icon_customImage;
+				}
+				if(imgExists){
+					$icon.html('<img src="' + icon_customImage + '">');
+				} else {
+					$icon.html('<i class="fad fa-image fa-3x color-gray"></i>');
+				}
+			} else {
+				$icon.html('<i class="fad ' + icon_class + ' fa-3x ' + icon_color + '"></i>');
+			}
+
+			// Set name and type
+			$("#detailModal .detail-modal-name").text(name);
+			$("#detailModal .detail-modal-type").text(method_type);
+
+			// Set description
+			if(description){
+				$("#detailModal .detail-modal-description").text(description).closest(".detail-section").removeClass("d-none");
+			} else {
+				$("#detailModal .detail-modal-description").closest(".detail-section").addClass("d-none");
+			}
+
+			// Set file path
+			$("#detailModal .detail-modal-path").text(method_path);
+
+			// Set version and build number
+			$("#detailModal .detail-modal-version").text(version);
+			$("#detailModal .detail-modal-buildnumber").text(buildNumber);
+
+			// Build custom fields
+			var $customList = $("#detailModal .detail-custom-fields-list");
+			$customList.empty();
+			var hasCustom = false;
+			if(customFields && typeof customFields === "object"){
+				var keys = Object.keys(customFields);
+				for(var c = 0; c < keys.length; c++){
+					hasCustom = true;
+					$customList.append(
+						'<div class="detail-field-row">' +
+							'<span class="detail-field-key">' + keys[c] + '</span>' +
+							'<span class="detail-field-value">' + customFields[keys[c]] + '</span>' +
+						'</div>'
+					);
+				}
+			}
+			if(hasCustom){
+				$("#detailModal .detail-custom-fields").removeClass("d-none");
+			} else {
+				$("#detailModal .detail-custom-fields").addClass("d-none");
+			}
+
+			// Build attachments
+			var $attList = $("#detailModal .detail-attachments-list");
+			$attList.empty();
+			if(attachments && attachments.length > 0){
+				for(var a = 0; a < attachments.length; a++){
+					$attList.append(
+						'<a href="#" class="link-attachment" data-filepath="' + attachments[a] + '">' +
+							'<i class="far fa-paperclip fa-sm mr-2 color-blue"></i>' + path.basename(attachments[a]) +
+						'</a>'
+					);
+				}
+				$("#detailModal .detail-attachments-section").removeClass("d-none");
+			} else {
+				$("#detailModal .detail-attachments-section").addClass("d-none");
+			}
+
+			$("#detailModal").modal("show");
+		}
+
 		function groupNew(){
 			editModal("group","new","");
 		}
@@ -1449,6 +1544,22 @@ var DetachDatabase = edge.func({
 						attachments.push(attachment);
 					}
 				}
+				var version = $('#editModal .txt-version').val() || "";
+				var buildNumber = $('#editModal .txt-buildnumber').val() || "";
+				var customFieldsText = $('#editModal .txt-customfields').val() || "";
+				var customFields = {};
+				if(customFieldsText.trim() !== ""){
+					var cfLines = customFieldsText.split("\n");
+					for(var cf = 0; cf < cfLines.length; cf++){
+						var eqIndex = cfLines[cf].indexOf("=");
+						if(eqIndex > 0){
+							var key = cfLines[cf].substring(0, eqIndex).trim();
+							var val = cfLines[cf].substring(eqIndex + 1).trim();
+							if(key !== "") customFields[key] = val;
+						}
+					}
+				}
+
 				var icon_customImage = "";
 				if($("#inputImg-image").prop("checked")){
 					icon_customImage = $('#editModal .txt-image').val();
@@ -1483,7 +1594,10 @@ var DetachDatabase = edge.func({
 						"icon-color": icon_color,
 						"path": link_path,
 						"type": filetype,
-						"attachments": attachments
+						"attachments": attachments,
+						"version": version,
+						"build-number": buildNumber,
+						"custom-fields": customFields
 					};
 
 					//SAVE LINK DATA
@@ -1512,7 +1626,10 @@ var DetachDatabase = edge.func({
 						"default": false,
 						"favorite": true,
 						"last-started": "",
-						"last-startedUTC": 0
+						"last-startedUTC": 0,
+						"version": version,
+						"build-number": buildNumber,
+						"custom-fields": customFields
 					};
 					var saved = db_links.links.save(dataToSave);
 					
@@ -1724,6 +1841,17 @@ var DetachDatabase = edge.func({
 							$("#editModal .txt-attach"+index).closest(".form-group").find(".clear-field").removeClass("d-none");
 						}
 					}
+
+					//SET Version, Build Number and Custom Fields
+					$("#editModal .txt-version").val(method["version"] || "");
+					$("#editModal .txt-buildnumber").val(method["build-number"] || "");
+					var cfObj = method["custom-fields"] || {};
+					var cfLines = [];
+					var cfKeys = Object.keys(cfObj);
+					for(var cf = 0; cf < cfKeys.length; cf++){
+						cfLines.push(cfKeys[cf] + "=" + cfObj[cfKeys[cf]]);
+					}
+					$("#editModal .txt-customfields").val(cfLines.join("\n"));
 				}
 				if(newOrEdit == "new"){
 					var group_id = id;
@@ -1756,6 +1884,8 @@ var DetachDatabase = edge.func({
 					//RESET all input fields
 					$("#editModal input[type=file], #editModal input[type=text]").val('');
 					$("#editModal .txt-linkName,#editModal .txt-description, #editModal .txt-image").val('');
+					$("#editModal .txt-version, #editModal .txt-buildnumber").val('');
+					$("#editModal .txt-customfields").val('');
 					$("#editModal .clear-text, #editModal .clear-field").addClass("d-none");
 				}
 
