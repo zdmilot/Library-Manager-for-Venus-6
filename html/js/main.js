@@ -38,6 +38,8 @@
 
 		var bool_treeChanged = false; //tracks if the tree of groups/methods has been edited to re-create groups when coming back to Home screen from Settings screen.
 
+		var linksDirectoryPath = "C:\\Program Files (x86)\\Hamilton\\Library";
+
 		var int_maxRecent = 10;
 
 		var functionProtection = 0;
@@ -173,6 +175,7 @@ var DetachDatabase = edge.func({
 				// fitMainDivHeight();
 				
 				// createGroups();
+				scanLinksDirectory();
 				$.when(initVENUSData()).then(createGroups()).then(
 					setTimeout(function(){historyCleanup()},100)
 				).then(fitSettingsDivHeight());
@@ -2291,6 +2294,137 @@ var DetachDatabase = edge.func({
 					}
 			}
 
+
+		function scanLinksDirectory() {
+			// Check if the links directory exists
+			if (!fs.existsSync(linksDirectoryPath)) {
+				console.log("Links directory does not exist: " + linksDirectoryPath);
+				return;
+			}
+
+			// Find or create the "Libraries" group (diskdb auto-generates _id, so find by name)
+			var libGroup = db_groups.groups.findOne({"name": "Libraries", "source": "directory-scan"});
+			var groupId;
+
+			if (!libGroup) {
+				var savedGroup = db_groups.groups.save({
+					"name": "Libraries",
+					"icon-class": "fa-book",
+					"default": false,
+					"navbar": "left",
+					"favorite": true,
+					"source": "directory-scan"
+				});
+				groupId = savedGroup._id;
+			} else {
+				groupId = libGroup._id;
+			}
+
+			// Read all files from the directory
+			var files;
+			try {
+				files = fs.readdirSync(linksDirectoryPath);
+			} catch (err) {
+				console.log("Error reading links directory: " + err);
+				return;
+			}
+
+			var allLinks = db_links.links.find();
+			var newLinkIds = [];
+			var currentFilePaths = [];
+
+			files.forEach(function(file) {
+				var filePath = path.join(linksDirectoryPath, file);
+				try {
+					var stats = fs.statSync(filePath);
+					if (stats.isFile()) {
+						currentFilePaths.push(filePath);
+
+						// Check if a link with this path already exists
+						var existingLink = allLinks.find(function(link) {
+							return link.path === filePath;
+						});
+
+						if (!existingLink) {
+							var fileName = path.basename(file, path.extname(file));
+							var saved = db_links.links.save({
+								"name": fileName,
+								"description": "",
+								"icon-customImage": "",
+								"icon-class": "fa-file-code",
+								"icon-color": "color-blue",
+								"path": filePath,
+								"type": "file",
+								"attachments": [],
+								"default": false,
+								"favorite": true,
+								"last-started": "",
+								"last-startedUTC": 0,
+								"source": "directory-scan"
+							});
+							newLinkIds.push(saved._id);
+						}
+					}
+				} catch (err) {
+					console.log("Error processing file: " + file + " - " + err);
+				}
+			});
+
+			// Get or create the tree entry for the Libraries group using the actual group _id
+			var treeEntry = db_tree.tree.findOne({"group-id": groupId});
+
+			if (treeEntry) {
+				var existingMethodIds = treeEntry["method-ids"] || [];
+
+				// Keep manually-added links and auto-scanned links whose files still exist
+				var validIds = [];
+				existingMethodIds.forEach(function(id) {
+					var link = db_links.links.findOne({"_id": id});
+					if (link) {
+						if (link.source === "directory-scan") {
+							// Auto-scanned link: keep only if file still exists in directory
+							if (currentFilePaths.indexOf(link.path) !== -1) {
+								validIds.push(id);
+							} else {
+								db_links.links.remove({"_id": id});
+							}
+						} else {
+							// Manually added link: always keep
+							validIds.push(id);
+						}
+					}
+				});
+
+				var updatedMethodIds = validIds.concat(newLinkIds);
+				db_tree.tree.update({"group-id": groupId}, {"method-ids": updatedMethodIds}, {multi: false, upsert: false});
+			} else {
+				// No tree entry yet — collect IDs of all scanned links already in the DB
+				var existingScannedIds = [];
+				allLinks.forEach(function(link) {
+					if (link.source === "directory-scan" && currentFilePaths.indexOf(link.path) !== -1) {
+						existingScannedIds.push(link._id);
+					}
+				});
+				var allMethodIds = existingScannedIds.concat(newLinkIds);
+				db_tree.tree.save({
+					"group-id": groupId,
+					"method-ids": allMethodIds,
+					"locked": false
+				});
+			}
+
+			// Clean up any orphaned tree entries referencing old invalid group IDs (e.g. "gLibraries")
+			var allTreeEntries = db_tree.tree.find();
+			allTreeEntries.forEach(function(entry) {
+				var gid = entry["group-id"];
+				if (gid !== groupId && !db_groups.groups.findOne({"_id": gid})) {
+					// Orphaned tree entry with no matching group - remove it
+					db_tree.tree.remove({"_id": entry._id});
+				}
+			});
+
+			console.log("Scanned links directory: " + linksDirectoryPath + " - added " + newLinkIds.length + " new links, group id: " + groupId);
+		}
 
 		function initVENUSData(){
 
