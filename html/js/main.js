@@ -292,6 +292,20 @@ var DetachDatabase = edge.func({
 			
         });
         
+        //Open detail modal when clicking a card body
+		$(document).on("click", ".link-detail-trigger", function () {
+			var id = $(this).attr("data-id") || $(this).closest(".link-card-container").attr("data-id");
+			if(id){ showDetailModal(id); }
+		});
+
+		//Open HSL Definition file
+		$(document).on("click", ".link-OpenHSL", function () {
+			var file_path = $(this).closest(".link-card-container").attr("data-filepath");
+			if(file_path && file_path !== ""){
+				nw.Shell.openItem(file_path);
+			}
+		});
+
         //Run a method when clicking a card in the main div
 		$(document).on("click", ".link-run-trigger", function () {
 			var file_type = $(this).closest(".link-card-container").attr("data-type");
@@ -1200,7 +1214,8 @@ var DetachDatabase = edge.func({
 													'<i class="' + ellipsis_class + ' far fa-ellipsis-v fa-md color-grayblue"></i>' +
 													'</span><div class="dropdown-menu" aria-labelledby="' + ddownMenu_id + '">' + divAttachments +
 														'<div class="dropdown-divider"></div>' +
-														'<a class="dropdown-item link-detail-trigger cursor-pointer" href="#" onclick="showDetailModal(\'' + id + '\');"><i class="far fa-info-circle fa-sm mr-2 color-blue"></i>View Details</a>' +
+														'<a class="dropdown-item link-detail-trigger cursor-pointer" href="#" data-id="' + id + '"><i class="far fa-info-circle fa-sm mr-2 color-blue"></i>View Details</a>' +
+														'<a class="dropdown-item link-OpenHSL cursor-pointer" href="#"><i class="far fa-file-code fa-sm mr-2 color-blue"></i>Open HSL Definition</a>' +
 														'<a class="dropdown-item ' + strTmpClass2 + ' link-OpenMethEditor  cursor-pointer" href="#"><i class="far fa-pencil fa-sm mr-2 color-blue"></i>Open in Method Editor</a>' +
 														'<a class="dropdown-item ' + strTmpClass2 + ' link-OpenMethLocation  cursor-pointer" href="#" data-dir="' + path.dirname(method_path) + '"><i class="far fa-folder fa-sm mr-2 color-blue"></i>Open method location</a>' +
 														'<a class="dropdown-item text-muted tooltip-delay500 link-run-trigger cursor-pointer" href="#" data-toggle="tooltip" title="' + method_path + '">' +
@@ -1209,11 +1224,11 @@ var DetachDatabase = edge.func({
 														'</div>' +
 													'</div>' + //end of dropdown div
 												'<div class="clearfix"></div>'+
-												'<div class="link-run-trigger tooltip-delay1000" data-toggle="tooltip" title="' + tooltip_text + name + '">' +
+												'<div class="link-detail-trigger tooltip-delay1000 cursor-pointer" data-id="' + id + '" data-toggle="tooltip" title="' + tooltip_text + name + '">' +
 												div_linkimage +
 												'<h5>' + name + '</h5>' +
 												'<p class="text-muted">' + description + '</p>' +
-												'</div>' + //end of link-run-trigger div
+												'</div>' + //end of link-detail-trigger div
 												'</div>' + //end of link-card div
 											'</div>';//end of col-md-4 div
 
