@@ -18,7 +18,7 @@
 			<div class="col-md-12">
 				<nav class="navbar navbar-expand navbar-light bg-light">
 					<img src="img\Hamilton_logo.png" height="20" alt="" class="brand-logo d-inline-block">
-					<span class="txt-xs color-lightgray click-count d-inline-block ml-1"></span>
+
 					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 						
 						<ul class="navbar-nav ml-4">
@@ -134,6 +134,25 @@
 								</div>
 							</div>
 
+							<!-- Icon / Image Section -->
+							<div class="card mb-3 exporter-card">
+								<div class="card-header"><i class="fas fa-image mr-2 color-medium"></i>Library Icon / Image</div>
+								<div class="card-body">
+									<p class="text-muted text-sm mb-2">Choose an image to represent this library in the installed libraries list. If none is selected, the packager will auto-detect a .bmp matching the library name.</p>
+									<div class="d-flex align-items-center">
+										<div class="pkg-icon-preview mr-3" id="pkg-icon-preview">
+											<i class="fas fa-image fa-2x" style="color:#ccc;"></i>
+										</div>
+										<div>
+											<button class="btn btn-sm btn-outlined" id="pkg-pickIcon">Choose Image...</button>
+											<button class="btn btn-sm btn-outlined ml-1" id="pkg-removeIcon" style="display:none;">Remove</button>
+											<input type="file" class="d-none" id="pkg-input-icon" accept=".png,.jpg,.jpeg,.bmp,.ico,.gif,.svg">
+											<div class="text-muted text-sm mt-1" id="pkg-icon-name">No image selected</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
 							<!-- Library Files Section -->
 							<div class="card mb-3 exporter-card">
 								<div class="card-header">
@@ -193,84 +212,22 @@
 			<!-- Library Importer tool -->
 			<div class="importer-container d-none">
 				<div class="importer-inner p-4">
-					<div class="row justify-content-center">
-						<div class="col-lg-8 col-md-10">
-							<h4 class="mb-1"><i class="fas fa-file-import mr-2 color-medium"></i>Library Importer</h4>
-							<p class="text-muted mb-4">Install a <b>.hxlibpkg</b> package into your Hamilton VENUS environment.</p>
-
-							<!-- Select Package -->
-							<div class="card mb-3 importer-card">
-								<div class="card-header"><i class="fas fa-folder-open mr-2 color-medium"></i>Select Package</div>
-								<div class="card-body">
-									<div class="d-flex align-items-center">
-										<button class="btn btn-sm btn-outlined mr-3" id="imp-browse"><i class="fas fa-file-archive mr-1"></i>Browse...</button>
-										<span class="text-muted text-sm" id="imp-file-label">No file selected</span>
-										<input type="file" class="d-none" id="imp-input-file" accept=".hxlibpkg">
-									</div>
-								</div>
-							</div>
-
-							<!-- Package Info (hidden until file loaded) -->
-							<div id="imp-details" class="d-none">
-								<!-- Metadata Section -->
-								<div class="card mb-3 importer-card">
-									<div class="card-header"><i class="fas fa-info-circle mr-2 color-medium"></i>Package Metadata</div>
-									<div class="card-body">
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Library Name</div><div class="col-sm-8 text-sm" id="imp-lib-name">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Author</div><div class="col-sm-8 text-sm" id="imp-author">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Organization</div><div class="col-sm-8 text-sm" id="imp-organization">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Version</div><div class="col-sm-8 text-sm" id="imp-version">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">VENUS Compatibility</div><div class="col-sm-8 text-sm" id="imp-venus-compat">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Created Date</div><div class="col-sm-8 text-sm" id="imp-created-date">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Description</div><div class="col-sm-8 text-sm" id="imp-description">—</div></div>
-										<div class="row mb-1"><div class="col-sm-4 text-sm font-weight-bold">Tags</div><div class="col-sm-8 text-sm" id="imp-tags">—</div></div>
-									</div>
-								</div>
-
-								<!-- Library Image -->
-								<div class="card mb-3 importer-card d-none" id="imp-image-card">
-									<div class="card-header"><i class="fas fa-image mr-2 color-medium"></i>Library Image</div>
-									<div class="card-body text-center">
-										<img id="imp-lib-image" src="" style="max-width:200px; max-height:150px;">
-									</div>
-								</div>
-
-								<!-- Library Files -->
-								<div class="card mb-3 importer-card">
-									<div class="card-header">
-										<i class="fas fa-book mr-2 color-medium"></i>Library Files
-										<span class="text-muted ml-2 text-sm font-weight-normal" id="imp-lib-dest"></span>
-									</div>
-									<div class="card-body">
-										<span class="text-muted text-sm" id="imp-lib-count">0 files</span>
-										<div class="pkg-file-list mt-2" id="imp-lib-list">
-											<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No library files</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Demo Method Files -->
-								<div class="card mb-3 importer-card">
-									<div class="card-header">
-										<i class="fas fa-flask mr-2 color-medium"></i>Demo Method Files
-										<span class="text-muted ml-2 text-sm font-weight-normal" id="imp-demo-dest"></span>
-									</div>
-									<div class="card-body">
-										<span class="text-muted text-sm" id="imp-demo-count">0 files</span>
-										<div class="pkg-file-list mt-2" id="imp-demo-list">
-											<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No demo method files</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Install Actions -->
-								<div class="text-center mt-4 mb-5">
-									<button class="btn solid-button btn-lg" id="imp-install"><i class="fas fa-download mr-2"></i>Install Library</button>
-									<div class="mt-2">
-										<button class="btn btn-sm btn-link text-muted" id="imp-reset"><i class="fas fa-undo mr-1"></i>Clear</button>
-									</div>
-								</div>
-							</div>
+					<!-- Header row with title and Import button (only shown on All tab) -->
+					<div class="d-flex align-items-center mb-4" id="imp-header">
+						<div>
+							<h4 class="mb-0"><i class="fas fa-book mr-2 color-medium"></i>Installed Libraries</h4>
+							<p class="text-muted mb-0 text-sm">Libraries installed from <b>.hxlibpkg</b> packages</p>
+						</div>
+						<div class="ml-auto">
+							<button class="btn solid-button" id="imp-browse"><i class="fas fa-file-import mr-2"></i>Import Package</button>
+							<input type="file" class="d-none" id="imp-input-file" accept=".hxlibpkg">
+						</div>
+					</div>
+					<!-- Installed library cards grid -->
+					<div class="row no-gutters" id="imp-cards-container">
+						<div class="w-100 text-center py-5 imp-empty-state">
+							<i class="fas fa-inbox fa-3x color-lightgray"></i>
+							<p class="text-muted mt-3">No libraries installed yet.<br>Click <b>Import Package</b> to install a .hxlibpkg file.</p>
 						</div>
 					</div>
 				</div>
@@ -283,12 +240,11 @@
 				<div class="nav-settings no-gutters col-md-12 mb-3">
 					<nav>
 						<ul class="h-menu">
-							<li><a href="#" class="active" data-div="settings-links">Links</a></li>
+							<li><a href="#" class="active" data-div="settings-links">Library Groups</a></li>
 							<li><a href="#" data-div="settings-settings">Settings</a></li>
 							<!-- <li><a href="#" data-div="settings-settings">Import/Export</a></li> -->
 							<li class="float-right mt-4 btn-newgroup">
 								<span class="text-xs mr-4 color-gray"><i class="fas fa-arrows-alt-v color-medium mr-2"></i>Drag items to reorder</span>
-								<span class="text-xs mr-4 color-gray"><i class="fas fa-star color-medium mr-2"></i>Show in home screen</span>
 								<button class="btn btn-sm btn-outlined">New group</button>
 							</li>
 						</ul>
@@ -1112,31 +1068,188 @@
 	</div>
 	<!--Modal Detail end --->
 
-	<!--Modal pass start --->
-		  <div class="modal" tabindex="-1" role="dialog" id="passModal">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title"></h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
+	<!----modal library detail start--->
+	<div class="modal" tabindex="-1" role="dialog" id="libDetailModal">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="lib-detail-modal-icon mr-3">
+							<i class="fas fa-book fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title lib-detail-name mb-0"></h5>
+							<span class="lib-detail-version badge badge-secondary mt-1"></span>
+						</div>
 					</div>
-					<div class="modal-body">
-						<div class="form-group">
-							<label for="usr">Password:</label>
-							<input type="text" class="form-control" id="magic-pass">
-						  </div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<div class="row mb-2">
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Author</h6>
+								<p class="lib-detail-author text-muted"></p>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Organization</h6>
+								<p class="lib-detail-organization text-muted"></p>
+							</div>
+						</div>
 					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-primary solid-button-shape"
-							>Go</button>
-						<button type="button" class="btn btn-secondary solid-button-shape"
-							data-dismiss="modal">Cancel</button>
+					<div class="detail-section lib-detail-desc-section">
+						<h6 class="detail-section-label">Description</h6>
+						<p class="lib-detail-description text-muted"></p>
 					</div>
+					<div class="row mb-2">
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">VENUS Compatibility</h6>
+								<p class="lib-detail-venus text-muted"></p>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Installed Date</h6>
+								<p class="lib-detail-installed-date text-muted"></p>
+							</div>
+						</div>
+					</div>
+					<div class="detail-section lib-detail-tags-section">
+						<h6 class="detail-section-label">Tags</h6>
+						<p class="lib-detail-tags text-muted"></p>
+					</div>
+					<div class="detail-section lib-detail-image-section d-none">
+						<h6 class="detail-section-label">Library Image</h6>
+						<div class="text-center py-2">
+							<img class="lib-detail-image" src="" style="max-width:200px; max-height:150px;">
+						</div>
+					</div>
+					<div class="detail-section">
+						<h6 class="detail-section-label">Library Files</h6>
+						<div class="pkg-file-list lib-detail-lib-files"></div>
+					</div>
+					<div class="detail-section">
+						<h6 class="detail-section-label">Demo Method Files</h6>
+						<div class="pkg-file-list lib-detail-demo-files"></div>
+					</div>
+					<div class="detail-section">
+						<h6 class="detail-section-label">Install Paths</h6>
+						<p class="lib-detail-lib-path text-muted text-sm" style="font-family:Consolas,monospace; background:var(--body-background); padding:6px 10px; border-radius:6px;"></p>
+						<p class="lib-detail-demo-path text-muted text-sm" style="font-family:Consolas,monospace; background:var(--body-background); padding:6px 10px; border-radius:6px;"></p>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
+					<button type="button" class="btn btn-danger btn-sm lib-detail-delete-btn"><i class="fas fa-trash-alt mr-1"></i>Delete Library</button>
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
 				</div>
 			</div>
 		</div>
+	</div>
+	<!--Modal Library Detail end --->
+
+	<!---- Modal Import Preview start --->
+	<div class="modal" tabindex="-1" role="dialog" id="importPreviewModal">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="imp-preview-icon mr-3">
+							<i class="fas fa-book fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title imp-preview-name mb-0"></h5>
+							<span class="imp-preview-version badge badge-secondary mt-1"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<!-- Author / Organization row -->
+					<div class="row mb-2">
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Author</h6>
+								<p class="imp-preview-author text-muted"></p>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Organization</h6>
+								<p class="imp-preview-organization text-muted"></p>
+							</div>
+						</div>
+					</div>
+					<!-- Description -->
+					<div class="detail-section imp-preview-desc-section">
+						<h6 class="detail-section-label">Description</h6>
+						<p class="imp-preview-description text-muted"></p>
+					</div>
+					<!-- VENUS Compatibility / Created Date -->
+					<div class="row mb-2">
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">VENUS Compatibility</h6>
+								<p class="imp-preview-venus text-muted"></p>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Created Date</h6>
+								<p class="imp-preview-created text-muted"></p>
+							</div>
+						</div>
+					</div>
+					<!-- Tags -->
+					<div class="detail-section imp-preview-tags-section">
+						<h6 class="detail-section-label">Tags</h6>
+						<div class="imp-preview-tags"></div>
+					</div>
+					<!-- Library Image -->
+					<div class="detail-section imp-preview-image-section d-none">
+						<h6 class="detail-section-label">Library Image</h6>
+						<div class="text-center py-2">
+							<img class="imp-preview-image" src="" style="max-width:200px; max-height:150px;">
+						</div>
+					</div>
+					<!-- Library Files -->
+					<div class="detail-section">
+						<h6 class="detail-section-label">Library Files</h6>
+						<div class="pkg-file-list imp-preview-lib-files"></div>
+					</div>
+					<!-- Demo Method Files -->
+					<div class="detail-section">
+						<h6 class="detail-section-label">Demo Method Files</h6>
+						<div class="pkg-file-list imp-preview-demo-files"></div>
+					</div>
+					<!-- Install Paths -->
+					<div class="detail-section">
+						<h6 class="detail-section-label">Install Paths</h6>
+						<p class="imp-preview-lib-path text-muted text-sm" style="font-family:Consolas,monospace; background:var(--body-background); padding:6px 10px; border-radius:6px;"></p>
+						<p class="imp-preview-demo-path text-muted text-sm" style="font-family:Consolas,monospace; background:var(--body-background); padding:6px 10px; border-radius:6px;"></p>
+					</div>
+					<!-- Overwrite warning -->
+					<div class="imp-preview-overwrite-warning d-none mt-2">
+						<div class="alert alert-warning mb-0 py-2 px-3" style="font-size:0.85rem;">
+							<i class="fas fa-exclamation-triangle mr-1"></i>
+							<span class="imp-preview-overwrite-text">A library with this name is already installed and will be updated.</span>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn solid-button" id="imp-preview-confirm"><i class="fas fa-file-import mr-2"></i>Install Library</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Import Preview end --->
 
 
 	<!-- JQuery -->
@@ -1144,7 +1257,6 @@
 	<script src="js/jquery-ui.min.js" type="text/javascript"></script>
 
 	<script src="js/video.js"></script>
-	<script src="js/barrel-roll.js"></script>
 	<!-- Bootstrap  -->
 	<script src="js/popper.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>

@@ -704,6 +704,17 @@ body {
 	white-space: nowrap;
 }
 
+.pkg-file-link .pkg-file-name {
+	color: var(--medium);
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	transition: text-decoration-color 0.15s;
+}
+
+.pkg-file-link:hover .pkg-file-name {
+	text-decoration-color: var(--medium);
+}
+
 .pkg-file-item .pkg-file-dir {
 	margin-left: auto;
 	padding-left: 12px;
@@ -720,7 +731,31 @@ body {
 	color: #bbb;
 }
 
-/* ---- Importer / Library Installer ---- */
+.pkg-icon-preview {
+	width: 72px;
+	height: 72px;
+	border: 2px dashed #ccc;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	background: #f8f9fa;
+	flex-shrink: 0;
+}
+
+.pkg-icon-preview img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+.pkg-icon-preview.has-image {
+	border-style: solid;
+	border-color: var(--medium);
+}
+
+/* ---- Importer / Installed Libraries ---- */
 .importer-container {
 	overflow-y: auto;
 	background-color: var(--body-background);
@@ -730,20 +765,41 @@ body {
 	max-width: 100%;
 }
 
-.importer-card .card-header {
-	background-color: var(--method-background);
-	font-weight: 600;
-	color: var(--dark1);
-	font-size: 0.95rem;
+.imp-lib-card {
+	border-radius: 6px;
+	transition: box-shadow 0.15s;
 }
 
-.importer-card .card-body {
-	background-color: var(--method-background);
+.imp-lib-card:hover {
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-.imp-meta-row {
-	margin-bottom: 2px;
-	font-size: 0.9rem;
+.imp-lib-card-icon img {
+	border-radius: 4px;
+}
+
+.imp-lib-card-delete {
+	text-decoration: none !important;
+}
+
+.imp-lib-card-delete:hover {
+	text-decoration: underline !important;
+}
+
+.imp-lib-card-details {
+	text-decoration: none !important;
+}
+
+.imp-lib-card-details:hover {
+	text-decoration: underline !important;
+}
+
+.imp-lib-card-name:hover {
+	text-decoration: underline;
+}
+
+.imp-empty-state {
+	user-select: none;
 }
 
 #pkg-create {
