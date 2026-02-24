@@ -54,6 +54,7 @@
 									<a class="dropdown-item overflow-history" href="#"><i class="fas fa-list mr-2"></i>History</a>
 									<a class="dropdown-item overflow-audit" href="#"><i class="fas fa-clipboard-check mr-2"></i>Run Library Audit</a>
 									<div class="dropdown-divider"></div>
+									<a class="dropdown-item overflow-groups" href="#"><i class="fas fa-layer-group mr-2"></i>Library Groups</a>
 									<a class="dropdown-item overflow-settings" href="#"><i class="fas fa-cog mr-2"></i>Settings</a>
 									<a class="dropdown-item overflow-help" href="#"><i class="fas fa-question-circle mr-2"></i>Help</a>
 								</div>
@@ -264,108 +265,7 @@
 			</div>
 		</div>
 
-		<!----Settings  start--->
-		<div class="settings-page d-none row no-gutters">
-			<div class="row p-4 no-gutters col-md-12">
-				<div class="nav-settings no-gutters col-md-12 mb-3">
-					<nav>
-						<ul class="h-menu">
-							<li><a href="#" class="active" data-div="settings-links">Library Groups</a></li>
-							<li><a href="#" data-div="settings-settings">Settings</a></li>
-							<!-- <li><a href="#" data-div="settings-settings">Import/Export</a></li> -->
-							<li class="float-right mt-4 btn-newgroup">
-								<span class="text-xs mr-4 color-gray"><i class="fas fa-arrows-alt-v color-medium mr-2"></i>Drag items to reorder</span>
-								<button class="btn btn-sm btn-outlined">New group</button>
-							</li>
-						</ul>
-					</nav>
-
-				</div>
-				<div class="setttings-container w-100">
-					<!----Settings > Links start--->
-					<div class="settings-links row no-gutters col-md-12">
-						<div id="accordion" class="w-100" role="tablist">
-
-						</div>
-					</div>
-					<!----Settings > Links end--->
-					<!----Settings > Settings start--->
-					<div class="settings-settings row no-gutters col-md-12 d-none">
-
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Installation</h6>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input" id="chk_confirmBeforeInstall" checked>
-								<label class="custom-control-label" for="chk_confirmBeforeInstall">Show preview and confirmation before installing a library</label>
-							</div>
-							<div class="custom-control custom-checkbox mt-2">
-								<input type="checkbox" class="custom-control-input" id="chk_overwriteWithoutAsking">
-								<label class="custom-control-label" for="chk_overwriteWithoutAsking">Overwrite existing library files without asking</label>
-							</div>
-							<div class="custom-control custom-checkbox mt-2">
-								<input type="checkbox" class="custom-control-input" id="chk_autoAddToGroup" checked>
-								<label class="custom-control-label" for="chk_autoAddToGroup">Automatically add newly imported libraries to a group</label>
-							</div>
-						</div>
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Display</h6>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input" id="chk_hideSystemLibraries">
-								<label class="custom-control-label" for="chk_hideSystemLibraries">Hide system libraries on the front page</label>
-							</div>
-							<small class="text-muted ml-4">System libraries with warnings or errors will still be shown.</small>
-						</div>
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Data Location</h6>
-							<small class="text-muted d-block mb-2">All user data (installed libraries, groups, links) is stored here. Keep this outside the app folder so the app stays portable.</small>
-							<div class="input-group input-group-sm">
-								<input type="text" class="form-control txt-userDataPath" placeholder="Path to data folder" readonly>
-								<div class="input-group-append">
-									<button class="btn btn-outlined btn-browseDataPath" type="button"><i class="far fa-folder-open mr-1"></i>Browse</button>
-									<button class="btn btn-outlined btn-applyDataPath" type="button"><i class="far fa-check mr-1"></i>Apply</button>
-								</div>
-							</div>
-						</div>
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Recent</h6>
-							<div class="dropdown d-inline">
-								Display last:
-								<button class="btn btn-sm btn-outlined dropdown-toggle .btn-recentMax" type="button"
-									id="dd-maxRecent" data-toggle="dropdown" aria-haspopup="true"
-									aria-expanded="false">
-									10
-								</button>
-								<button class="btn btn-sm my-2 ml-4 btn-outlined btn-clearRecentList">
-									Clear Recent List
-								</button>
-								<div class="dropdown-menu dd-maxRecent" aria-labelledby="dd-maxRecent">
-									<a class="dropdown-item dropdown-navitem-clearbg" href="#">5</a>
-									<a class="dropdown-item dropdown-navitem-clearbg" href="#">10</a>
-									<a class="dropdown-item dropdown-navitem-clearbg" href="#">20</a>
-									<a class="dropdown-item dropdown-navitem-clearbg" href="#">50</a>
-									<a class="dropdown-item dropdown-navitem-clearbg" href="#">100</a>
-								</div>
-								<div class="d-inline ml-4 txt-recentCleared text-muted"></div>
-							</div>
-						</div>
-					</div>
-					<!----Settings > Settings end--->
-					<!----Settings > Import/Export start--->
-					<!-- <div class="settings-export row no-gutters col-md-12">
-						<div class="w-100" role="tablist">
-
-						</div>
-					</div> -->
-					<!----Settings > Import/Export  end--->
-					
-				</div>
-
-				<div class="w-100 text-right mt-3 pr-3">
-					<button class="btn btn-sm btn-outlined btn-close-settings">Close</button>
-				</div>
-			</div>
-		</div>
-		<!----Settings  end--->
+		<!----Settings page removed – replaced by groupsModal and settingsModal --->
 	</div>
 
 	
@@ -1118,6 +1018,125 @@
 		</div>
 	</div>
 	<!---- Modal Export Archive end --->
+
+	<!---- Modal Library Groups start --->
+	<div class="modal" tabindex="-1" role="dialog" id="groupsModal">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3">
+							<i class="fas fa-layer-group fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Library Groups</h5>
+							<span class="text-muted text-sm">Organize libraries into custom groups. <i class="fas fa-arrows-alt-v ml-1 mr-1" style="color:var(--medium)"></i> Drag to reorder.</span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<div class="settings-links row no-gutters col-md-12">
+						<div id="accordion" class="w-100" role="tablist">
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
+					<button type="button" class="btn solid-button btn-newgroup-modal"><i class="fas fa-plus mr-2"></i>New Group</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Library Groups end --->
+
+	<!---- Modal Settings start --->
+	<div class="modal" tabindex="-1" role="dialog" id="settingsModal">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3">
+							<i class="fas fa-cog fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Settings</h5>
+							<span class="text-muted text-sm">Configure application preferences</span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<div class="settings-settings row no-gutters col-md-12">
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Installation</h6>
+							<div class="custom-control custom-checkbox">
+								<input type="checkbox" class="custom-control-input" id="chk_confirmBeforeInstall" checked>
+								<label class="custom-control-label" for="chk_confirmBeforeInstall">Show preview and confirmation before installing a library</label>
+							</div>
+							<div class="custom-control custom-checkbox mt-2">
+								<input type="checkbox" class="custom-control-input" id="chk_overwriteWithoutAsking">
+								<label class="custom-control-label" for="chk_overwriteWithoutAsking">Overwrite existing library files without asking</label>
+							</div>
+							<div class="custom-control custom-checkbox mt-2">
+								<input type="checkbox" class="custom-control-input" id="chk_autoAddToGroup" checked>
+								<label class="custom-control-label" for="chk_autoAddToGroup">Automatically add newly imported libraries to a group</label>
+							</div>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Display</h6>
+							<div class="custom-control custom-checkbox">
+								<input type="checkbox" class="custom-control-input" id="chk_hideSystemLibraries">
+								<label class="custom-control-label" for="chk_hideSystemLibraries">Hide system libraries on the front page</label>
+							</div>
+							<small class="text-muted ml-4">System libraries with warnings or errors will still be shown.</small>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Data Location</h6>
+							<small class="text-muted d-block mb-2">All user data (installed libraries, groups, links) is stored here. Keep this outside the app folder so the app stays portable.</small>
+							<div class="input-group input-group-sm">
+								<input type="text" class="form-control txt-userDataPath" placeholder="Path to data folder" readonly>
+								<div class="input-group-append">
+									<button class="btn btn-outlined btn-browseDataPath" type="button"><i class="far fa-folder-open mr-1"></i>Browse</button>
+									<button class="btn btn-outlined btn-applyDataPath" type="button"><i class="far fa-check mr-1"></i>Apply</button>
+								</div>
+							</div>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Recent</h6>
+							<div class="dropdown d-inline">
+								Display last:
+								<button class="btn btn-sm btn-outlined dropdown-toggle .btn-recentMax" type="button"
+									id="dd-maxRecent" data-toggle="dropdown" aria-haspopup="true"
+									aria-expanded="false">
+									10
+								</button>
+								<button class="btn btn-sm my-2 ml-4 btn-outlined btn-clearRecentList">
+									Clear Recent List
+								</button>
+								<div class="dropdown-menu dd-maxRecent" aria-labelledby="dd-maxRecent">
+									<a class="dropdown-item dropdown-navitem-clearbg" href="#">5</a>
+									<a class="dropdown-item dropdown-navitem-clearbg" href="#">10</a>
+									<a class="dropdown-item dropdown-navitem-clearbg" href="#">20</a>
+									<a class="dropdown-item dropdown-navitem-clearbg" href="#">50</a>
+									<a class="dropdown-item dropdown-navitem-clearbg" href="#">100</a>
+								</div>
+								<div class="d-inline ml-4 txt-recentCleared text-muted"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Settings end --->
 
 	<!---- Modal Import Preview start --->
 	<div class="modal" tabindex="-1" role="dialog" id="importPreviewModal">

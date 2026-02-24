@@ -315,7 +315,6 @@
 			waitForFinalEvent(function () {
 				fitNavBarItems();
 				fitMainDivHeight();
-				fitSettingsDivHeight();
 				fitExporterHeight();
 				fitImporterHeight();
 			}, 150, "");
@@ -336,7 +335,6 @@
 					initVENUSData();
 					createGroups();
 					setTimeout(function(){historyCleanup()},100);
-					fitSettingsDivHeight();
 				} catch(e) {
 					console.log("Error in startup chain: " + e);
 					try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
@@ -348,11 +346,9 @@
 
         //Click Hamilton logo to go home
 		$(document).on("click", ".brand-logo", function () {
-			// Close settings page if open
-			if(!$(".settings-page").hasClass("d-none")){
-				$(".methods-page").removeClass("d-none");
-				$(".settings-page").addClass("d-none");
-			}
+			// Close any open modals
+			$("#groupsModal").modal("hide");
+			$("#settingsModal").modal("hide");
 			// Activate the All (home) nav item
 			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
 			$('.navbar-custom .nav-item[data-group-id="gAll"]').addClass("active");
@@ -530,73 +526,36 @@
 			nw.Shell.openItem("C:\\Users\\admin\\Documents\\GitHub\\Library Manager\\Venus Library Manager.chm");
 		});
 
-		//Click "settings" from overflow menu.
-		$(document).on("click", ".overflow-settings", function () {
+		//Click "Library Groups" from overflow menu.
+		$(document).on("click", ".overflow-groups", function (e) {
+			e.preventDefault();
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			$(".methods-page").toggleClass("d-none");
-			$(".settings-page").toggleClass("d-none");
-			if(!$(".settings-page").hasClass("d-none")){
-				//opening settings screen
-				bool_treeChanged = false;
-				fitSettingsDivHeight();
-			}else{
-				//coming back to home screen
-				if (bool_treeChanged){
-					createGroups();
-				}else{
-					// Check if exporter/importer tab is active and show it properly
-					var activeGroup = $(".navbar-custom").find(".active").attr("data-group-id");
-					if(activeGroup == "gEditors"){
-						$(".links-container").addClass("d-none");
-						$(".exporter-container").removeClass("d-none");
-						$(".importer-container").addClass("d-none");
-						fitExporterHeight();
-					} else if(activeGroup == "gAll"){
-						$(".links-container").addClass("d-none");
-						$(".exporter-container").addClass("d-none");
-						$(".importer-container").removeClass("d-none");
-						$("#imp-header").removeClass("d-none").addClass("d-flex");
-						impBuildLibraryCards();
-						fitImporterHeight();
-					} else if(activeGroup == "gRecent"){
-						$(".links-container").addClass("d-none");
-						$(".exporter-container").addClass("d-none");
-						$(".importer-container").removeClass("d-none");
-						$("#imp-header").removeClass("d-flex").addClass("d-none");
-						impBuildLibraryCards(null, true);
-						fitImporterHeight();
-					} else if(activeGroup == "gFolders"){
-						$(".links-container").addClass("d-none");
-						$(".exporter-container").addClass("d-none");
-						$(".importer-container").removeClass("d-none");
-						$("#imp-header").removeClass("d-flex").addClass("d-none");
-						impBuildLibraryCards();
-						fitImporterHeight();
-					} else {
-						// Check if custom group
-						var grpData = db_groups.groups.findOne({"_id": activeGroup});
-						if(grpData && !grpData["default"]){
-							$(".links-container").addClass("d-none");
-							$(".exporter-container").addClass("d-none");
-							$(".importer-container").removeClass("d-none");
-							$("#imp-header").removeClass("d-flex").addClass("d-none");
-							impBuildLibraryCards(activeGroup);
-							fitImporterHeight();
-						} else {
-							fitNavBarItems();
-							fitMainDivHeight();
-						}
-					}
-				}
-			}  
+			bool_treeChanged = false;
+			createGroups();
+			$("#groupsModal").modal("show");
 			return false;
 		});
 
-		//Click "Close" button on settings page
-		$(document).on("click", ".btn-close-settings", function () {
-			$(".overflow-settings").trigger("click");
+		// When groups modal is closed, refresh groups if tree changed
+		$("#groupsModal").on("hidden.bs.modal", function () {
+			if (bool_treeChanged) {
+				createGroups();
+			}
+		});
+
+		//Click "Settings" from overflow menu.
+		$(document).on("click", ".overflow-settings", function (e) {
+			e.preventDefault();
+			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
+			$(".btn-overflow-toggle").attr("aria-expanded", "false");
+			$("#settingsModal").modal("show");
 			return false;
+		});
+
+		// New group button inside the groups modal
+		$(document).on("click", ".btn-newgroup-modal", function () {
+			groupNew();
 		});
 
 		//Click "Export" from overflow menu
@@ -604,11 +563,6 @@
 			e.preventDefault();
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			// If settings page is open, close it first
-			if(!$(".settings-page").hasClass("d-none")){
-				$(".methods-page").removeClass("d-none");
-				$(".settings-page").addClass("d-none");
-			}
 			// Activate the Export nav item
 			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
 			$('.navbar-custom .nav-item[data-group-id="gEditors"]').addClass("active");
@@ -625,11 +579,6 @@
 			e.preventDefault();
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			// If settings page is open, close it first
-			if(!$(".settings-page").hasClass("d-none")){
-				$(".methods-page").removeClass("d-none");
-				$(".settings-page").addClass("d-none");
-			}
 			// Activate the History nav item
 			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
 			$('.navbar-custom .nav-item[data-group-id="gHistory"]').addClass("active");
@@ -906,23 +855,6 @@
 		}
 
 		//Settings screen menu navigation
-		$(document).on("click", ".h-menu>li>a", function () {
-			$(".h-menu>li>a").removeClass("active");
-			$(this).addClass("active");
-
-			if($(this).attr('data-div') == "settings-settings"){
-				$(".settings-settings").removeClass("d-none");
-				$(".settings-links").addClass("d-none");
-				$(".btn-newgroup").addClass("d-none");
-			}else{
-				$(".settings-settings").addClass("d-none");
-				$(".settings-links").removeClass("d-none");
-				$(".btn-newgroup").removeClass("d-none");
-			}
-
-
-		});
-
 		//Settings > Installation checkboxes
 		$(document).on("click", "#chk_confirmBeforeInstall, #chk_overwriteWithoutAsking, #chk_autoAddToGroup", function(){
 			saveSetting($(this).attr("id"), $(this).prop("checked"));
@@ -1307,9 +1239,6 @@
 		
 
 
-		$(document).on("click", ".btn-newgroup", function(){
-			groupNew();
-		})
 		// Link creation removed - libraries are managed via Import
 
 		$(document).on("click", ".group-name",function (e){
@@ -1370,16 +1299,7 @@
 		}
 
 
-		//Adjust the settings page div height
-		function fitSettingsDivHeight() {
-			if($(".settings-page").hasClass("d-none")){return;} //exit function if settings page is not visible
-			var linksDiv = $(".setttings-container");
-			var div1 = $(".settings-page>.row");
-			var linksDiv_height = window.innerHeight - $(".header1").outerHeight() - $(".nav-settings").outerHeight();
-			var linksDiv_padding = parseInt($(div1).css('padding-top')) + parseInt($(div1).css('padding-bottom')) + parseInt($(div1).css('margin-bottom')) + parseInt($(".nav-settings").css('margin-bottom'));
-			linksDiv_height -= linksDiv_padding;
-			$(linksDiv).height(linksDiv_height);
-		}
+		//fitSettingsDivHeight removed – groups and settings are now modals with their own scrolling
 
 
         // Adjusts the elements in the nav bar and hides the ones that exceed the total width available
