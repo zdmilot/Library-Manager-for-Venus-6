@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/your-org/library-manager/cli-schema.json",
+  "title": "HxLibPkg Package Specification",
+  "description": "JSON specification file used by `node cli.js create-package --spec <file>` to build a .hxlibpkg library package. File paths inside this document are resolved relative to the directory containing the spec file itself.",
+  "type": "object",
+
+  "required": ["author", "version", "library_files"],
+
+  "properties": {
+
+    "library_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the library. If omitted, auto-detected from the first .hsl, .hs_, or .smt file in library_files (in that priority order). Must not contain path separators.",
+      "examples": ["MyVenusLibrary", "ML600_CustomMethods"]
+    },
+
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Full name of the library author. Required.",
+      "examples": ["Jane Smith", "Automation Team"]
+    },
+
+    "organization": {
+      "type": "string",
+      "description": "Author's organization or company. Optional.",
+      "examples": ["Hamilton Bonaduz AG", "Acme Pharma"]
+    },
+
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Library version number string. Required. No specific format is enforced, but semantic versioning is recommended.",
+      "examples": ["1.0.0", "2.3.1", "1.0"]
+    },
+
+    "venus_compatibility": {
+      "type": "string",
+      "description": "VENUS software version compatibility range or description. Optional.",
+      "examples": ["4.7+", "5.0 - 6.x", "4.4 and above", "6.1"]
+    },
+
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the library's purpose, features, and usage notes. Optional.",
+      "examples": ["Provides high-level pipetting helpers for the ML600 syringe pump."]
+    },
+
+    "tags": {
+      "type": "array",
+      "description": "Searchable keyword tags for the library. Optional.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "examples": [
+        ["pipetting", "ML600", "syringe"],
+        ["labware", "96-well"]
+      ]
+    },
+
+    "library_image": {
+      "type": "string",
+      "description": "Path to an image file used as the library icon (.png, .jpg, .bmp, .svg, .gif, .ico). Resolved relative to the spec file directory. If omitted, the packager looks for a .bmp whose basename matches library_name among library_files.",
+      "examples": ["images/MyLib_icon.png", "../icons/logo.svg"]
+    },
+
+    "library_files": {
+      "type": "array",
+      "description": "Paths to the library payload files (.hsl, .hs_, .hsi, .smt, .stp, .dll, .bmp, and any other distributed files). At least one file is required. Paths are resolved relative to the spec file directory.",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [
+        ["src/MyLibrary.hsl", "src/MyLibrary.hs_", "src/MyLibrary.hsi", "src/MyLibrary.bmp"]
+      ]
+    },
+
+    "demo_method_files": {
+      "type": "array",
+      "description": "Paths to demo / example method files (.hsl, .lay, .med, etc.) that illustrate how to use the library. Installed separately under the Methods directory. Optional.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [
+        ["demo/Demo_MyLibrary.hsl", "demo/Demo_MyLibrary.lay"]
+      ]
+    },
+
+    "com_register_dlls": {
+      "type": "array",
+      "description": "Basenames (not full paths) of DLL files listed in library_files that must be registered as COM objects using RegAsm.exe /codebase. Administrator rights are required at import time. DLL names must exactly match basenames of entries in library_files.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\.dll$"
+      },
+      "examples": [
+        ["MyLibraryCOM.dll"],
+        ["HelperA.dll", "HelperB.dll"]
+      ]
+    }
+
+  },
+
+  "additionalProperties": false,
+
+  "examples": [
+    {
+      "library_name": "MyVenusLibrary",
+      "author": "Jane Smith",
+      "organization": "Acme Pharma",
+      "version": "1.0.0",
+      "venus_compatibility": "4.7+",
+      "description": "My example Hamilton VENUS library.",
+      "tags": ["example", "venus"],
+      "library_image": "MyVenusLibrary.png",
+      "library_files": [
+        "MyVenusLibrary.hsl",
+        "MyVenusLibrary.hs_",
+        "MyVenusLibrary.hsi",
+        "MyVenusLibrary.bmp"
+      ],
+      "demo_method_files": [
+        "demo/Demo_MyVenusLibrary.hsl"
+      ],
+      "com_register_dlls": []
+    }
+  ]
+}

@@ -7,6 +7,14 @@
     "VENUS",
     "Hamilton"
   ],
+  "bin": {
+    "libmgr": "./cli.js"
+  },
+  "scripts": {
+    "cli": "node cli.js",
+    "list-libs": "node cli.js list-libs",
+    "help": "node cli.js help"
+  },
   "window": {
     "title": "Library Manager",
     "icon": "/Hamilton_icon.png",

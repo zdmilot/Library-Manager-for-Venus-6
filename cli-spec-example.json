@@ -1,0 +1,29 @@
+{
+  "$schema": "./cli-schema.json",
+
+  "library_name": "MyVenusLibrary",
+  "author": "Jane Smith",
+  "organization": "Acme Pharma",
+  "version": "1.0.0",
+  "venus_compatibility": "4.7+",
+  "description": "Provides high-level pipetting helpers for the ML600 syringe pump, including volume tracking and error recovery routines.",
+  "tags": ["pipetting", "ML600", "syringe", "example"],
+
+  "_comment_paths": "All paths below are relative to the directory containing this spec file.",
+
+  "library_image": "MyVenusLibrary.png",
+
+  "library_files": [
+    "MyVenusLibrary.hsl",
+    "MyVenusLibrary.hs_",
+    "MyVenusLibrary.hsi",
+    "MyVenusLibrary.bmp"
+  ],
+
+  "demo_method_files": [
+    "demo/Demo_MyVenusLibrary.hsl",
+    "demo/Demo_MyVenusLibrary.lay"
+  ],
+
+  "com_register_dlls": []
+}
