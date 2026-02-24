@@ -5251,6 +5251,59 @@ var DetachDatabase = edge.func({
 			}
 		});
 
+		// ---- Show GitHub-style delete confirmation modal ----
+		function showDeleteConfirmModal(libName, comDlls) {
+			return new Promise(function(resolve) {
+				var $modal = $("#deleteLibConfirmModal");
+				var expectedText = libName;
+				var resolved = false;
+
+				// Set the library name in the header and the expected confirmation text
+				$modal.find(".delete-confirm-libname-header").text(libName);
+				$modal.find(".delete-confirm-expected-text").text(expectedText);
+				$modal.find(".delete-confirm-input").val("");
+				$modal.find(".delete-confirm-btn").prop("disabled", true);
+
+				// Show consequences
+				$modal.find(".delete-confirm-consequences").text(
+					'This will delete "' + libName + '" and all associated files.'
+				);
+
+				// Show COM DLLs section if applicable
+				if (comDlls && comDlls.length > 0) {
+					$modal.find(".delete-confirm-com-section").removeClass("d-none");
+					$modal.find(".delete-confirm-com-dlls").text(comDlls.join(", "));
+				} else {
+					$modal.find(".delete-confirm-com-section").addClass("d-none");
+				}
+
+				// Enable/disable the confirm button based on typed input
+				$modal.find(".delete-confirm-input").off("input.deleteConfirm").on("input.deleteConfirm", function() {
+					var typed = $(this).val().trim();
+					$modal.find(".delete-confirm-btn").prop("disabled", typed !== expectedText);
+				});
+
+				// Confirm button handler
+				$modal.find(".delete-confirm-btn").off("click.deleteConfirm").on("click.deleteConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						$modal.modal("hide");
+						resolve(true);
+					}
+				});
+
+				// Cancel / dismiss handler
+				$modal.off("hidden.bs.modal.deleteConfirm").on("hidden.bs.modal.deleteConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						resolve(false);
+					}
+				});
+
+				$modal.modal("show");
+			});
+		}
+
 		// ---- Delete library from detail modal ----
 		$(document).on("click", ".lib-detail-delete-btn", async function(e) {
 			e.preventDefault();
