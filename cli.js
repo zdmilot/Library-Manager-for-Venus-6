@@ -28,6 +28,19 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const crypto = require('crypto');
 
+/**
+ * Sanitize a ZIP entry filename to prevent path traversal.
+ * Returns null if the resolved path escapes the target directory.
+ */
+function safeZipExtractPath(baseDir, fname) {
+    var normalized = fname.replace(/\\/g, '/');
+    if (normalized.indexOf('..') !== -1) return null;
+    var resolved = path.resolve(baseDir, fname);
+    var base = path.resolve(baseDir) + path.sep;
+    if (!resolved.startsWith(base) && resolved !== path.resolve(baseDir)) return null;
+    return resolved;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -169,7 +182,7 @@ function parseArgs(argv) {
 // ---------------------------------------------------------------------------
 
 /** Default user data directory (outside the app) */
-const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, '.VenusLibraryManager');
+const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, 'VenusLibraryManager');
 
 /**
  * Connect diskdb to the settings DB (always in app's db/ folder).
@@ -717,6 +730,62 @@ function extractPublicFunctions(libFiles, libBasePath) {
     return allFunctions;
 }
 
+/**
+ * Extract #include directives from HSL source text.
+ */
+function extractHslIncludes(text) {
+    const includes = [];
+    const pattern = /^\s*#include\s+"([^"]+)"/gm;
+    let m;
+    while ((m = pattern.exec(text)) !== null) {
+        includes.push(m[1].trim());
+    }
+    return includes;
+}
+
+/**
+ * Extract required dependencies from a library's .hsl files.
+ * Returns a deduplicated list of include targets that are external to this library.
+ */
+function extractRequiredDependencies(libFiles, libBasePath) {
+    const ownFiles = {};
+    (libFiles || []).forEach(function(f) {
+        ownFiles[f.toLowerCase()] = true;
+        ownFiles[path.basename(f).toLowerCase()] = true;
+    });
+
+    const allIncludes = [];
+    (libFiles || []).forEach(function(fname) {
+        const ext = path.extname(fname).toLowerCase();
+        if (ext !== '.hsl' && ext !== '.hs_') return;
+        const fullPath = path.join(libBasePath, fname);
+        try {
+            const text = fs.readFileSync(fullPath, 'utf8');
+            extractHslIncludes(text).forEach(function(inc) {
+                allIncludes.push({ include: inc, sourceFile: fname });
+            });
+        } catch (_) { /* skip unreadable files */ }
+    });
+
+    // Deduplicate
+    const seen = {};
+    const dependencies = [];
+    allIncludes.forEach(function(item) {
+        const normalized = item.include.replace(/\\/g, '/').toLowerCase();
+        if (seen[normalized]) return;
+        seen[normalized] = true;
+        const targetFileName = normalized.split('/').pop();
+        if (ownFiles[targetFileName]) return; // skip self-references
+        dependencies.push({
+            include:     item.include,
+            sourceFile:  item.sourceFile,
+            libraryName: null,
+            type:        'unknown'
+        });
+    });
+    return dependencies;
+}
+
 // ---------------------------------------------------------------------------
 // Group auto-assignment
 // ---------------------------------------------------------------------------
@@ -833,25 +902,37 @@ function installPackage(manifest, zip, libDestDir, demoDestDir, sourceName, db, 
     // Extract payload files — CHM files are extracted to the library directory
     let extractedCount = 0;
     zip.getEntries().forEach(function (entry) {
-        if (entry.isDirectory || entry.entryName === 'manifest.json') return;
+        if (entry.isDirectory || entry.entryName === 'manifest.json' || entry.entryName === 'signature.json') return;
 
         if (entry.entryName.startsWith('library/')) {
             const fname = entry.entryName.substring('library/'.length);
             if (fname) {
-                fs.writeFileSync(path.join(libDestDir, fname), entry.getData());
+                const safePath = safeZipExtractPath(libDestDir, fname);
+                if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+                const parentDir = path.dirname(safePath);
+                if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+                fs.writeFileSync(safePath, entry.getData());
                 extractedCount++;
             }
         } else if (entry.entryName.startsWith('demo_methods/')) {
             const fname = entry.entryName.substring('demo_methods/'.length);
             if (fname) {
-                fs.writeFileSync(path.join(demoDestDir, fname), entry.getData());
+                const safePath = safeZipExtractPath(demoDestDir, fname);
+                if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+                const parentDir = path.dirname(safePath);
+                if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+                fs.writeFileSync(safePath, entry.getData());
                 extractedCount++;
             }
         } else if (entry.entryName.startsWith('help_files/')) {
             // Legacy/explicit help_files folder — extract to library directory
             const fname = entry.entryName.substring('help_files/'.length);
             if (fname) {
-                fs.writeFileSync(path.join(libDestDir, fname), entry.getData());
+                const safePath = safeZipExtractPath(libDestDir, fname);
+                if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+                const parentDir = path.dirname(safePath);
+                if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+                fs.writeFileSync(safePath, entry.getData());
                 extractedCount++;
             }
         }
@@ -868,6 +949,9 @@ function installPackage(manifest, zip, libDestDir, demoDestDir, sourceName, db, 
 
     // Parse public functions from .hsl files for indexing & display
     const publicFunctions = extractPublicFunctions(filteredLibFiles, libDestDir);
+
+    // Extract required dependencies from #include directives
+    const requiredDependencies = extractRequiredDependencies(filteredLibFiles, libDestDir);
 
     const dbRecord = {
         library_name:        manifest.library_name        || '',
@@ -891,7 +975,8 @@ function installPackage(manifest, zip, libDestDir, demoDestDir, sourceName, db, 
         installed_date:      new Date().toISOString(),
         source_package:      sourceName,
         file_hashes:         fileHashes,
-        public_functions:    publicFunctions
+        public_functions:    publicFunctions,
+        required_dependencies: requiredDependencies
     };
 
     const saved = db.installed_libs.save(dbRecord);
@@ -929,8 +1014,8 @@ function getPackageStoreDir(args) {
  *   <LibraryName>_v<version>_<YYYYMMDD-HHmmss>.hxlibpkg
  */
 function buildCachedPackageName(libName, version) {
-    const safe   = (libName || 'Unknown').replace(/[<>:"\/|?*]/g, '_');
-    const ver    = (version || '0.0.0').replace(/[<>:"\/|?*]/g, '_');
+    const safe   = (libName || 'Unknown').replace(/[<>:"\/\\|?*]/g, '_');
+    const ver    = (version || '0.0.0').replace(/[<>:"\/\\|?*]/g, '_');
     const now    = new Date();
     const stamp  = now.getFullYear().toString()
                  + String(now.getMonth() + 1).padStart(2, '0')
@@ -1224,6 +1309,17 @@ function cmdImportArchive(args) {
                 console.log(`    WARNING: Importing despite failed signature (--force)`);
             } else if (sigResult.signed) {
                 console.log(`    ${libName}: signature OK`);
+            }
+
+            // ---- Restricted author check ----
+            const importAuthor = (manifest.author || '').trim();
+            if (isRestrictedAuthor(importAuthor) && !isSystemLibraryByName(libName)) {
+                if (!args['author-password']) {
+                    throw new Error(`Package "${libName}" uses restricted author "${importAuthor}". Use --author-password to authorize.`);
+                }
+                if (!validateAuthorPassword(args['author-password'])) {
+                    throw new Error(`Incorrect author password for restricted package "${libName}".`);
+                }
             }
 
             const existing = db.installed_libs.findOne({ library_name: libName });
@@ -1933,6 +2029,9 @@ function cmdVerifySyslibHashes(args) {
 
     if (asJson) {
         console.log(JSON.stringify(results, null, 2));
+        if (results.tampered.length > 0 || results.missing.length > 0 || results.errors.length > 0) {
+            process.exit(1);
+        }
     } else {
         const totalChecked = results.ok.length + results.tampered.length
                            + results.missing.length + results.errors.length;
@@ -2119,7 +2218,7 @@ COMMANDS
 
 GLOBAL OPTIONS
   --db-path <dir>    Path to user data directory (default: from settings.json
-                     or <Hamilton Library>\\.VenusLibraryManager)
+                     or <Hamilton Library>\\VenusLibraryManager)
   --store-dir <dir>  Override package store location
                      (default: C:\\Program Files (x86)\\HAMILTON\\Library\\LibraryPackages)
 
@@ -2346,6 +2445,10 @@ function cmdVerifyPackage(args) {
 
     if (args['json']) {
         console.log(JSON.stringify(results, null, 2));
+        const anyFailed = results.some(r => r.signed && !r.valid);
+        if (anyFailed) {
+            process.exit(1);
+        }
     } else {
         results.forEach(function (r) {
             const status = !r.signed ? 'UNSIGNED' : (r.valid ? 'VALID' : 'FAILED');

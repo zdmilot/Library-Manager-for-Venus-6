@@ -18,12 +18,67 @@
 		//Default VENUS folders.
 		var HxFolder_LogFiles = "C:\\Program Files (x86)\\HAMILTON\\LogFiles";
 		var HxFolder_Methods = "C:\\Program Files (x86)\\HAMILTON\\Methods";
-		var HxFolder_Bin = "C:\\Program Files (x86)\\HAMILTON\\Bin"
+		var HxFolder_Bin = "C:\\Program Files (x86)\\HAMILTON\\Bin";
 
 		const fs = require('fs');
-		const sizeOf = require('image-size')
+		const sizeOf = require('image-size');
 		const os = require("os");
 		const crypto = require('crypto');
+
+		/** Shared MIME type lookup for image file extensions */
+		var IMAGE_MIME_MAP = {
+			'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg',
+			'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml',
+			// keyed with leading dot for convenience (used by some callers)
+			'.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg',
+			'.bmp':'image/bmp', '.gif':'image/gif', '.ico':'image/x-icon', '.svg':'image/svg+xml'
+		};
+
+		/**
+		 * Sanitize a ZIP entry filename to prevent path traversal.
+		 * Returns null if the resolved path escapes the target directory.
+		 */
+		function safeZipExtractPath(baseDir, fname) {
+			// Reject entries with '..' path components
+			var normalized = fname.replace(/\\/g, '/');
+			if (normalized.indexOf('..') !== -1) return null;
+			var resolved = path.resolve(baseDir, fname);
+			// Ensure resolved path starts with the target directory
+			var base = path.resolve(baseDir) + path.sep;
+			if (!resolved.startsWith(base) && resolved !== path.resolve(baseDir)) return null;
+			return resolved;
+		}
+
+		/**
+		 * Escape a string for safe insertion into HTML.
+		 * Prevents XSS when inserting user/package-supplied text into the DOM.
+		 */
+		function escapeHtml(str) {
+			if (typeof str !== 'string') return '';
+			return str
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;');
+		}
+
+		/**
+		 * Validate that a library name is safe for use in filesystem paths.
+		 * Rejects names containing path separators, '..' traversal, or invalid characters.
+		 * @param {string} name
+		 * @returns {boolean} true if safe
+		 */
+		function isValidLibraryName(name) {
+			if (!name || typeof name !== 'string') return false;
+			if (/[\\\/]|\.\./.test(name)) return false;
+			if (/[<>:"|?*]/.test(name)) return false;
+			if (name.trim().length === 0) return false;
+			return true;
+		}
+
+		/** Concurrency guard for import operations */
+		var _isImporting = false;
     
         // Diskdb init
 		var db = require('diskdb');
@@ -329,7 +384,11 @@
 		}
 
 		// ---- Package Store — cache .hxlibpkg files for repair & version rollback ----
-		var PACKAGE_STORE_DIR = "C:\\Program Files (x86)\\HAMILTON\\Library\\LibraryPackages";
+		function getPackageStoreDir() {
+			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
+			var libPath = (libFolderRec && libFolderRec.path) ? libFolderRec.path : "C:\\Program Files (x86)\\HAMILTON\\Library";
+			return path.join(libPath, "LibraryPackages");
+		}
 
 		/**
 		 * Build a deterministic filename for a cached package:
@@ -359,7 +418,7 @@
 		 */
 		function cachePackageToStore(pkgBuffer, libName, version) {
 			var safeName = (libName || 'Unknown').replace(/[<>:"\/\\|?*]/g, '_');
-			var libDir   = path.join(PACKAGE_STORE_DIR, safeName);
+			var libDir   = path.join(getPackageStoreDir(), safeName);
 			if (!fs.existsSync(libDir)) {
 				fs.mkdirSync(libDir, { recursive: true });
 			}
@@ -376,7 +435,7 @@
 		 */
 		function listCachedVersions(libName) {
 			var safeName = (libName || 'Unknown').replace(/[<>:"\/\\|?*]/g, '_');
-			var libDir   = path.join(PACKAGE_STORE_DIR, safeName);
+			var libDir   = path.join(getPackageStoreDir(), safeName);
 			if (!fs.existsSync(libDir)) return [];
 
 			var files = fs.readdirSync(libDir).filter(function(f) {
@@ -621,13 +680,21 @@
 					if (entry.entryName.indexOf('library/') === 0) {
 						var fname = entry.entryName.substring('library/'.length);
 						if (fname) {
-							fs.writeFileSync(path.join(sysLibDir, fname), entry.getData());
+							var safePath = safeZipExtractPath(sysLibDir, fname);
+							if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(safePath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+							fs.writeFileSync(safePath, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf('help_files/') === 0) {
 						var fname3 = entry.entryName.substring('help_files/'.length);
 						if (fname3) {
-							fs.writeFileSync(path.join(sysLibDir, fname3), entry.getData());
+							var safePath3 = safeZipExtractPath(sysLibDir, fname3);
+							if (!safePath3) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir3 = path.dirname(safePath3);
+							if (!fs.existsSync(parentDir3)) fs.mkdirSync(parentDir3, { recursive: true });
+							fs.writeFileSync(safePath3, entry.getData());
 							extractedCount++;
 						}
 					}
@@ -685,7 +752,7 @@
 		});
 
         //Window load
-		$(window).load(function () {
+		$(window).on('load', function () {
 			// Restore maximized state from previous session
 			try {
 				if (getSettingValue('windowMaximized')) {
@@ -833,11 +900,11 @@
 			
 
 			if(file_type=="method"){
-				var arg="";
-				if($("#chk_run-autoplay").prop("checked")){ arg="-r";} //Run method immediately.
-				if($("#chk_run-autoclose").prop("checked")){arg="-t";} //Run method immediately and terminate when method is complete.
+				var args = [file_path];
+				if($("#chk_run-autoclose").prop("checked")){ args.push("-t"); } //Run method immediately and terminate when method is complete.
+				else if($("#chk_run-autoplay").prop("checked")){ args.push("-r"); } //Run method immediately.
     
-				 var child =  spawn(HxRun, [file_path, arg], { detached: true, stdio: [ 'ignore', 'ignore', 'ignore' ] });
+				 var child =  spawn(HxRun, args, { detached: true, stdio: [ 'ignore', 'ignore', 'ignore' ] });
 				 child.unref();
 			}
 			if(file_type=="folder"){
@@ -889,7 +956,12 @@
 		$(document).on("click", ".overflow-help", function () {
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			nw.Shell.openItem("C:\\Users\\admin\\Documents\\GitHub\\Library Manager\\Venus Library Manager.chm");
+			var chmPath = path.join(path.dirname(process.execPath), 'Library Manager.chm');
+			if (fs.existsSync(chmPath)) {
+				nw.Shell.openItem(chmPath);
+			} else {
+				alert('Help file not found: ' + chmPath);
+			}
 		});
 
 		//Click "Library Groups" from overflow menu.
@@ -1131,14 +1203,14 @@
 		 * Mirrors the rendering in impBuildLibraryCards() but returns an HTML string.
 		 */
 		function impBuildSingleCardHtml(lib) {
-			var libName = lib.library_name || "Unknown";
-			var version = lib.version || "";
-			var author = lib.author || "";
-			var description = lib.description || "";
-			var tags = lib.tags || [];
+			var libName = escapeHtml(lib.library_name || "Unknown");
+			var version = escapeHtml(lib.version || "");
+			var author = escapeHtml(lib.author || "");
+			var description = escapeHtml(lib.description || "");
+			var tags = (lib.tags || []).map(function(t) { return escapeHtml(t); });
 			var hasImage = !!lib.library_image_base64;
 			var hasComWarning = lib.com_warning === true;
-			var comDlls = lib.com_register_dlls || [];
+			var comDlls = (lib.com_register_dlls || []).map(function(d) { return escapeHtml(d); });
 			var isDeleted = lib.deleted === true;
 
 			var integrity = verifyLibraryIntegrity(lib);
@@ -1148,8 +1220,7 @@
 			var imgMime = lib.library_image_mime || 'image/bmp';
 			if (!lib.library_image_mime && lib.library_image) {
 				var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-				var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-				if (mimeMap[extLower]) imgMime = mimeMap[extLower];
+				if (IMAGE_MIME_MAP[extLower]) imgMime = IMAGE_MIME_MAP[extLower];
 			}
 
 			var iconHtml;
@@ -1273,8 +1344,8 @@
 			try {
 				ensureUserDataDir(newPath);
 				// Offer to copy existing data to the new location
-				var shouldCopy = confirm("Data location changed to:\\n" + newPath +
-					"\\n\\nDo you want to copy your existing data to the new location?\\n" +
+				var shouldCopy = confirm("Data location changed to:\n" + newPath +
+					"\n\nDo you want to copy your existing data to the new location?\n" +
 					"(Installed libraries, groups, and links will be copied.)");
 				if (shouldCopy) {
 					var filesToCopy = ['installed_libs.json', 'groups.json', 'tree.json', 'links.json'];
@@ -1733,7 +1804,7 @@
 
 		//Generate a unique ID, used for methods and method groups.
 		function uniqueID() {
-			return Date.now();
+			return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 		}
 
 		
@@ -1753,7 +1824,7 @@
 
 			
 
-			for (i = 0; i < navtree.length; ++i) {
+			for (var i = 0; i < navtree.length; ++i) {
 
 				var group_id = navtree[i]["group-id"];
 				var navgroup = getGroupById(group_id); // loads default or custom group
@@ -1857,19 +1928,18 @@
 				    //Add installed libraries to this group's accordion body in Settings > Libraries
 					var lib_ids = navtree[i]["method-ids"] || [];
 
-					for (j = 0; j < lib_ids.length; ++j) {
+					for (var j = 0; j < lib_ids.length; ++j) {
 						var lib = db_installed_libs.installed_libs.findOne({"_id":lib_ids[j]});
 						if(lib){
-							var libName = lib.library_name || "Unknown";
-							var libVersion = lib.version ? " v" + lib.version : "";
-							var libAuthor = lib.author || "";
+							var libName = escapeHtml(lib.library_name || "Unknown");
+							var libVersion = lib.version ? " v" + escapeHtml(lib.version) : "";
+							var libAuthor = escapeHtml(lib.author || "");
 						var libIcon = '<i class="fas fa-book fa-lg ml-2 mr-2 mb-2 align-top pt-2" style="color:var(--medium)"></i>';
 							if(lib.library_image_base64){
 								var libMime = lib.library_image_mime || 'image/bmp';
 								if (!lib.library_image_mime && lib.library_image) {
 									var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-									var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-									if (mimeMap[extLower]) libMime = mimeMap[extLower];
+									if (IMAGE_MIME_MAP[extLower]) libMime = IMAGE_MIME_MAP[extLower];
 								}
 								libIcon = '<img src="data:' + libMime + ';base64,' + lib.library_image_base64 + '" class="ml-2 mr-2 mb-2 align-top pt-2" style="max-width:20px; max-height:20px; border-radius:3px;">';
 							}
@@ -1960,16 +2030,15 @@
 					'<div class="card-body ml-5 mr-5 pl-4 pr-4 pt-2 pb-2">';
 
 			unassignedLibs.forEach(function(lib) {
-				var libName = lib.library_name || "Unknown";
-				var libVersion = lib.version ? " v" + lib.version : "";
-				var libAuthor = lib.author || "";
+				var libName = escapeHtml(lib.library_name || "Unknown");
+				var libVersion = lib.version ? " v" + escapeHtml(lib.version) : "";
+				var libAuthor = escapeHtml(lib.author || "");
 				var libIcon = '<i class="fas fa-book fa-lg ml-2 mr-2 mb-2 align-top pt-2" style="color:var(--medium)"></i>';
 				if(lib.library_image_base64){
 					var libMime = lib.library_image_mime || 'image/bmp';
 					if (!lib.library_image_mime && lib.library_image) {
 						var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-						var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-						if (mimeMap[extLower]) libMime = mimeMap[extLower];
+						if (IMAGE_MIME_MAP[extLower]) libMime = IMAGE_MIME_MAP[extLower];
 					}
 					libIcon = '<img src="data:' + libMime + ';base64,' + lib.library_image_base64 + '" class="ml-2 mr-2 mb-2 align-top pt-2" style="max-width:20px; max-height:20px; border-radius:3px;">';
 				}
@@ -2040,16 +2109,17 @@
 
 		function saveTree(){
 			console.log("save tree..");
+			try {
 			db_tree.tree.remove({"locked":false},true); //clean up tree.json
 			var tree =[];
 			var groups = $(".settings-links-group");
-			for (i = 0; i < groups.length; ++i) {
+			for (var i = 0; i < groups.length; ++i) {
 				var group_id = $(groups[i]).attr('data-group-id');
 				if(group_id === "unassigned") continue; // skip the unassigned pseudo-group
 				if(group_id === "gSystem") continue; // skip the system group (hardcoded, not persisted)
 				var methods = $(groups[i]).find(".settings-links-method");
 				var method_ids=[]
-				for (j = 0; j < methods.length; ++j) {
+				for (var j = 0; j < methods.length; ++j) {
 					var id= $(methods[j]).attr("data-id");
 					method_ids.push(id); //get method id
 				}
@@ -2061,6 +2131,10 @@
 			}
 			db_tree.tree.save(tree);
 			bool_treeChanged = true;
+			} catch(e) {
+				console.error('saveTree failed: ' + e.message);
+				alert('Error saving navigation tree. Your changes may not have been saved.\n\n' + e.message);
+			}
 		}
 
 		function updateFavorite(id , bool_favorite , linkOrGroup){
@@ -2142,8 +2216,8 @@
 					hasCustom = true;
 					$customList.append(
 						'<div class="detail-field-row">' +
-							'<span class="detail-field-key">' + keys[c] + '</span>' +
-							'<span class="detail-field-value">' + customFields[keys[c]] + '</span>' +
+							'<span class="detail-field-key">' + escapeHtml(keys[c]) + '</span>' +
+							'<span class="detail-field-value">' + escapeHtml(customFields[keys[c]]) + '</span>' +
 						'</div>'
 					);
 				}
@@ -2160,8 +2234,8 @@
 			if(attachments && attachments.length > 0){
 				for(var a = 0; a < attachments.length; a++){
 					$attList.append(
-						'<a href="#" class="link-attachment" data-filepath="' + attachments[a] + '">' +
-							'<i class="far fa-paperclip fa-sm mr-2 color-blue"></i>' + path.basename(attachments[a]) +
+						'<a href="#" class="link-attachment" data-filepath="' + attachments[a].replace(/"/g, '&quot;') + '">' +
+							'<i class="far fa-paperclip fa-sm mr-2 color-blue"></i>' + escapeHtml(path.basename(attachments[a])) +
 						'</a>'
 					);
 				}
@@ -2429,7 +2503,7 @@
 
 					//SET Attachment fields
 					if (attachments) {
-						for (k = 0; k < attachments.length; ++k) {
+						for (var k = 0; k < attachments.length; ++k) {
 							var index = k+1
 							$("#editModal .txt-attach"+index).val(attachments[k]);
 							$("#editModal .txt-attach"+index).closest(".form-group").find(".clear-field").removeClass("d-none");
@@ -2549,7 +2623,7 @@
 			.toISOString()
 			.slice(0, 19)
 			.replace('T', ' ');
-			return ([localISOTime, $.now()]);
+			return ([localISOTime, Date.now()]);
 		}
 
 		function addLinkToRecent(id){
@@ -2571,15 +2645,6 @@
 			
 		}
 
-
-		function getRecentMethods(max){
-			var tmp_arr =  db_links.links.find();	
-			var arrlaststarted = tmp_arr.filter(function (object) { return object["last-startedUTC"] != 0;});
-			arrlaststarted.sort((a, b) => a["last-startedUTC"] - b["last-startedUTC"]); //Ascending
-			// arrlaststarted.sort((a, b) => b["last-startedUTC"] - a["last-startedUTC"]); //Descending
-			arrlaststarted.length = Math.min(arrlaststarted.length, max);  //truncate the array to the max number of Recent allowed.
-			return (arrlaststarted);
-		}
 
 		function updateLastStarted(id){
 			//update started only for non-default links. This is filtered in the link-run-trigger click event
@@ -2618,11 +2683,26 @@
 		function loadSettings(){
 			var settings = db_settings.settings.find()[0]; //get all settings data from settings.json
 
+			// Guard: if settings record is missing, create a default one
+			if (!settings) {
+				console.warn('Settings record not found — initializing defaults.');
+				var defaults = {
+					"_id": "0",
+					"recent-max": 20,
+					"chk_confirmBeforeInstall": true,
+					"chk_overwriteWithoutAsking": false,
+					"chk_autoAddToGroup": true,
+					"chk_hideSystemLibraries": false
+				};
+				db_settings.settings.save(defaults);
+				settings = defaults;
+			}
+
 			//Always start on the "All" screen
 			navigateHome();
 
 			//setting - Recent
-			int_maxRecent = settings["recent-max"];
+			int_maxRecent = parseInt(settings["recent-max"], 10) || 20;
 			console.log("int_maxRecent=" + int_maxRecent);
 			$("#dd-maxRecent").text(int_maxRecent);
 
@@ -2720,6 +2800,10 @@
 
 				var counter = 0;
 				fs.readdir(HxFolder_LogFiles, function(err, files) {
+				if (err) {
+					console.warn('Could not read log directory: ' + HxFolder_LogFiles + ' — ' + err.message);
+					return;
+				}
 				$(".cleanup-progress-bar").text("0%").css("width","0%").attr("aria-valuenow", 0);
 				$(".cleanup-progress-text").text("Cleaning up run logs");
 				$(".cleanup-progress").css("display","inline"); //force display after JQuery fadeout if a previous cleanup was run
@@ -2737,8 +2821,8 @@
 										}
 
 									if(bool_processFile){
-											const today = new Date();
-											endtime = new Date(stats.mtime);
+											var today = new Date();
+											var endtime = new Date(stats.mtime);
 											endtime.setDate(endtime.getDate() + days);
 
 										if (today > endtime) {
@@ -2800,22 +2884,30 @@
 			// VENUS paths are hardcoded — no DLL/registry lookup needed
 			var HxBin = "C:\\Program Files (x86)\\HAMILTON\\Bin";
 
-			saveLinkKey("bin-folder","path", HxBin);
-			saveLinkKey("cfg-folder","path","C:\\Program Files (x86)\\HAMILTON\\Config");
-			saveLinkKey("lbw-folder","path","C:\\Program Files (x86)\\HAMILTON\\Labware");
-			saveLinkKey("lib-folder","path","C:\\Program Files (x86)\\HAMILTON\\Library");
-			saveLinkKey("log-folder","path","C:\\Program Files (x86)\\HAMILTON\\LogFiles");
-			saveLinkKey("met-folder","path","C:\\Program Files (x86)\\HAMILTON\\Methods");
+			// Helper: only set a link key if it has no value yet (preserve user customizations)
+			function setDefaultLink(id, key, defaultVal) {
+				var existing = db_links.links.findOne({"_id": id});
+				if (!existing || !existing[key]) {
+					saveLinkKey(id, key, defaultVal);
+				}
+			}
+
+			setDefaultLink("bin-folder","path", HxBin);
+			setDefaultLink("cfg-folder","path","C:\\Program Files (x86)\\HAMILTON\\Config");
+			setDefaultLink("lbw-folder","path","C:\\Program Files (x86)\\HAMILTON\\Labware");
+			setDefaultLink("lib-folder","path","C:\\Program Files (x86)\\HAMILTON\\Library");
+			setDefaultLink("log-folder","path","C:\\Program Files (x86)\\HAMILTON\\LogFiles");
+			setDefaultLink("met-folder","path","C:\\Program Files (x86)\\HAMILTON\\Methods");
 
 			HxRun = HxBin + "\\" + HxRun;
 
-			saveLinkKey("method-editor","path", HxBin + "\\" + HxMethodEditor);
-			saveLinkKey("lc-editor","path",     HxBin + "\\" + HxLiquidEditor);
-			saveLinkKey("lbw-editor","path",    HxBin + "\\" + HxLabwareEditor);
-			saveLinkKey("hsl-editor","path",    HxBin + "\\" + HxHSLEditor);
-			saveLinkKey("sysCfg-editor","path", HxBin + "\\" + HxConfigEditor);
-			saveLinkKey("run-control","path",   HxRun);
-			saveLinkKey("ham-version","path",   HxBin + "\\" + HxVersion);
+			setDefaultLink("method-editor","path", HxBin + "\\" + HxMethodEditor);
+			setDefaultLink("lc-editor","path",     HxBin + "\\" + HxLiquidEditor);
+			setDefaultLink("lbw-editor","path",    HxBin + "\\" + HxLabwareEditor);
+			setDefaultLink("hsl-editor","path",    HxBin + "\\" + HxHSLEditor);
+			setDefaultLink("sysCfg-editor","path", HxBin + "\\" + HxConfigEditor);
+			setDefaultLink("run-control","path",   HxRun);
+			setDefaultLink("ham-version","path",   HxBin + "\\" + HxVersion);
 
 			// Set working dir for the method file browse
 			$("#input-methodfile").attr("nwworkingdir", HxFolder_Methods);
@@ -2895,7 +2987,7 @@
 				pkg_iconAutoDetectedPath = null;
 				pkg_iconDismissedAuto = false;
 				var ext = path.extname(filePath).toLowerCase();
-				var mimeMap = {'.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.bmp':'image/bmp', '.gif':'image/gif', '.ico':'image/x-icon', '.svg':'image/svg+xml'};
+				var mimeMap = IMAGE_MIME_MAP;
 				var mime = mimeMap[ext] || 'image/png';
 				var b64 = fs.readFileSync(filePath).toString('base64');
 
@@ -2929,11 +3021,20 @@
 		// ---- Library file inputs ----
 		$(document).on("change", "#pkg-input-libfiles", function() {
 			var fileInput = this;
+			var newDlls = [];
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_libraryFiles.indexOf(filePath) === -1) {
 					pkg_libraryFiles.push(filePath);
+					var baseName = path.basename(filePath);
+					if (baseName.toLowerCase().endsWith('.dll')) {
+						newDlls.push(baseName);
+					}
 				}
+			}
+			// Auto-check for COM registration if exactly one DLL was added in this batch
+			if (newDlls.length === 1 && pkg_comRegisterDlls.indexOf(newDlls[0]) === -1) {
+				pkg_comRegisterDlls.push(newDlls[0]);
 			}
 			pkgUpdateLibFileList();
 			$(this).val('');
@@ -2944,14 +3045,22 @@
 			if (folderPath) {
 				try {
 					var files = fs.readdirSync(folderPath);
+					var newDlls = [];
 					files.forEach(function(file) {
 						var filePath = path.join(folderPath, file);
 						try {
 							if (fs.statSync(filePath).isFile() && pkg_libraryFiles.indexOf(filePath) === -1) {
 								pkg_libraryFiles.push(filePath);
+								if (file.toLowerCase().endsWith('.dll')) {
+									newDlls.push(file);
+								}
 							}
 						} catch(e) {}
 					});
+					// Auto-check for COM registration if exactly one DLL was added in this batch
+					if (newDlls.length === 1 && pkg_comRegisterDlls.indexOf(newDlls[0]) === -1) {
+						pkg_comRegisterDlls.push(newDlls[0]);
+					}
 					pkgUpdateLibFileList();
 				} catch(e) {
 					alert("Error reading folder: " + e.message);
@@ -3311,6 +3420,16 @@
 				}
 			}
 
+			// Warn if DLLs exist in library files but none are selected for COM registration
+			var dllsInLibrary = pkg_libraryFiles.filter(function(f) {
+				return path.basename(f).toLowerCase().endsWith('.dll');
+			});
+			if (dllsInLibrary.length > 0 && pkg_comRegisterDlls.length === 0) {
+				if (!confirm("No DLL files are targeted to be registered as COM objects. Are you sure you want to continue?")) {
+					return;
+				}
+			}
+
 			// Use library name from the detected field
 			var libName = $("#pkg-library-name").val().trim() || "Unknown";
 
@@ -3458,8 +3577,7 @@
 						libImageFilename = path.basename(pkg_iconFilePath);
 						libImageBase64 = fs.readFileSync(pkg_iconFilePath).toString('base64');
 						var ext = path.extname(pkg_iconFilePath).toLowerCase();
-						var mimeMap = {'.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.bmp':'image/bmp', '.gif':'image/gif', '.ico':'image/x-icon', '.svg':'image/svg+xml'};
-						libImageMime = mimeMap[ext] || 'image/png';
+						libImageMime = IMAGE_MIME_MAP[ext] || 'image/png';
 					} catch(e) {
 						libImageFilename = null;
 						libImageBase64 = null;
@@ -4502,14 +4620,14 @@
 			}
 
 			libs.forEach(function(lib) {
-				var libName = lib.library_name || "Unknown";
-				var version = lib.version || "";
-				var author = lib.author || "";
-				var description = lib.description || "";
-				var tags = lib.tags || [];
+				var libName = escapeHtml(lib.library_name || "Unknown");
+				var version = escapeHtml(lib.version || "");
+				var author = escapeHtml(lib.author || "");
+				var description = escapeHtml(lib.description || "");
+				var tags = (lib.tags || []).map(function(t) { return escapeHtml(t); });
 				var hasImage = !!lib.library_image_base64;
 				var hasComWarning = lib.com_warning === true;
-				var comDlls = lib.com_register_dlls || [];
+				var comDlls = (lib.com_register_dlls || []).map(function(d) { return escapeHtml(d); });
 				var isDeleted = lib.deleted === true;
 
 				// Verify library integrity
@@ -4521,8 +4639,7 @@
 				var imgMime = lib.library_image_mime || 'image/bmp';
 				if (!lib.library_image_mime && lib.library_image) {
 					var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-					var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-					if (mimeMap[extLower]) imgMime = mimeMap[extLower];
+					if (IMAGE_MIME_MAP[extLower]) imgMime = IMAGE_MIME_MAP[extLower];
 				}
 
 				// Build card icon
@@ -4727,10 +4844,10 @@
 
 		// ---- Build a single system library card HTML ----
 		function buildSystemLibraryCard(sLib) {
-			var libName = sLib.display_name || sLib.canonical_name || "Unknown";
-			var author = sLib.author || "Hamilton";
+			var libName = escapeHtml(sLib.display_name || sLib.canonical_name || "Unknown");
+			var author = escapeHtml(sLib.author || "Hamilton");
 			var fileCount = (sLib.discovered_files || []).length;
-			var resTypes = (sLib.resource_types || []).join(', ');
+			var resTypes = escapeHtml((sLib.resource_types || []).join(', '));
 			var hasPrimary = sLib.has_primary_definition;
 
 			var iconHtml = resolveSystemLibIcon(sLib, 48);
@@ -4802,8 +4919,7 @@
 			var detailMime = lib.library_image_mime || 'image/bmp';
 			if (!lib.library_image_mime && lib.library_image) {
 				var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-				var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-				if (mimeMap[extLower]) detailMime = mimeMap[extLower];
+				if (IMAGE_MIME_MAP[extLower]) detailMime = IMAGE_MIME_MAP[extLower];
 			}
 
 			if (lib.library_image_base64) {
@@ -4937,10 +5053,10 @@
 						'<div class="dep-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
 							'<div style="display:flex; align-items:center;">' +
 								'<i class="fas ' + statusIcon + '" style="color:' + statusColor + '; font-size:0.8rem; margin-right:6px; min-width:14px;"></i>' +
-								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + (dep.libraryName || dep.include) + '</span>' +
+								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + escapeHtml(dep.libraryName || dep.include) + '</span>' +
 								typeBadge +
 							'</div>' +
-							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + dep.include + '</div>' +
+							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + escapeHtml(dep.include) + '</div>' +
 						'</div>'
 					);
 				});
@@ -4957,13 +5073,13 @@
 				$fnSection.removeClass("d-none");
 				pubFns.forEach(function(fn) {
 					var paramStr = (fn.params || []).map(function(p) {
-						return '<span class="fn-param-type">' + (p.type || 'variable') + '</span>' +
+						return '<span class="fn-param-type">' + escapeHtml(p.type || 'variable') + '</span>' +
 							(p.byRef ? '<span class="fn-param-ref">&amp;</span> ' : ' ') +
-							'<span class="fn-param-name">' + p.name + '</span>' +
+							'<span class="fn-param-name">' + escapeHtml(p.name) + '</span>' +
 							(p.array ? '<span class="fn-param-array">[]</span>' : '');
 					}).join(', ');
 					var retBadge = fn.returnType && fn.returnType !== 'void'
-						? '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle;">' + fn.returnType + '</span>'
+						? '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle;">' + escapeHtml(fn.returnType) + '</span>'
 						: '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle; opacity:0.5;">void</span>';
 					var docHtml = fn.doc
 						? '<div class="fn-doc text-muted text-sm" style="margin-left:22px; font-size:0.75rem; white-space:pre-wrap;">' + $("<span>").text(fn.doc.split('\n')[0]).html() + '</div>'
@@ -4971,7 +5087,7 @@
 					$fnList.append(
 						'<div class="fn-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
 							'<div><i class="fas fa-cube fn-icon" style="color:var(--medium); font-size:0.7rem; margin-right:5px;"></i>' +
-							'<span class="fn-name" style="font-family:Consolas,monospace; font-weight:600; font-size:0.82rem;">' + fn.qualifiedName + '</span>' +
+							'<span class="fn-name" style="font-family:Consolas,monospace; font-weight:600; font-size:0.82rem;">' + escapeHtml(fn.qualifiedName) + '</span>' +
 							'<span style="font-family:Consolas,monospace; font-size:0.78rem; color:#888;">(' + paramStr + ')</span>' +
 							retBadge + '</div>' +
 							docHtml +
@@ -5151,23 +5267,35 @@
 				var extractedCount = 0;
 				var zipEntries = zip.getEntries();
 				zipEntries.forEach(function(entry) {
-					if (entry.entryName === "manifest.json") return;
+					if (entry.entryName === "manifest.json" || entry.entryName === "signature.json") return;
 					if (entry.entryName.indexOf("library/") === 0) {
 						var fname = entry.entryName.substring("library/".length);
 						if (fname) {
-							fs.writeFileSync(path.join(libDestDir, fname), entry.getData());
+							var safePath = safeZipExtractPath(libDestDir, fname);
+							if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(safePath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+							fs.writeFileSync(safePath, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf("demo_methods/") === 0) {
 						var fname = entry.entryName.substring("demo_methods/".length);
 						if (fname) {
-							fs.writeFileSync(path.join(demoDestDir, fname), entry.getData());
+							var safePath = safeZipExtractPath(demoDestDir, fname);
+							if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(safePath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+							fs.writeFileSync(safePath, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf("help_files/") === 0) {
 						var fname = entry.entryName.substring("help_files/".length);
 						if (fname) {
-							fs.writeFileSync(path.join(libDestDir, fname), entry.getData());
+							var safePath = safeZipExtractPath(libDestDir, fname);
+							if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(safePath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+							fs.writeFileSync(safePath, entry.getData());
 							extractedCount++;
 						}
 					}
@@ -5503,7 +5631,7 @@
 					var libId = $("#libDetailModal").attr("data-lib-id");
 					if (libId) {
 						$("#libDetailModal").modal("hide");
-						setTimeout(function() { showDetailModal(libId); }, 300);
+						setTimeout(function() { impShowSystemLibDetail(libId); }, 300);
 					}
 				}
 			} else if (userLibName) {
@@ -5514,7 +5642,7 @@
 				var libId = $("#libDetailModal").attr("data-lib-id");
 				if (libId) {
 					$("#libDetailModal").modal("hide");
-					setTimeout(function() { showDetailModal(libId); }, 300);
+					setTimeout(function() { impShowLibDetail(libId); }, 300);
 				}
 			}
 		});
@@ -5693,8 +5821,7 @@
 				var imgMime = lib.library_image_mime || 'image/bmp';
 				if (!lib.library_image_mime && lib.library_image) {
 					var extLower = (lib.library_image || '').split('.').pop().toLowerCase();
-					var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-					if (mimeMap[extLower]) imgMime = mimeMap[extLower];
+					if (IMAGE_MIME_MAP[extLower]) imgMime = IMAGE_MIME_MAP[extLower];
 				}
 
 				// Build icon
@@ -5893,7 +6020,7 @@
 
 					// Convert inner zip to buffer and add to archive
 					var innerBuffer = innerZip.toBuffer();
-					var innerFileName = libName + ".hxlibpkg";
+					var innerFileName = libName.replace(/[<>:"\\\/|?*]/g, '_') + ".hxlibpkg";
 					archiveZip.addFile(innerFileName, innerBuffer);
 
 					exportedLibs.push({
@@ -5962,6 +6089,11 @@
 
 		// Import archive: extract each .hxlibpkg and install sequentially
 		function impArchImportArchive(archivePath) {
+			if (_isImporting) {
+				alert("An import is already in progress. Please wait for it to complete.");
+				return;
+			}
+			_isImporting = true;
 			try {
 				if (!fs.existsSync(archivePath)) {
 					alert("Archive file not found:\n" + archivePath);
@@ -6015,6 +6147,11 @@
 						var manifest = JSON.parse(manifestJson);
 						var libName = manifest.library_name || "Unknown";
 
+						if (!isValidLibraryName(libName)) {
+							results.failed.push(pkgEntry.entryName + ": invalid library name");
+							return;
+						}
+
 						// Verify inner package signature
 						var innerSig = verifyPackageSignature(innerZip);
 						if (innerSig.signed && !innerSig.valid) {
@@ -6053,25 +6190,34 @@
 						// Extract files
 						var zipEntries = innerZip.getEntries();
 						zipEntries.forEach(function(entry) {
-							if (entry.entryName === "manifest.json") return;
+							if (entry.entryName === "manifest.json" || entry.entryName === "signature.json") return;
 							if (entry.entryName.indexOf("library/") === 0) {
 								var fname = entry.entryName.substring("library/".length);
 								if (fname) {
-									var outPath = path.join(libDestDir, fname);
+									var outPath = safeZipExtractPath(libDestDir, fname);
+									if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+									var parentDir = path.dirname(outPath);
+									if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 									fs.writeFileSync(outPath, entry.getData());
 									extractedCount++;
 								}
 							} else if (entry.entryName.indexOf("demo_methods/") === 0) {
 								var fname = entry.entryName.substring("demo_methods/".length);
 								if (fname) {
-									var outPath = path.join(demoDestDir, fname);
+									var outPath = safeZipExtractPath(demoDestDir, fname);
+									if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+									var parentDir = path.dirname(outPath);
+									if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 									fs.writeFileSync(outPath, entry.getData());
 									extractedCount++;
 								}
 							} else if (entry.entryName.indexOf("help_files/") === 0) {
 								var fname = entry.entryName.substring("help_files/".length);
 								if (fname) {
-									var outPath = path.join(libDestDir, fname);
+									var outPath = safeZipExtractPath(libDestDir, fname);
+									if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+									var parentDir = path.dirname(outPath);
+									if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 									fs.writeFileSync(outPath, entry.getData());
 									extractedCount++;
 								}
@@ -6179,10 +6325,10 @@
 
 			} catch(e) {
 				alert("Error importing archive:\n" + e.message);
+			} finally {
+				_isImporting = false;
 			}
 		}
-
-		// ---- Card click handlers ----
 		$(document).on("click", ".imp-lib-card-details, .imp-lib-card-name", function(e) {
 			e.preventDefault();
 			var libId = $(this).closest(".imp-lib-card-container").attr("data-lib-id");
@@ -6423,6 +6569,11 @@
 
 		// ---- Load, preview, confirm and install package ----
 		async function impLoadAndInstall(filePath) {
+			if (_isImporting) {
+				alert("An import is already in progress. Please wait for it to complete.");
+				return;
+			}
+			_isImporting = true;
 			try {
 				var zipBuffer = fs.readFileSync(filePath);
 				var zip = new AdmZip(zipBuffer);
@@ -6462,6 +6613,11 @@
 				}
 
 				var libName = manifest.library_name || "Unknown";
+				if (!isValidLibraryName(libName)) {
+					alert("Invalid library name: \"" + libName + "\".\nLibrary names cannot contain path separators, '..', or special characters.");
+					_isImporting = false;
+					return;
+				}
 				var libFiles = manifest.library_files || [];
 				var demoFiles = manifest.demo_method_files || [];
 
@@ -6495,8 +6651,7 @@
 				var imgMime = manifest.library_image_mime || 'image/bmp';
 				if (!manifest.library_image_mime && manifest.library_image) {
 					var extLower = (manifest.library_image || '').split('.').pop().toLowerCase();
-					var mimeMap = {'png':'image/png', 'jpg':'image/jpeg', 'jpeg':'image/jpeg', 'bmp':'image/bmp', 'gif':'image/gif', 'ico':'image/x-icon', 'svg':'image/svg+xml'};
-					if (mimeMap[extLower]) imgMime = mimeMap[extLower];
+					if (IMAGE_MIME_MAP[extLower]) imgMime = IMAGE_MIME_MAP[extLower];
 				}
 				if (manifest.library_image_base64) {
 					$icon.html('<img src="data:' + imgMime + ';base64,' + manifest.library_image_base64 + '" style="max-width:56px; max-height:56px; border-radius:6px;">');
@@ -6526,7 +6681,7 @@
 				$tagsContainer.empty();
 				if (tags.length > 0) {
 					tags.forEach(function(t) {
-						$tagsContainer.append('<span class="badge badge-light mr-1" style="font-size:0.8rem;">' + t + '</span>');
+						$tagsContainer.append('<span class="badge badge-light mr-1" style="font-size:0.8rem;">' + escapeHtml(t) + '</span>');
 					});
 					$modal.find(".imp-preview-tags-section").removeClass("d-none");
 				} else {
@@ -6638,6 +6793,8 @@
 
 			} catch(e) {
 				alert("Error reading package:\n" + e.message);
+			} finally {
+				_isImporting = false;
 			}
 		}
 
@@ -6744,7 +6901,7 @@
 				// Extract files (skip COM DLLs already extracted above)
 				var zipEntries = zip.getEntries();
 				zipEntries.forEach(function(entry) {
-					if (entry.entryName === "manifest.json") return;
+					if (entry.entryName === "manifest.json" || entry.entryName === "signature.json") return;
 
 					if (entry.entryName.indexOf("library/") === 0) {
 						var fname = entry.entryName.substring("library/".length);
@@ -6754,14 +6911,20 @@
 								extractedCount++;
 								return;
 							}
-							var outPath = path.join(libDestDir, fname);
+							var outPath = safeZipExtractPath(libDestDir, fname);
+							if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(outPath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 							fs.writeFileSync(outPath, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf("demo_methods/") === 0) {
 						var fname = entry.entryName.substring("demo_methods/".length);
 						if (fname) {
-							var outPath = path.join(demoDestDir, fname);
+							var outPath = safeZipExtractPath(demoDestDir, fname);
+							if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(outPath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 							fs.writeFileSync(outPath, entry.getData());
 							extractedCount++;
 						}
@@ -6769,7 +6932,10 @@
 						// Legacy/explicit help_files folder — extract to library directory
 						var fname = entry.entryName.substring("help_files/".length);
 						if (fname) {
-							var outPath = path.join(libDestDir, fname);
+							var outPath = safeZipExtractPath(libDestDir, fname);
+							if (!outPath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(outPath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 							fs.writeFileSync(outPath, entry.getData());
 							extractedCount++;
 						}
@@ -6955,8 +7121,9 @@
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
 
-			// Save statically to Hamilton Logfiles directory
-			var logDir = "C:\\Program Files (x86)\\Hamilton\\Logfiles";
+			// Save to configured Hamilton Logfiles directory (fall back to default)
+			var logFolderRec = db_links.links.findOne({"_id":"log-folder"});
+			var logDir = (logFolderRec && logFolderRec.path) ? logFolderRec.path : "C:\\Program Files (x86)\\HAMILTON\\LogFiles";
 			try {
 				if (!fs.existsSync(logDir)) {
 					fs.mkdirSync(logDir, { recursive: true });
@@ -7597,19 +7764,31 @@
 					if (entry.entryName.indexOf('library/') === 0) {
 						var fname = entry.entryName.substring('library/'.length);
 						if (fname) {
-							fs.writeFileSync(path.join(libDestDir, fname), entry.getData());
+							var safePath = safeZipExtractPath(libDestDir, fname);
+							if (!safePath) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir = path.dirname(safePath);
+							if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+							fs.writeFileSync(safePath, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf('demo_methods/') === 0) {
 						var fname2 = entry.entryName.substring('demo_methods/'.length);
 						if (fname2 && demoDestDir) {
-							fs.writeFileSync(path.join(demoDestDir, fname2), entry.getData());
+							var safePath2 = safeZipExtractPath(demoDestDir, fname2);
+							if (!safePath2) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir2 = path.dirname(safePath2);
+							if (!fs.existsSync(parentDir2)) fs.mkdirSync(parentDir2, { recursive: true });
+							fs.writeFileSync(safePath2, entry.getData());
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf('help_files/') === 0) {
 						var fname3 = entry.entryName.substring('help_files/'.length);
 						if (fname3) {
-							fs.writeFileSync(path.join(libDestDir, fname3), entry.getData());
+							var safePath3 = safeZipExtractPath(libDestDir, fname3);
+							if (!safePath3) { console.warn('Skipping unsafe ZIP entry: ' + entry.entryName); return; }
+							var parentDir3 = path.dirname(safePath3);
+							if (!fs.existsSync(parentDir3)) fs.mkdirSync(parentDir3, { recursive: true });
+							fs.writeFileSync(safePath3, entry.getData());
 							extractedCount++;
 						}
 					}
