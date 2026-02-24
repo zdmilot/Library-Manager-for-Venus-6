@@ -1,7 +1,6 @@
 
 		// main.js v1.0 
 
-		var edge = require('edge-js');
 		var gui = require('nw.gui');
 		var win = gui.Window.get();
 		var path = require('path');
@@ -16,7 +15,7 @@
 		var HxConfigEditor = "Hamilton.HxConfigEditor.exe";
 		var HxVersion = "HxVersion.exe";
 
-		//Default VENUS folders. These variables are updated on startup by the function GetVENUSPathsFromRegistry.
+		//Default VENUS folders.
 		var HxFolder_LogFiles = "C:\\Program Files (x86)\\HAMILTON\\LogFiles";
 		var HxFolder_Methods = "C:\\Program Files (x86)\\HAMILTON\\Methods";
 		var HxFolder_Bin = "C:\\Program Files (x86)\\HAMILTON\\Bin"
@@ -35,12 +34,17 @@
 		// ---- User Data Path ----
 		// User data (installed libs, groups, tree, links) is stored OUTSIDE the app
 		// in a configurable folder so the app stays portable and lightweight.
-		var DEFAULT_USER_DATA_PATH = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", ".LibraryManager");
+		var DEFAULT_USER_DATA_PATH = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "VenusLibraryManager");
 
 		function resolveUserDataPath() {
 			var settings = db_settings.settings.find();
 			if (settings && settings.length > 0 && settings[0]["userDataPath"]) {
-				return settings[0]["userDataPath"];
+				var saved = settings[0]["userDataPath"];
+				// Migrate old hidden dot-folder path to visible name
+				if (saved.indexOf('.VenusLibraryManager') !== -1) {
+					saved = saved.replace('.VenusLibraryManager', 'VenusLibraryManager');
+				}
+				return saved;
 			}
 			return DEFAULT_USER_DATA_PATH;
 		}
@@ -115,6 +119,32 @@
 		// Resolve user data path, ensure directory exists, migrate old data
 		var USER_DATA_DIR = resolveUserDataPath();
 		ensureUserDataDir(USER_DATA_DIR);
+
+		// Migrate from old hidden .VenusLibraryManager folder if it exists
+		var OLD_HIDDEN_DIR = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", ".VenusLibraryManager");
+		if (fs.existsSync(OLD_HIDDEN_DIR) && OLD_HIDDEN_DIR !== USER_DATA_DIR) {
+			try {
+				var oldFiles = ['installed_libs.json', 'groups.json', 'tree.json', 'links.json'];
+				oldFiles.forEach(function(fname) {
+					var src = path.join(OLD_HIDDEN_DIR, fname);
+					var dst = path.join(USER_DATA_DIR, fname);
+					if (fs.existsSync(src)) {
+						var srcData = fs.readFileSync(src, 'utf8').trim();
+						var dstData = fs.readFileSync(dst, 'utf8').trim();
+						// Only copy if destination is still default/empty seed data
+						if (dstData === '[]' || JSON.parse(dstData).length === 0) {
+							if (srcData !== '[]' && JSON.parse(srcData).length > 0) {
+								fs.writeFileSync(dst, srcData, 'utf8');
+								console.log('Migrated ' + fname + ' from .VenusLibraryManager');
+							}
+						}
+					}
+				});
+			} catch(e) {
+				console.warn('Warning migrating from .VenusLibraryManager: ' + e.message);
+			}
+		}
+
 		migrateOldDbData(USER_DATA_DIR);
 
 		// Connect user data databases to the external directory
@@ -135,12 +165,13 @@
 			console.warn('Could not load system_libraries.json: ' + e.message);
 		}
 
-		// ---- System Library Hashes (integrity baseline from clean VENUS install) ----
-		var systemLibraryHashes = {};
+		// ---- System Library Baseline (integrity baseline from clean VENUS install) ----
+		// Uses Hamilton's built-in $$valid$$ / $$checksum$$ metadata footer instead of SHA-256.
+		var systemLibraryBaseline = {};
 		try {
 			var _sysHashRaw = fs.readFileSync(path.join('db', 'system_library_hashes.json'), 'utf8');
 			var _sysHashData = JSON.parse(_sysHashRaw);
-			systemLibraryHashes = _sysHashData.libraries || {};
+			systemLibraryBaseline = _sysHashData.libraries || {};
 		} catch(e) {
 			console.warn('Could not load system_library_hashes.json: ' + e.message);
 		}
@@ -254,122 +285,27 @@
 			return entries;
 		}
 
-		var isUserAdmin = true;
-
 		var bool_treeChanged = false; //tracks if the tree of groups/methods has been edited to re-create groups when coming back to Home screen from Settings screen.
 
 		var int_maxRecent = 10;
 
-		var functionProtection = 0;
-		var internalLogon = 0;
-		var username="";
-		var loginAttempts = 0
-		var accessRights = 0; 
-		// 0= Lab service / Administrator
-		// 1= Lab Programmer
-		// 2= Lab Operator 2
-		// 3= Lab Operator
-		// 4= No access / Lab Remote service 
-
-		var EnumAccessRights = ["Administrator" , "Lab Programmer", "Lab Operator 2" , "Lab Operator" , "No access"];
-
-		var bool_isHamUserChangeClick = false;
 		
 		//**********************************************************************
-
-// *******  Executor DLL declarations *************
-var LogOnDialog = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'LogOnDialog'
-    //Use with VENUS internal log on only
-});
-var LogOn = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'LogOn'
-    //Use with VENUS internal log on only
-    //input "username,password"
-});
-var LogOff = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'LogOff'
-    //Use with VENUS internal log on only
-});
-var GetFunctionProtection = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetFunctionProtection'
-    //returns int . 1=Function Protection enabled, 0=disabled
-});
-
-var GetCurrentAccessRightOS = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetCurrentAccessRightOS'
-    //Use with VENUS internal log on only
-    //return 
-// 0= Lab service / Administrator
-// 1= Lab Programmer
-// 2= Lab Operator 2
-// 3= Lab Operator
-// 4= No access / Lab Remote service 
-});
-var GetCurrentUsernameOS = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetCurrentUsernameOS'
-    //Use with VENUS internal log on only
-    //return 0=No user logged on, 1=Operator, 2=Operator2, 4=Service, 8=Programmer
-});
-var GetUseInternalLogOn = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetUseInternalLogOn'
-    //Use with VENUS internal log on only
-    //return 1=Uses Hamilton Authentication , 0= Windows Auth.
-});
-var GetSimulation = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetSimulation'
-    //return 1=Simulation on (at least in one instrument or the general setting) , 0= simulation off for all instruments and general sim setting
-});
-var SetSimulation = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'SetSimulation'
-    //sets simulation for all instrument classes installed and the general sim setting
-    //input string parameter "on" or "off"
-});
-var GetVENUSPathsFromRegistry = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'GetVENUSPathsFromRegistry'
-    //Gets all the default VENUS paths as a json string
-    // bin-folder, cfg-folder, lib-folder, log-folder, lbw-folder, sys-folder,met-folder
-});
-var DetachDatabase = edge.func({
-    assemblyFile: 'MethodManagerHelper.dll',
-    typeName: 'MethodManagerHelper.Class1',
-    methodName: 'DetachDatabase'
-    //Detach the given database name
-	//input :  "HamiltonVectorDb_<run_id>"
-    //return :  -1 if error, 0 no error
-});
-	
-
-
-
-        //**********************************************************************
         //******  EVENTS *******************************************************
         //**********************************************************************
+        // Track whether window is maximized (used to persist across sessions)
+		var _windowIsMaximized = false;
+		win.on('maximize', function () { _windowIsMaximized = true; });
+		win.on('restore',  function () { _windowIsMaximized = false; });
+		win.on('unmaximize', function () { _windowIsMaximized = false; });
+
         //Window close.   Ensure to close any background running nw.exe
 		win.on('close', function () {
-			if(functionProtection==1 && internalLogon==1){
-				LogOff("", function(error, result) {});
-			}
+			// Persist maximized state for next launch
+			try {
+				saveSetting('windowMaximized', _windowIsMaximized);
+			} catch(e) { console.log('Could not save window state: ' + e); }
+
 			gui.App.closeAllWindows();
 			win.close(true);
 		});
@@ -387,15 +323,26 @@ var DetachDatabase = edge.func({
 
         //Window load
 		$(window).load(function () {
+			// Restore maximized state from previous session
+			try {
+				if (getSettingValue('windowMaximized')) {
+					win.maximize();
+					_windowIsMaximized = true;
+				}
+			} catch(e) { console.log('Could not restore window state: ' + e); }
+
 			waitForFinalEvent(function () {
 				try {
-					$.when(initVENUSData()).then(createGroups()).then(
-						setTimeout(function(){historyCleanup()},100)
-					).then(fitSettingsDivHeight());
+					initVENUSData();
+					createGroups();
+					setTimeout(function(){historyCleanup()},100);
+					fitSettingsDivHeight();
 				} catch(e) {
 					console.log("Error in startup chain: " + e);
 					try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
 				}
+				// Ensure we always navigate to home screen after startup
+				try { navigateHome(); } catch(e3) { console.log("Error navigating home: " + e3); }
 			}, 150, "");
         });
 
@@ -573,26 +520,14 @@ var DetachDatabase = edge.func({
 
 		
 
-		//Click simulation toggle
-		$(document).on("click", "#simulation-switch", function () {
-			//SetSimulation()
-			if($(this).prop("checked")){
-				console.log("Simulation is on");
-				updateSimulationSwitch(1);
-				SetSimulation("on");
-			}else{
-				console.log("Simulation is off");
-				updateSimulationSwitch(0);
-				SetSimulation("off");
-			}
-		});
+
 
 
 		//Click "help" from overflow menu.
 		$(document).on("click", ".overflow-help", function () {
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			nw.Shell.openItem("C:\\Users\\admin\\Documents\\GitHub\\Library Manager\\Library Manager.chm");
+			nw.Shell.openItem("C:\\Users\\admin\\Documents\\GitHub\\Library Manager\\Venus Library Manager.chm");
 		});
 
 		//Click "settings" from overflow menu.
@@ -931,15 +866,21 @@ var DetachDatabase = edge.func({
 				deletedBadge = '<span class="badge badge-secondary ml-2"><i class="fas fa-trash-alt mr-1"></i>Deleted</span>';
 			}
 
+			var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
+			var depStatus = checkDependencyStatus(deps);
+			var hasMissingDeps = !depStatus.valid;
+
 			var cardExtraClass = '';
-			if (hasIntegrityError) { cardExtraClass = ' imp-lib-card-integrity-error'; }
+			if (hasIntegrityError || hasMissingDeps) { cardExtraClass = ' imp-lib-card-integrity-error'; }
 			else if (hasComWarning) { cardExtraClass = ' imp-lib-card-warning'; }
 			if (isDeleted) cardExtraClass += ' imp-lib-card-deleted';
 
 			var cardTooltipAttr = '';
-			if (hasIntegrityError) {
-				var errTooltip = integrity.errors.concat(integrity.warnings).join('\n');
-				cardTooltipAttr = ' title="' + errTooltip.replace(/"/g, '&quot;') + '"';
+			if (hasIntegrityError || hasMissingDeps) {
+				var errParts = [];
+				if (hasIntegrityError) errParts = errParts.concat(integrity.errors).concat(integrity.warnings);
+				if (hasMissingDeps) errParts.push('Missing dependencies: ' + depStatus.missing.map(function(d) { return d.libraryName || d.include; }).join(', '));
+				cardTooltipAttr = ' title="' + errParts.join('\n').replace(/"/g, '&quot;') + '"';
 			} else if (hasIntegrityWarning) {
 				var warnTooltip = integrity.warnings.join('\n');
 				cardTooltipAttr = ' title="' + warnTooltip.replace(/"/g, '&quot;') + '"';
@@ -1393,11 +1334,6 @@ var DetachDatabase = edge.func({
 			}
 		});
 
-		$(document).on("click",".username-logoff",function(){
-			bool_isHamUserChangeClick = true;
-			GetFunctionProtection("null",HandleFunctionProtection);
-
-		})
 		
         //*************************************************************************
         //******  EVENTS END*******************************************************
@@ -2331,12 +2267,26 @@ var DetachDatabase = edge.func({
 			var updated = db_links.links.update(query, dataToSave, options);
 		}
 
+        /** Navigate directly to the All (home) screen */
+		function navigateHome() {
+			// Activate the All nav item
+			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
+			$('.navbar-custom .nav-item[data-group-id="gAll"]').addClass("active");
+			$('.group-container').addClass('d-none');
+			// Switch from loading/links to home (importer) container
+			$(".links-container").addClass("d-none");
+			$(".exporter-container").addClass("d-none");
+			$(".importer-container").removeClass("d-none");
+			$("#imp-header").removeClass("d-none").addClass("d-flex");
+			impBuildLibraryCards();
+			fitImporterHeight();
+		}
+
 		function loadSettings(){
 			var settings = db_settings.settings.find()[0]; //get all settings data from settings.json
 
 			//Always start on the "All" screen
-			var group_id = "gAll";
-			$(".nav-item[data-group-id='" + group_id + "'").trigger("click");
+			navigateHome();
 
 			//setting - Recent
 			int_maxRecent = settings["recent-max"];
@@ -2441,35 +2391,9 @@ var DetachDatabase = edge.func({
 				$(".cleanup-progress-text").text("Cleaning up run logs");
 				$(".cleanup-progress").css("display","inline"); //force display after JQuery fadeout if a previous cleanup was run
 					// console.log(files.length);
-				
-					var patt = /(_[a-zA-Z0-9]{32})_HamiltonVectorDB./;
-					var arr_tmp = [];
 
 					files.forEach(function(file, index) {
 						var ext = path.extname(file);
-						if(ext==".mdf" || ext==".ldf"){
-							var regexMatch = file.match(patt);
-							if(regexMatch){
-								if(regexMatch.length>1){
-									//if it´s an .mdf or .ldf , detach the HamiltonVectorDb database file and retry
-									//Detach the given database name
-									//input :  "HamiltonVectorDb_<run_id>"
-									//return :  -1 if error, 0 no error
-									var runDb = "HamiltonVectorDB" + regexMatch[1];
-									if(arr_tmp.indexOf(runDb)==-1){
-										arr_tmp.push(runDb);
-										DetachDatabase(runDb,function (error, result){
-											if(!error){
-												console.log("Detaching DB result = " + result);
-												if(result=="-1"){
-													console.log ("cannot detach or previously detached : " + file);
-												}
-											}
-										});
-									}
-								}
-							}
-						}
 							var currentPath = path.join(HxFolder_LogFiles,file);
 							var bool_processFile = false;
 							fs.stat(currentPath, function(err, stats) {
@@ -2539,256 +2463,30 @@ var DetachDatabase = edge.func({
 			}
 		}
 
-		function updateSimulationSwitch(sim){
-			if(sim==1){
-				$(".sim-on-off").text("On");
-				$("#simulation-switch").prop("checked",true);
-			}else{
-				$(".sim-on-off").text("Off");
-				$("#simulation-switch").prop("checked",false);
-			}
-		}
-
-			function HandleFunctionProtection(error, result) {
-					// console.log("hey HandleFunctionProtection");
-					if (error) {
-						console.log(error);
-					} else{
-						functionProtection=parseInt(result);
-						if(functionProtection==1){
-							console.log("Function Protection=" + functionProtection);
-							GetUseInternalLogOn( "null", HandleUseInternalLogon);
-						}else{
-							//user login disabled. Free ride!
-							$(".btn-overflow-menu").removeClass("d-none");
-						}
-					}  
-			}
-
-			function HandleUseInternalLogon(error, result) {
-					// console.log("hey HandleUseInternalLogon");
-					if (error) {
-						console.log(error);
-					} else{
-						internalLogon=parseInt(result);
-						if(internalLogon===1){ 
-							//HAMILTON Authentication. Force log off before going any further
-							LogOff( "", function(error, result) {
-								if (error) {
-									console.log(error);
-								} else{
-									console.log("Current user has been logged off'..." + result);
-								}  
-							});
-						}
-						GetCurrentAccessRightOS("null", HandleAccessRights);
-
-					}  
-			}
-
-
-
-
-			// LogOff( "", function(error, result) {
-			//         console.log("hey");
-			//         if (error) {
-			//             console.log(error);
-			//         } else{
-			//              console.log("Current user has been logged off'..." + result);
-			//         }  
-			// });
-			// LogOn( "testuser,123456", function(error, result) {
-			//         console.log("hey");
-			//         if (error) {
-			//             console.log(error);
-			//         } else{
-			//              console.log("Log on:" + result);
-			//         }  
-			// });
-
-			function SetUser(username, role){
-				if(username!=""){
-					$(".username-container").removeClass("d-none");
-					$(".username-name").text(username);
-					$(".username-role").text("(" + role + ")");
-					if(accessRights>1){ //Only programmer and admin can tweak settings
-						isUserAdmin = false;
-						$(".btn-overflow-menu").addClass("d-none");
-					}else{
-						$(".btn-overflow-menu").removeClass("d-none");
-					}
-					if(internalLogon==0){
-						//OS Authentication, hide logoff button
-						$(".username-logoff").addClass("d-none").removeClass("d-inline"); 
-					}
-					else{
-						//Hamilton Authentication, show logoff button
-						$(".username-logoff").removeClass("d-none").addClass("d-inline"); 
-					}
-				}
-				else{
-					$(".btn-overflow-menu").removeClass("d-none");
-					$(".username-container").addClass("d-none");
-				}
-				
-			}
-
-			function HandleAccessRights(error, result) {
-					// console.log("hey GetCurrentAccessRights");
-					if (error) {
-						console.log(error);
-					} else{
-						accessRights=parseInt(result);
-						console.log("GetCurrentAccessRights=" + result + " --- " + EnumAccessRights[accessRights]);
-						if(functionProtection===1){ 
-							//User access control enabled
-
-							if(accessRights===4){
-							//No access granted
-								if(internalLogon===1){ 
-								//HAMILTON Authentication.  Show VENUS log on dialog
-									console.log("uses HAmilton Authentication");
-									LogOnDialog("null", HandleLogOnDialog);
-								}
-								if(internalLogon===0){
-									//OS Authentication
-									console.log("uses Windows Authentication");
-									GetCurrentUsernameOS( "", HandleGetUsername);
-								}
-							}
-							else{
-								// User has some level rights
-								console.log("USER WITH RIGHTS TO OPERATE AS " + EnumAccessRights[accessRights]);
-								GetCurrentUsernameOS( "", HandleGetUsername);
-							}
-
-						}
-						else{
-							//User access control disabled
-							console.log("No user control enabled,  OPERATE AS " + EnumAccessRights[accessRights]);
-							SetUser("", "");
-						}
-					} 
-			}
-
-			function HandleLogOnDialog(error, result) {
-					// console.log("hey HandleLogOnDialog");
-					if (error) {
-						console.log(error);
-					} else{
-						console.log("Showing Logon Dialog " + result);
-						var dialogReturn=parseInt(result);
-						if(dialogReturn===1){
-							//login succesful
-							console.log("Login succesful !!!");
-							GetCurrentAccessRightOS("null", HandleAccessRights);
-						}
-						if(dialogReturn===2){
-							//login dialog cancelled
-							console.log("Login failed. Restart application to retry login");
-
-							if(bool_isHamUserChangeClick){
-								//do nothing if the dialog is cancelled after trying a user change.
-							}
-							else{
-								//quit app if the Hamilton login dialog is cancelled on startup
-								gui.App.closeAllWindows();
-								win.close(true);
-							}
-							
-						}
-					}  
-			}
-
-			function HandleGetUsername(error, result){
-				// console.log("hey GetCurrentUsername");
-					if (error) {
-						console.log(error);
-					} else{
-						console.log("GetCurrentUsernameOS=" + result);
-						SetUser(result, EnumAccessRights[accessRights]);
-					}
-			}
-
-
 		function initVENUSData(){
-			try {
-				GetVENUSPathsFromRegistry("null",function (error, result){
-					try {
-						if (error) { console.log("GetVENUSPathsFromRegistry error: " + error); return; }
-						var jsondata = JSON.parse(result.toString());
-						// jsondata contains bin-folder, cfg-folder, lib-folder, log-folder, lbw-folder, sys-folder,met-folder
-						
-						saveLinkKey("bin-folder","path",jsondata["bin-folder"]);
-						saveLinkKey("cfg-folder","path",jsondata["cfg-folder"]);
-						saveLinkKey("lbw-folder","path",jsondata["lbw-folder"]);
-						saveLinkKey("lib-folder","path",jsondata["lib-folder"]);
-						saveLinkKey("log-folder","path",jsondata["log-folder"]);
-						saveLinkKey("met-folder","path",jsondata["met-folder"]);
+			// VENUS paths are hardcoded — no DLL/registry lookup needed
+			var HxBin = "C:\\Program Files (x86)\\HAMILTON\\Bin";
 
-						// Auto-set userDataPath on first run if not yet configured
-						var currentSettings = db_settings.settings.find()[0];
-						if (!currentSettings || !currentSettings["userDataPath"]) {
-							var autoDataPath = path.join(jsondata["lib-folder"], ".LibraryManager");
-							saveSetting("userDataPath", autoDataPath);
-							console.log("Auto-configured userDataPath from registry: " + autoDataPath);
-							// If this differs from the current USER_DATA_DIR, notify user
-							if (autoDataPath !== USER_DATA_DIR) {
-								ensureUserDataDir(autoDataPath);
-								console.log("Note: userDataPath updated. Restart for full effect.");
-							}
-						}
+			saveLinkKey("bin-folder","path", HxBin);
+			saveLinkKey("cfg-folder","path","C:\\Program Files (x86)\\HAMILTON\\Config");
+			saveLinkKey("lbw-folder","path","C:\\Program Files (x86)\\HAMILTON\\Labware");
+			saveLinkKey("lib-folder","path","C:\\Program Files (x86)\\HAMILTON\\Library");
+			saveLinkKey("log-folder","path","C:\\Program Files (x86)\\HAMILTON\\LogFiles");
+			saveLinkKey("met-folder","path","C:\\Program Files (x86)\\HAMILTON\\Methods");
 
-						// Update PACKAGE_STORE_DIR to match actual lib-folder
-						PACKAGE_STORE_DIR = path.join(jsondata["lib-folder"], "LibraryPackages");
-					
-						HxFolder_LogFiles = jsondata["log-folder"];
-						HxFolder_Methods = jsondata["met-folder"];
-						HxFolder_Bin = jsondata["bin-folder"];
-						HxRun = jsondata["bin-folder"] + "\\" + HxRun;
-					
-						saveLinkKey("method-editor","path",jsondata["bin-folder"] + "\\" + HxMethodEditor);
-						saveLinkKey("lc-editor","path",jsondata["bin-folder"] + "\\" + HxLiquidEditor);
-						saveLinkKey("lbw-editor","path",jsondata["bin-folder"] + "\\" + HxLabwareEditor);
-						saveLinkKey("hsl-editor","path",jsondata["bin-folder"] + "\\" + HxHSLEditor);
-						saveLinkKey("sysCfg-editor","path",jsondata["bin-folder"] + "\\" + HxConfigEditor);
-						saveLinkKey("run-control","path", HxRun);
-						saveLinkKey("ham-version","path",jsondata["bin-folder"] + "\\" + HxVersion);
-					
-						//Set working dir for the method file browse
-						$("#input-methodfile").attr("nwworkingdir",HxFolder_Methods);
-						// console.log(jsondata);
-					} catch(e) {
-						console.log("Error in GetVENUSPathsFromRegistry callback: " + e);
-					}
-				});
-			} catch(e) {
-				console.log("Error calling GetVENUSPathsFromRegistry: " + e);
-			}
+			HxRun = HxBin + "\\" + HxRun;
 
-			try {
-				GetSimulation("null",function (error, result){
-					try {
-						if (error) { console.log("GetSimulation error: " + error); return; }
-						console.log("simulation=" + result);
-						updateSimulationSwitch(result);
-					} catch(e) {
-						console.log("Error in GetSimulation callback: " + e);
-					}
-				});
-			} catch(e) {
-				console.log("Error calling GetSimulation: " + e);
-			}
+			saveLinkKey("method-editor","path", HxBin + "\\" + HxMethodEditor);
+			saveLinkKey("lc-editor","path",     HxBin + "\\" + HxLiquidEditor);
+			saveLinkKey("lbw-editor","path",    HxBin + "\\" + HxLabwareEditor);
+			saveLinkKey("hsl-editor","path",    HxBin + "\\" + HxHSLEditor);
+			saveLinkKey("sysCfg-editor","path", HxBin + "\\" + HxConfigEditor);
+			saveLinkKey("run-control","path",   HxRun);
+			saveLinkKey("ham-version","path",   HxBin + "\\" + HxVersion);
 
-			try {
-				GetFunctionProtection("null",HandleFunctionProtection);
-			} catch(e) {
-				console.log("Error calling GetFunctionProtection: " + e);
-			}
+			// Set working dir for the method file browse
+			$("#input-methodfile").attr("nwworkingdir", HxFolder_Methods);
 		}
-	
-
-
 
 
 		
@@ -3623,6 +3321,210 @@ var DetachDatabase = edge.func({
 			return allFunctions;
 		}
 
+		// ---- Required dependency scanning ----
+		/**
+		 * Extract all #include directives from an HSL source string.
+		 * Returns array of raw include targets (the path inside the quotes).
+		 * @param {string} text - HSL source code
+		 * @returns {Array<string>} raw include target strings
+		 */
+		function extractHslIncludes(text) {
+			var includes = [];
+			var pattern = /^\s*#include\s+"([^"]+)"/gm;
+			var m;
+			while ((m = pattern.exec(text)) !== null) {
+				includes.push(m[1].trim());
+			}
+			return includes;
+		}
+
+		/**
+		 * Extract all required dependencies from a library's .hsl files.
+		 * Scans every .hsl file for #include directives, resolves each to a
+		 * library name (user-installed, system, or unknown), and returns a
+		 * deduplicated list of dependency descriptors.
+		 *
+		 * @param {Array<string>} libFiles   - filenames array for this library
+		 * @param {string}        libBasePath - base directory for library files
+		 * @returns {Array<Object>} array of { include, resolvedFile, libraryName, type }
+		 *   type: "self" | "user" | "system" | "unknown"
+		 */
+		function extractRequiredDependencies(libFiles, libBasePath) {
+			// Resolve the library root folder
+			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
+			var sysLibDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
+
+			// Build set of this library's own filenames (lowercase for matching)
+			var ownFiles = {};
+			(libFiles || []).forEach(function(f) {
+				ownFiles[f.toLowerCase()] = true;
+				// Also store just the filename without extension for matching
+				var baseName = path.basename(f).toLowerCase();
+				ownFiles[baseName] = true;
+			});
+
+			// Collect all includes across all .hsl files in this library
+			var allIncludes = [];
+			(libFiles || []).forEach(function(fname) {
+				var ext = path.extname(fname).toLowerCase();
+				if (ext !== '.hsl' && ext !== '.hs_') return;
+				var fullPath = path.join(libBasePath, fname);
+				try {
+					var text = fs.readFileSync(fullPath, 'utf8');
+					var includes = extractHslIncludes(text);
+					includes.forEach(function(inc) {
+						allIncludes.push({ include: inc, sourceFile: fname });
+					});
+				} catch(e) { /* skip unreadable files */ }
+			});
+
+			// Deduplicate by normalized include target
+			var seen = {};
+			var uniqueIncludes = [];
+			allIncludes.forEach(function(item) {
+				var normalized = item.include.replace(/\\/g, '/').toLowerCase();
+				if (!seen[normalized]) {
+					seen[normalized] = true;
+					uniqueIncludes.push(item);
+				}
+			});
+
+			// Resolve each include to a library
+			var dependencies = [];
+			uniqueIncludes.forEach(function(item) {
+				var rawTarget = item.include;
+				var normalizedTarget = rawTarget.replace(/\\/g, '/');
+				var targetFileName = normalizedTarget.split('/').pop().toLowerCase();
+
+				// Skip self-references (includes pointing to files within this library)
+				if (ownFiles[targetFileName]) return;
+				var relLower = rawTarget.replace(/\\/g, '/').toLowerCase();
+				var isSelf = false;
+				for (var key in ownFiles) {
+					if (relLower.indexOf(key) !== -1 && key.indexOf('.') !== -1) {
+						isSelf = true;
+						break;
+					}
+				}
+				if (isSelf) return;
+
+				// Try to resolve the actual file on disk
+				var resolvedPath = null;
+				var isAbsolute = /^[A-Za-z]:[\\/]/.test(rawTarget);
+				if (isAbsolute) {
+					var candidate = path.normalize(rawTarget);
+					if (fs.existsSync(candidate)) resolvedPath = candidate;
+				} else {
+					// Try relative to library root
+					var candidate = path.join(sysLibDir, rawTarget);
+					if (fs.existsSync(candidate)) resolvedPath = candidate;
+				}
+
+				// Determine which library this include belongs to
+				var libraryName = null;
+				var depType = 'unknown';
+
+				// 1) Check user-installed libraries
+				var installedLibs = db_installed_libs.installed_libs.find() || [];
+				for (var i = 0; i < installedLibs.length; i++) {
+					var uLib = installedLibs[i];
+					if (uLib.deleted) continue;
+					var uLibFiles = uLib.library_files || [];
+					var uBasePath = uLib.lib_install_path || '';
+					for (var j = 0; j < uLibFiles.length; j++) {
+						var uFullPath = path.join(uBasePath, uLibFiles[j]);
+						var uNorm = uFullPath.replace(/\\/g, '/').toLowerCase();
+						if (resolvedPath && resolvedPath.replace(/\\/g, '/').toLowerCase() === uNorm) {
+							libraryName = uLib.library_name;
+							depType = 'user';
+							break;
+						}
+						// Also check by filename match
+						if (uLibFiles[j].toLowerCase() === targetFileName) {
+							libraryName = uLib.library_name;
+							depType = 'user';
+							break;
+						}
+					}
+					if (libraryName) break;
+				}
+
+				// 2) Check system libraries
+				if (!libraryName) {
+					var sysLibs = getAllSystemLibraries();
+					for (var si = 0; si < sysLibs.length; si++) {
+						var sLib = sysLibs[si];
+						var discoveredFiles = sLib.discovered_files || [];
+						for (var di = 0; di < discoveredFiles.length; di++) {
+							var sRelPath = discoveredFiles[di].replace(/^Library[\\\/]/i, '');
+							var sNorm = sRelPath.replace(/\\/g, '/').toLowerCase();
+							var sFileName = sNorm.split('/').pop();
+							if (sFileName === targetFileName) {
+								libraryName = sLib.display_name || sLib.canonical_name;
+								depType = 'system';
+								break;
+							}
+							// Also compare full resolved path
+							if (resolvedPath) {
+								var sFullPath = path.join(sysLibDir, sRelPath).replace(/\\/g, '/').toLowerCase();
+								if (resolvedPath.replace(/\\/g, '/').toLowerCase() === sFullPath) {
+									libraryName = sLib.display_name || sLib.canonical_name;
+									depType = 'system';
+									break;
+								}
+							}
+						}
+						if (libraryName) break;
+					}
+				}
+
+				dependencies.push({
+					include: rawTarget,
+					resolvedFile: resolvedPath,
+					libraryName: libraryName || targetFileName,
+					type: depType,
+					fileExists: !!resolvedPath
+				});
+			});
+
+			// Deduplicate by libraryName (keep unique dependency libraries)
+			var depByLib = {};
+			var result = [];
+			dependencies.forEach(function(dep) {
+				var key = (dep.libraryName || dep.include).toLowerCase();
+				if (!depByLib[key]) {
+					depByLib[key] = dep;
+					result.push(dep);
+				} else {
+					// If we already have this library, accumulate includes
+					if (!depByLib[key].allIncludes) {
+						depByLib[key].allIncludes = [depByLib[key].include];
+					}
+					depByLib[key].allIncludes.push(dep.include);
+				}
+			});
+
+			return result;
+		}
+
+		/**
+		 * Check if any required dependencies are missing (file not found on disk).
+		 * @param {Array<Object>} deps - dependency list from extractRequiredDependencies
+		 * @returns {Object} { valid: boolean, missing: Array<Object>, found: Array<Object> }
+		 */
+		function checkDependencyStatus(deps) {
+			var result = { valid: true, missing: [], found: [] };
+			(deps || []).forEach(function(dep) {
+				if (dep.type === 'unknown' || !dep.fileExists) {
+					result.valid = false;
+					result.missing.push(dep);
+				} else {
+					result.found.push(dep);
+				}
+			});
+			return result;
+		}
+
 		// ---- Library integrity hashing ----
 		/**
 		 * Computes SHA-256 hash of a file.
@@ -3659,46 +3561,61 @@ var DetachDatabase = edge.func({
 		}
 
 		/**
-		 * Compute hash for a system library file, matching the CLI hashFileOmitLastLine algorithm.
-		 * For .hsl, .hs_, .smt: strips trailing blank lines, then removes the last non-empty line
-		 * (the volatile $$checksum$$ line) before hashing.
-		 * For all other files: hashes the entire binary content.
+		 * Extensions that carry Hamilton's metadata footer ($$author=...$$valid=...$$checksum=...$$).
 		 */
-		var SYSLIB_OMIT_LAST_LINE_EXTS = ['.hsl', '.hs_', '.smt'];
-		function computeSystemFileHash(filePath) {
+		var HSL_METADATA_EXTS = ['.hsl', '.hs_', '.smt'];
+
+		/**
+		 * Parse the Hamilton HSL metadata footer from the last non-empty line of a file.
+		 * The footer format: // $$author=NAME$$valid=0|1$$time=TIMESTAMP$$checksum=HEX$$length=NNN$$
+		 *
+		 * @param {string} filePath - full path to the file
+		 * @returns {Object|null} { author, valid, time, checksum, length, raw } or null if no footer
+		 */
+		function parseHslMetadataFooter(filePath) {
 			try {
 				if (!fs.existsSync(filePath)) return null;
-				var ext = path.extname(filePath).toLowerCase();
-				if (SYSLIB_OMIT_LAST_LINE_EXTS.indexOf(ext) !== -1) {
-					var text = fs.readFileSync(filePath, 'utf8');
-					var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-					// Strip trailing blank lines, then remove the last non-empty line ($$checksum$$)
-					while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
-					if (lines.length > 0) lines.pop();
-					var content = lines.join('\n');
-					return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+				var text = fs.readFileSync(filePath, 'utf8');
+				var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+				// Walk backwards to find the footer line
+				for (var i = lines.length - 1; i >= Math.max(0, lines.length - 5); i--) {
+					var line = lines[i].trim();
+					if (line === '') continue;
+					var m = line.match(/\$\$author=(.+?)\$\$valid=(\d)\$\$time=(.+?)\$\$checksum=([a-f0-9]+)\$\$length=(\d+)\$\$/);
+					if (m) {
+						return {
+							author:   m[1],
+							valid:    parseInt(m[2], 10),
+							time:     m[3],
+							checksum: m[4],
+							length:   parseInt(m[5], 10),
+							raw:      line
+						};
+					}
+					break; // first non-empty line wasn't a footer
 				}
-				// Binary hash for all other file types
-				var buf = fs.readFileSync(filePath);
-				return crypto.createHash('sha256').update(buf).digest('hex');
+				return null;
 			} catch(e) {
-				console.error('System hash error for ' + filePath + ': ' + e.message);
+				console.error('Footer parse error for ' + filePath + ': ' + e.message);
 				return null;
 			}
 		}
 
 		/**
-		 * Verifies the integrity of a system library's files against stored hashes.
+		 * Verifies the integrity of a system library by checking Hamilton's
+		 * built-in $$valid$$ flag and $$checksum$$ in the metadata footer.
+		 * Only HSL-type files (.hsl, .hs_, .smt) with footers are tracked.
+		 *
 		 * @param {Object} sLib - system library record from system_libraries.json
 		 * @returns {Object} { valid: boolean, errors: Array<string>, warnings: Array<string> }
 		 */
 		function verifySystemLibraryIntegrity(sLib) {
 			var result = { valid: true, errors: [], warnings: [] };
 			var libName = sLib.canonical_name || sLib.library_name;
-			var hashEntry = systemLibraryHashes[libName];
+			var baselineEntry = systemLibraryBaseline[libName];
 
-			if (!hashEntry || !hashEntry.hashes || Object.keys(hashEntry.hashes).length === 0) {
-				result.warnings.push('No integrity hashes stored for system library: ' + libName);
+			if (!baselineEntry || !baselineEntry.files || Object.keys(baselineEntry.files).length === 0) {
+				result.warnings.push('No integrity baseline stored for system library: ' + libName);
 				return result;
 			}
 
@@ -3706,25 +3623,38 @@ var DetachDatabase = edge.func({
 			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
 			var sysLibDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
 
-			var storedHashes = hashEntry.hashes;
-			var fileNames = Object.keys(storedHashes);
+			var storedFiles = baselineEntry.files;
+			var fileNames = Object.keys(storedFiles);
 
 			fileNames.forEach(function(fname) {
 				var fullPath = path.join(sysLibDir, fname);
 
-				// Check file exists
 				if (!fs.existsSync(fullPath)) {
 					result.valid = false;
 					result.errors.push('File missing: ' + fname);
 					return;
 				}
 
-				// Compute and compare hash
-				var currentHash = computeSystemFileHash(fullPath);
-				var expectedHash = storedHashes[fname];
-				if (currentHash && currentHash !== expectedHash) {
+				var stored = storedFiles[fname];
+				var footer = parseHslMetadataFooter(fullPath);
+
+				if (!footer) {
+					if (stored.valid === 1) {
+						result.valid = false;
+						result.errors.push('Metadata footer removed: ' + fname);
+					} else {
+						result.warnings.push('No metadata footer found: ' + fname);
+					}
+					return;
+				}
+				if (stored.valid === 1 && footer.valid !== 1) {
 					result.valid = false;
-					result.errors.push('File modified: ' + fname);
+					result.errors.push('Valid flag changed (1\u21920): ' + fname);
+					return;
+				}
+				if (stored.checksum && footer.checksum !== stored.checksum) {
+					result.valid = false;
+					result.errors.push('Checksum changed: ' + fname);
 				}
 			});
 
@@ -3959,9 +3889,13 @@ var DetachDatabase = edge.func({
 					deletedBadge = '<span class="badge badge-secondary ml-2" title="This library has been deleted"><i class="fas fa-trash-alt mr-1"></i>Deleted</span>';
 				}
 
-				// Card styling - red for integrity error, yellow for COM warning, faded for deleted
+				// Card styling - red for integrity error or missing deps, yellow for COM warning, faded for deleted
+				var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
+				var depStatus = checkDependencyStatus(deps);
+				var hasMissingDeps = !depStatus.valid;
+
 				var cardExtraClass = '';
-				if (hasIntegrityError) {
+				if (hasIntegrityError || hasMissingDeps) {
 					cardExtraClass = ' imp-lib-card-integrity-error';
 				} else if (hasComWarning) {
 					cardExtraClass = ' imp-lib-card-warning';
@@ -3969,9 +3903,11 @@ var DetachDatabase = edge.func({
 				if (isDeleted) cardExtraClass += ' imp-lib-card-deleted';
 
 				var cardTooltipAttr = '';
-				if (hasIntegrityError) {
-					var errTooltip = integrity.errors.concat(integrity.warnings).join('\n');
-					cardTooltipAttr = ' title="' + errTooltip.replace(/"/g, '&quot;') + '"';
+				if (hasIntegrityError || hasMissingDeps) {
+					var errParts = [];
+					if (hasIntegrityError) errParts = errParts.concat(integrity.errors).concat(integrity.warnings);
+					if (hasMissingDeps) errParts.push('Missing dependencies: ' + depStatus.missing.map(function(d) { return d.libraryName || d.include; }).join(', '));
+					cardTooltipAttr = ' title="' + errParts.join('\n').replace(/"/g, '&quot;') + '"';
 				} else if (hasIntegrityWarning) {
 					var warnTooltip = integrity.warnings.join('\n');
 					cardTooltipAttr = ' title="' + warnTooltip.replace(/"/g, '&quot;') + '"';
@@ -4289,6 +4225,57 @@ var DetachDatabase = edge.func({
 			$("#libDetailModal .lib-detail-lib-path").text("Library: " + (lib.lib_install_path || "\u2014"));
 			$("#libDetailModal .lib-detail-demo-path").text("Demo Methods: " + (lib.demo_install_path || "\u2014"));
 
+			// Required dependencies section
+			var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
+			var depStatus = checkDependencyStatus(deps);
+			var $depSection = $("#libDetailModal .lib-detail-dependencies-section");
+			var $depStatus = $("#libDetailModal .lib-detail-dependencies-status");
+			var $depList = $("#libDetailModal .lib-detail-dependencies-list");
+			$depStatus.empty();
+			$depList.empty();
+
+			if (deps.length > 0) {
+				$depSection.removeClass("d-none");
+
+				// Summary status
+				if (!depStatus.valid) {
+					$depStatus.append('<div class="text-sm mb-1" style="color:#d9534f;"><i class="fas fa-times-circle mr-1"></i>' + depStatus.missing.length + ' missing dependenc' + (depStatus.missing.length !== 1 ? 'ies' : 'y') + '</div>');
+				} else {
+					$depStatus.append('<div class="text-sm mb-1" style="color:#5cb85c;"><i class="fas fa-check-circle mr-1"></i>All ' + deps.length + ' dependenc' + (deps.length !== 1 ? 'ies' : 'y') + ' found</div>');
+				}
+
+				// List each dependency
+				deps.forEach(function(dep) {
+					var statusIcon, statusColor, statusText;
+					if (!dep.fileExists || dep.type === 'unknown') {
+						statusIcon = 'fa-times-circle';
+						statusColor = '#d9534f';
+						statusText = 'Missing';
+					} else if (dep.type === 'system') {
+						statusIcon = 'fa-lock';
+						statusColor = '#6c757d';
+						statusText = 'System';
+					} else {
+						statusIcon = 'fa-check-circle';
+						statusColor = '#5cb85c';
+						statusText = 'Installed';
+					}
+					var typeBadge = '<span class="badge badge-' + (dep.type === 'system' ? 'secondary' : dep.type === 'user' ? 'info' : 'danger') + ' ml-1" style="font-size:0.6rem;">' + statusText + '</span>';
+					$depList.append(
+						'<div class="dep-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
+							'<div style="display:flex; align-items:center;">' +
+								'<i class="fas ' + statusIcon + '" style="color:' + statusColor + '; font-size:0.8rem; margin-right:6px; min-width:14px;"></i>' +
+								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + (dep.libraryName || dep.include) + '</span>' +
+								typeBadge +
+							'</div>' +
+							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + dep.include + '</div>' +
+						'</div>'
+					);
+				});
+			} else {
+				$depSection.addClass("d-none");
+			}
+
 			// Public functions section
 			var pubFns = lib.public_functions || [];
 			var $fnSection = $("#libDetailModal .lib-detail-functions-section");
@@ -4537,7 +4524,8 @@ var DetachDatabase = edge.func({
 					installed_date: new Date().toISOString(),
 					source_package: path.basename(fullPath),
 					file_hashes: fileHashes,
-					public_functions: extractPublicFunctions(libFiles, libDestDir)
+					public_functions: extractPublicFunctions(libFiles, libDestDir),
+					required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
 
@@ -4670,6 +4658,60 @@ var DetachDatabase = edge.func({
 			// Hide COM section
 			$("#libDetailModal .lib-detail-com-section").addClass("d-none");
 
+			// Required dependencies section for system libraries
+			var sysDiscFiles = sLib.discovered_files || [];
+			var sysHslFiles = sysDiscFiles.filter(function(f) {
+				var ext = path.extname(f).toLowerCase();
+				return ext === '.hsl' || ext === '.hs_';
+			}).map(function(f) { return f.replace(/^Library[\\\/]/i, ''); });
+			var sysDeps = extractRequiredDependencies(sysHslFiles, sysLibDir);
+			var sysDepStatus = checkDependencyStatus(sysDeps);
+			var $sysDepSection = $("#libDetailModal .lib-detail-dependencies-section");
+			var $sysDepStatus = $("#libDetailModal .lib-detail-dependencies-status");
+			var $sysDepList = $("#libDetailModal .lib-detail-dependencies-list");
+			$sysDepStatus.empty();
+			$sysDepList.empty();
+
+			if (sysDeps.length > 0) {
+				$sysDepSection.removeClass("d-none");
+
+				if (!sysDepStatus.valid) {
+					$sysDepStatus.append('<div class="text-sm mb-1" style="color:#d9534f;"><i class="fas fa-times-circle mr-1"></i>' + sysDepStatus.missing.length + ' missing dependenc' + (sysDepStatus.missing.length !== 1 ? 'ies' : 'y') + '</div>');
+				} else {
+					$sysDepStatus.append('<div class="text-sm mb-1" style="color:#5cb85c;"><i class="fas fa-check-circle mr-1"></i>All ' + sysDeps.length + ' dependenc' + (sysDeps.length !== 1 ? 'ies' : 'y') + ' found</div>');
+				}
+
+				sysDeps.forEach(function(dep) {
+					var statusIcon, statusColor, statusText;
+					if (!dep.fileExists || dep.type === 'unknown') {
+						statusIcon = 'fa-times-circle';
+						statusColor = '#d9534f';
+						statusText = 'Missing';
+					} else if (dep.type === 'system') {
+						statusIcon = 'fa-lock';
+						statusColor = '#6c757d';
+						statusText = 'System';
+					} else {
+						statusIcon = 'fa-check-circle';
+						statusColor = '#5cb85c';
+						statusText = 'Installed';
+					}
+					var typeBadge = '<span class="badge badge-' + (dep.type === 'system' ? 'secondary' : dep.type === 'user' ? 'info' : 'danger') + ' ml-1" style="font-size:0.6rem;">' + statusText + '</span>';
+					$sysDepList.append(
+						'<div class="dep-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
+							'<div style="display:flex; align-items:center;">' +
+								'<i class="fas ' + statusIcon + '" style="color:' + statusColor + '; font-size:0.8rem; margin-right:6px; min-width:14px;"></i>' +
+								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + (dep.libraryName || dep.include) + '</span>' +
+								typeBadge +
+							'</div>' +
+							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + dep.include + '</div>' +
+						'</div>'
+					);
+				});
+			} else {
+				$sysDepSection.addClass("d-none");
+			}
+
 			// Public functions section — parse .hsl files from discovered_files
 			var sysPubFns = [];
 			(discoveredFiles || []).forEach(function(f) {
@@ -4727,8 +4769,8 @@ var DetachDatabase = edge.func({
 			$intStatus.empty();
 
 			var libName = sLib.canonical_name || sLib.library_name;
-			var hashEntry = systemLibraryHashes[libName];
-			if ((hashEntry && Object.keys(hashEntry.hashes || {}).length > 0) || integrity.errors.length > 0 || integrity.warnings.length > 0) {
+			var baselineEntry = systemLibraryBaseline[libName];
+			if ((baselineEntry && Object.keys(baselineEntry.files || {}).length > 0) || integrity.errors.length > 0 || integrity.warnings.length > 0) {
 				$intSection.removeClass("d-none");
 
 				if (!integrity.valid) {
@@ -5306,7 +5348,8 @@ var DetachDatabase = edge.func({
 							installed_date: new Date().toISOString(),
 							source_package: pkgEntry.entryName,
 							file_hashes: fileHashes,
-							public_functions: extractPublicFunctions(libFiles, libDestDir)
+							public_functions: extractPublicFunctions(libFiles, libDestDir),
+							required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
 						};
 						var saved = db_installed_libs.installed_libs.save(dbRecord);
 
@@ -5960,7 +6003,8 @@ var DetachDatabase = edge.func({
 					installed_date: new Date().toISOString(),
 					source_package: path.basename(filePath),
 					file_hashes: fileHashes,
-					public_functions: extractPublicFunctions(libFiles, libDestDir)
+					public_functions: extractPublicFunctions(libFiles, libDestDir),
+					required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
 
@@ -6256,26 +6300,36 @@ var DetachDatabase = edge.func({
 							});
 						}
 
-						// Discovered files with hash verification
+						// Discovered files with integrity verification
 						var discoveredFiles = sLib.discovered_files || [];
-						var hashEntry = systemLibraryHashes[sLibName];
-						var storedHashes = (hashEntry && hashEntry.hashes) ? hashEntry.hashes : {};
+						var baselineEntry = systemLibraryBaseline[sLibName];
+						var storedFiles = (baselineEntry && baselineEntry.files) ? baselineEntry.files : {};
 						lines.push("Discovered Files (" + discoveredFiles.length + "):");
 						discoveredFiles.forEach(function(f) {
 							var relPath = f.replace(/^Library[\\\/]/i, '');
 							var fullPath = path.join(sysLibDir, relPath);
 							var exists = fs.existsSync(fullPath);
 							var baseFileName = relPath.replace(/\\/g, '/').split('/').pop();
-							var storedHash = storedHashes[baseFileName] || null;
-							var currentHash = exists ? computeSystemFileHash(fullPath) : null;
-							var hashMatch = (storedHash && currentHash) ? (storedHash === currentHash ? "MATCH" : "MISMATCH") : "N/A";
+							var storedInfo = storedFiles[baseFileName] || null;
+							var ext = path.extname(baseFileName).toLowerCase();
 
 							lines.push("  - " + f);
 							lines.push("      Exists: " + (exists ? "Yes" : "NO - MISSING"));
-							if (storedHash || currentHash) {
-								if (storedHash)  lines.push("      Stored Hash:  " + storedHash);
-								if (currentHash) lines.push("      Current Hash: " + currentHash);
-								lines.push("      Hash Status:  " + hashMatch);
+
+							if (storedInfo && exists) {
+								var footer = parseHslMetadataFooter(fullPath);
+								lines.push("      Method:       Hamilton Footer ($$valid$$, $$checksum$$)");
+								lines.push("      Stored Valid: " + storedInfo.valid + "  Checksum: " + (storedInfo.checksum || "N/A"));
+								if (footer) {
+									lines.push("      Current Valid:" + footer.valid + "  Checksum: " + footer.checksum);
+									var footerMatch = (storedInfo.valid === footer.valid && storedInfo.checksum === footer.checksum) ? "MATCH" : "MISMATCH";
+									lines.push("      Status:       " + footerMatch);
+								} else {
+									lines.push("      Current:      No footer found");
+									lines.push("      Status:       FOOTER REMOVED");
+								}
+							} else if (!storedInfo) {
+								lines.push("      Status:       No baseline stored");
 							}
 						});
 

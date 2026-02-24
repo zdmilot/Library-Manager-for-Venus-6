@@ -3,7 +3,7 @@
 <html>
 
 <head>
-	<title>Library Manager</title>
+	<title>Venus Library Manager</title>
 	<!-- Bootstrap Core CSS -->
 	<link href="css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/all.min.css" rel="stylesheet">
@@ -16,18 +16,11 @@
 		<div class="row header1 no-gutters">
 			<div class="col-md-12">
 				<nav class="navbar navbar-expand navbar-light bg-light">
-					<img src="img\Hamilton_logo.png" height="20" alt="" class="brand-logo d-inline-block" style="cursor:pointer;">
+					<i class="fas fa-home brand-logo d-inline-block" style="cursor:pointer; font-size:20px; color:var(--navbar-font);"></i>
 
 					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 						
 						<ul class="navbar-nav ml-4">
-							<li class="nav-item username-container d-none">
-								<span class="d-inline">
-									<i class="fa fa-user-circle mr-1" aria-hidden="true"></i>
-									<span class="username-name mr-1 color-dark_gray">John Doe</span><span class="username-role text-sm color-gray">(Lab Operator)</span>
-								<a class="d-inline username-logoff color-blue text-sm ml-3" href="#"></i>log off</a>
-							</li>
-							
 						</ul>
 
 						<!-- Library Search Bar -->
@@ -51,7 +44,7 @@
 								</div>
 							</div>
 
-							<div class="dropdown btn-overflow-menu d-none">
+							<div class="dropdown btn-overflow-menu">
 								<button class="btn btn-sm my-2 ml-4 btn-overflow-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									<i class="fas fa-ellipsis-v"></i>
 								</button>
@@ -1000,6 +993,11 @@
 						<h6 class="detail-section-label">Demo Method Files</h6>
 						<div class="pkg-file-list lib-detail-demo-files"></div>
 					</div>
+					<div class="detail-section lib-detail-dependencies-section d-none">
+						<h6 class="detail-section-label"><i class="fas fa-project-diagram mr-1" style="color:var(--medium)"></i>Required Dependencies</h6>
+						<div class="lib-detail-dependencies-status"></div>
+						<div class="lib-detail-dependencies-list" style="max-height:280px; overflow-y:auto;"></div>
+					</div>
 					<div class="detail-section lib-detail-functions-section d-none">
 						<h6 class="detail-section-label"><i class="fas fa-code mr-1" style="color:var(--medium)"></i>Public Functions</h6>
 						<div class="lib-detail-functions-list" style="max-height:280px; overflow-y:auto;"></div>
@@ -1274,7 +1272,7 @@
 	<script src="js/bootstrap.min.js"></script>
 
 	
-	<!-- Library Manager javascripts  -->
+	<!-- Venus Library Manager javascripts  -->
 	<script src="js/main.js"></script>
 	
 </body>

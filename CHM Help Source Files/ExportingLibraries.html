@@ -1,0 +1,74 @@
+<html>
+<head>
+    <title>Exporting Libraries</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Exporting Libraries</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; Exporting Libraries</div>
+
+<h2>Overview</h2>
+<p>Venus Library Manager can export installed libraries back into portable package files. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
+
+<h2>Single Library Export (<code>.hxlibpkg</code>)</h2>
+
+<h3>GUI Workflow</h3>
+<ol>
+  <li>Click on a library card to open the <b>Library Detail Modal</b></li>
+  <li>Click the <b>Export</b> button</li>
+  <li>Choose a save location — the suggested filename is <code>&lt;LibraryName&gt;.hxlibpkg</code></li>
+  <li>Venus Library Manager verifies that all expected library files exist on disk before exporting</li>
+  <li>A new <code>.hxlibpkg</code> is built from the current files and metadata</li>
+</ol>
+<div class="image-placeholder">PLACE IMAGE OF EXPORT BUTTON IN LIBRARY DETAIL MODAL HERE</div>
+
+<h3>What Is Included in the Export</h3>
+<p>The exported package contains:</p>
+<ul>
+  <li><code>manifest.json</code> with current metadata (a new <code>created_date</code> is stamped)</li>
+  <li>All library files in the <code>library/</code> directory (including <code>.chm</code> help files)</li>
+  <li>All demo method files in the <code>demo_methods/</code> directory</li>
+  <li>Metadata fields: tags, base64-encoded image, COM DLL list</li>
+</ul>
+
+<h3>Restrictions</h3>
+<ul>
+  <li><b>System libraries</b> (Hamilton built-in) cannot be exported. They are read-only.</li>
+  <li><b>Deleted libraries</b> cannot be exported.</li>
+  <li>If any expected library file is missing on disk, the export is aborted with an error message.</li>
+</ul>
+
+<h2>Multi-Library Archive Export (<code>.hxlibarch</code>)</h2>
+
+<h3>GUI Workflow</h3>
+<ol>
+  <li>Open the Archive Export modal</li>
+  <li>All non-deleted installed libraries are listed with checkboxes</li>
+  <li>Select libraries individually, or use Select All / Select None</li>
+  <li>Choose an output location for the <code>.hxlibarch</code> file</li>
+  <li>Each selected library is re-packed from its current installed state</li>
+</ol>
+<div class="image-placeholder">PLACE IMAGE OF ARCHIVE EXPORT MODAL WITH LIBRARY CHECKBOXES HERE</div>
+
+<h3>Archive Contents</h3>
+<p>The resulting <code>.hxlibarch</code> file contains:</p>
+<ul>
+  <li>An <code>archive_manifest.json</code> with archive metadata, library count, and included library names</li>
+  <li>One <code>.hxlibpkg</code> entry per selected library, each with its own <code>manifest.json</code> and payload</li>
+</ul>
+
+<h3>CLI Export</h3>
+<p>See <a href="CLIExportLib.html">CLI: export-lib</a> for single exports and <a href="CLIExportArchive.html">CLI: export-archive</a> for archive exports.</p>
+
+<h2>Mutable Export</h2>
+<div class="note">
+<p><b>Note:</b> Exports read files from their <b>current location on disk</b>, not from a cached snapshot. If library files have been modified since they were installed (for example, during development or customization), the export will include the modified versions. This is by design, supporting iterative development workflows.</p>
+</div>
+<p>If you need the original imported version, use <a href="VersionRollback.html">Version Rollback</a> to access the cached package from the package store.</p>
+</div>
+<div class="footer">
+<p>Venus Library Manager Help</p>
+</div>
+</body>
+</html>

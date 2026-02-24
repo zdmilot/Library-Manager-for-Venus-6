@@ -1,0 +1,128 @@
+<html>
+<head>
+    <title>GUI Overview</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">GUI Overview</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; GUI Overview</div>
+
+<h2>Main Window Layout</h2>
+<p>The Venus Library Manager graphical user interface is built around a card-based library browser with navigation tabs, a sidebar for groups and VENUS tool shortcuts, and contextual detail modals.</p>
+<div class="image-placeholder">PLACE IMAGE OF MAIN WINDOW WITH LABELED REGIONS (SIDEBAR, CARD AREA, TABS) HERE</div>
+
+<h2>Navigation Tabs</h2>
+<p>The top of the main window provides tabs for different views of your library collection:</p>
+<table>
+<thead><tr><th>Tab</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>All</b></td><td>Displays every installed (non-deleted) library as a card</td></tr>
+<tr><td><b>Recent</b></td><td>Shows recently imported libraries, limited by the configurable maximum (default: 20)</td></tr>
+<tr><td><b>Import</b></td><td>Provides the import workflow for <code>.hxlibpkg</code> and <code>.hxlibarch</code> files</td></tr>
+<tr><td><b>Custom Groups</b></td><td>Filtered views showing only libraries assigned to a specific group</td></tr>
+</tbody>
+</table>
+<div class="image-placeholder">PLACE IMAGE OF NAVIGATION TABS HERE</div>
+
+<h2>Library Cards</h2>
+<p>Each installed library is displayed as a visual card showing:</p>
+<ul>
+  <li><b>Library Icon/Image</b> — The embedded library image, or a default icon if none was provided</li>
+  <li><b>Library Name</b> and <b>Version</b></li>
+  <li><b>Author</b> and <b>Description</b> (truncated)</li>
+  <li><b>Tags</b> — Searchable keyword labels</li>
+  <li><b>Status Badges:</b>
+    <ul>
+      <li><b>COM badge</b> — Indicates the library requires COM DLL registration</li>
+      <li><b>COM warning</b> — COM registration failed or was incomplete</li>
+      <li><b>Deleted badge</b> — Library has been soft-deleted</li>
+    </ul>
+  </li>
+  <li><b>Integrity Indicator</b> — Shows whether tracked files have been modified, are missing, or pass verification</li>
+</ul>
+<div class="image-placeholder">PLACE IMAGE OF A LIBRARY CARD WITH ANNOTATIONS HERE</div>
+
+<h3>Card Styling States</h3>
+<p>Cards use visual styling to indicate health and quality:</p>
+<table>
+<thead><tr><th>Style</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Normal card</td><td>Library is installed and all tracked files pass integrity checks</td></tr>
+<tr><td>Integrity error style</td><td>One or more tracked files are missing or have been modified</td></tr>
+<tr><td>COM warning style</td><td>COM DLL registration is incomplete or failed</td></tr>
+<tr><td>Deleted style</td><td>Library has been soft-deleted (files removed, history preserved)</td></tr>
+</tbody>
+</table>
+
+<h2>Library Detail Modal</h2>
+<p>Clicking a library card opens a detailed modal showing comprehensive information about the library:</p>
+<ul>
+  <li>Full metadata: name, version, author, organization, VENUS compatibility, created and installed dates</li>
+  <li>Full description and tags</li>
+  <li>Library image preview</li>
+  <li>Complete lists of installed library files and demo method files</li>
+  <li>Install paths for library and demo directories</li>
+  <li>COM registration details with success/warning state</li>
+  <li>File integrity verification results: missing files, modified files, legacy warnings, and pass status</li>
+  <li>Public function signatures parsed from <code>.hsl</code> files</li>
+</ul>
+<div class="image-placeholder">PLACE IMAGE OF LIBRARY DETAIL MODAL HERE</div>
+
+<h3>Actions Available in Detail Modal</h3>
+<table>
+<thead><tr><th>Action</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Export</b></td><td>Export the currently installed library to a <code>.hxlibpkg</code> file</td></tr>
+<tr><td><b>Delete</b></td><td>Remove the library from disk and mark as deleted in the database</td></tr>
+</tbody>
+</table>
+
+<h2>Import Workflow</h2>
+<p>The Import tab provides two workflows:</p>
+
+<h3>Single Package Import (<code>.hxlibpkg</code>)</h3>
+<ol>
+  <li>Browse and select a <code>.hxlibpkg</code> file</li>
+  <li>Review the pre-install preview modal showing metadata, file lists, install paths, and COM DLL notices</li>
+  <li>If the library is already installed, an overwrite/update warning is displayed</li>
+  <li>Confirm to extract and install</li>
+  <li>A post-install success modal summarizes the outcome</li>
+</ol>
+<div class="image-placeholder">PLACE IMAGE OF PRE-INSTALL PREVIEW MODAL HERE</div>
+
+<h3>Archive Import (<code>.hxlibarch</code>)</h3>
+<ol>
+  <li>Select a <code>.hxlibarch</code> file</li>
+  <li>Review all contained packages in the confirmation dialog</li>
+  <li>Each package is extracted and installed sequentially</li>
+  <li>An aggregate summary reports success/failure for each library</li>
+</ol>
+
+<h2>Library Packager</h2>
+<p>The built-in Library Packager creates <code>.hxlibpkg</code> files from raw source files. It provides fields for all metadata (author, version, description, tags, etc.) and supports adding individual files or folders as payload.</p>
+<div class="image-placeholder">PLACE IMAGE OF LIBRARY PACKAGER UI HERE</div>
+<p>See <a href="CreatingPackages.html">Creating Packages</a> for a detailed walkthrough.</p>
+
+<h2>Settings</h2>
+<p>The settings area allows you to:</p>
+<ul>
+  <li>Manage custom library groups (create, rename, delete, reorder)</li>
+  <li>Assign and move libraries between groups via drag-and-drop</li>
+  <li>Configure the recent imports list size</li>
+  <li>Control auto-group assignment behavior</li>
+  <li>Set user data directory path</li>
+</ul>
+<div class="image-placeholder">PLACE IMAGE OF SETTINGS PANEL HERE</div>
+
+<h2>VENUS Tool Shortcuts</h2>
+<p>The sidebar provides quick-launch shortcuts to Hamilton VENUS utilities. See <a href="VENUSIntegration.html">VENUS Integration</a> for the full list.</p>
+
+<h2>Help Menu</h2>
+<p>Access the compiled help file (<code>Venus Library Manager.chm</code>) from the overflow menu. Video tutorial infrastructure is also available for in-app help playback.</p>
+</div>
+<div class="footer">
+<p>Venus Library Manager Help</p>
+</div>
+</body>
+</html>

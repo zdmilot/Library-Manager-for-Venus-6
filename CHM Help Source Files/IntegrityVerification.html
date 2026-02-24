@@ -1,0 +1,98 @@
+<html>
+<head>
+    <title>Integrity Verification</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Integrity Verification</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; Integrity Verification</div>
+
+<h2>Overview</h2>
+<p>Venus Library Manager provides file integrity verification to detect when library files have been modified, tampered with, or deleted after installation. It uses two different integrity strategies depending on whether a library is user-installed or a Hamilton system library.</p>
+
+<h2>User-Installed Libraries (SHA-256)</h2>
+<p>For libraries imported through Venus Library Manager, SHA-256 cryptographic hashes are computed at install time and stored in the database record. On each subsequent view, the current file hashes are compared against the stored baseline.</p>
+
+<h3>Tracked File Types</h3>
+<table>
+<thead><tr><th>Extension</th><th>Tracking Method</th></tr></thead>
+<tbody>
+<tr><td><code>.hsl</code></td><td>SHA-256 hash (all content except the last line)</td></tr>
+<tr><td><code>.hs_</code></td><td>SHA-256 hash (all content except the last line)</td></tr>
+<tr><td><code>.sub</code></td><td>SHA-256 hash (all content except the last line)</td></tr>
+<tr><td><code>.dll</code> (COM-registered only)</td><td>SHA-256 hash (full file)</td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<p><b>Note:</b> Binary resource files (<code>.bmp</code>, <code>.ico</code>, <code>.chm</code>, <code>.stp</code>) are <b>not</b> hashed because they do not carry executable logic and their modification does not affect library behavior.</p>
+</div>
+
+<h3>Integrity States</h3>
+<table>
+<thead><tr><th>State</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><b>All tracked files pass</b></td><td>Every tracked file exists and its hash matches the stored baseline</td></tr>
+<tr><td><b>Modified file</b></td><td>A file exists but its hash no longer matches — content has been changed</td></tr>
+<tr><td><b>Missing file</b></td><td>A tracked file no longer exists at its expected path</td></tr>
+<tr><td><b>Legacy / no-hash warning</b></td><td>The library was installed before integrity tracking was added, or hashes were not computed</td></tr>
+</tbody>
+</table>
+
+<h3>Visual Indicators</h3>
+<p>Library cards and detail modals display integrity status through color-coded indicators:</p>
+<div class="image-placeholder">PLACE IMAGE OF LIBRARY CARDS SHOWING DIFFERENT INTEGRITY STATES HERE</div>
+<ul>
+  <li><b>Green / normal:</b> All files pass</li>
+  <li><b>Red / error:</b> Modified or missing files detected</li>
+  <li><b>Yellow / warning:</b> Legacy library without hash data, or non-critical issues</li>
+</ul>
+
+<h2>System Libraries (Hamilton Metadata Footer)</h2>
+<p>Hamilton system libraries (built-in VENUS libraries) use a different integrity mechanism based on Hamilton's own metadata footer embedded in HSL files. See <a href="HSLFileArchitecture.html">HSL File Architecture</a> for a full explanation of the footer format.</p>
+
+<h3>How System Library Verification Works</h3>
+<ol>
+  <li><b>Baseline Generation:</b> The <code>generate-syslib-hashes</code> command scans a known-good VENUS Library folder and extracts the <code>$$valid$$</code> flag, <code>$$checksum$$</code>, and other metadata footer fields from every HSL-type file (<code>.hsl</code>, <code>.hs_</code>, <code>.smt</code>)</li>
+  <li><b>Baseline Storage:</b> The extracted data is saved to <code>db/system_library_hashes.json</code></li>
+  <li><b>Verification:</b> The <code>verify-syslib-hashes</code> command re-reads each file's footer and compares it against the stored baseline</li>
+</ol>
+
+<h3>Detection Criteria</h3>
+<table>
+<thead><tr><th>Condition</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Footer removed entirely</td><td><b>TAMPERED</b> — Metadata footer removed</td></tr>
+<tr><td><code>valid</code> changed from <code>1</code> to <code>0</code></td><td><b>TAMPERED</b> — Valid flag changed (file was re-saved/unlocked)</td></tr>
+<tr><td><code>checksum</code> differs from baseline</td><td><b>TAMPERED</b> — File content was modified</td></tr>
+<tr><td>File not found on disk</td><td><b>MISSING</b></td></tr>
+<tr><td>All fields match baseline</td><td><b>OK</b></td></tr>
+</tbody>
+</table>
+
+<h3>What Is NOT Tracked for System Libraries</h3>
+<p>Binary resource files (<code>.bmp</code>, <code>.ico</code>, <code>.chm</code>, <code>.stp</code>, <code>.dll</code>) are <b>not</b> baselined for system libraries. This keeps the baseline portable and lightweight — only files with Hamilton's native integrity mechanism are tracked.</p>
+
+<h3>HSL Files Without a Footer</h3>
+<p>HSL-type files that lack a metadata footer (created outside Hamilton tools, legacy files, or third-party files) are reported during baseline generation but are not tracked, since there is no Hamilton-native integrity indicator for them.</p>
+
+<h2>CLI Commands</h2>
+<ul>
+  <li><a href="CLIGenerateSyslibHashes.html">CLI: generate-syslib-hashes</a> — Generate system library baseline</li>
+  <li><a href="CLIVerifySyslibHashes.html">CLI: verify-syslib-hashes</a> — Verify system libraries against baseline</li>
+</ul>
+
+<h2>Practical Recommendations</h2>
+<ul>
+  <li>Generate a system library baseline from a freshly installed, unmodified VENUS environment</li>
+  <li>Run <code>verify-syslib-hashes</code> periodically or as part of your instrument qualification process</li>
+  <li>Investigate any <b>TAMPERED</b> results — they may indicate unauthorized modifications to validated system libraries</li>
+  <li>For user libraries, use the GUI integrity indicators to catch unexpected file modifications before running methods</li>
+</ul>
+</div>
+<div class="footer">
+<p>Venus Library Manager Help</p>
+</div>
+</body>
+</html>

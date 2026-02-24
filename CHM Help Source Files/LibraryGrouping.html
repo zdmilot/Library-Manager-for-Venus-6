@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title>Library Grouping</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Library Grouping</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; Library Grouping</div>
+
+<h2>Overview</h2>
+<p>Venus Library Manager supports organizing installed libraries into custom groups for easier navigation and management. Groups appear as tabs in the main window, allowing you to filter the library view to show only libraries assigned to a specific group.</p>
+
+<h2>Managing Groups</h2>
+
+<h3>Creating a Group</h3>
+<p>Create new groups from the Settings panel. Each group has a name and an icon class. New groups are added to the navigation tree and immediately become available as filter tabs.</p>
+<div class="image-placeholder">PLACE IMAGE OF GROUP CREATION IN SETTINGS HERE</div>
+
+<h3>Renaming and Deleting Groups</h3>
+<p>Groups can be renamed or deleted from the Settings panel. Deleting a group does not delete the libraries assigned to it — they become "unassigned" and remain visible in the All view.</p>
+
+<h3>Reordering Groups</h3>
+<p>Drag-and-drop reordering is supported in the Settings panel. The order you set determines the tab display order in the main window.</p>
+
+<h2>Assigning Libraries to Groups</h2>
+
+<h3>Automatic Assignment</h3>
+<p>When a library is imported, it is automatically assigned to the first non-default custom group. If no custom groups exist, a default group named <b>"Libraries"</b> is created and the library is assigned to it.</p>
+<p>This behavior is controlled by the <code>chk_autoAddToGroup</code> setting. It can be disabled in settings or bypassed during CLI imports with the <code>--no-group</code> flag.</p>
+
+<h3>Manual Assignment</h3>
+<p>In the Settings panel, libraries can be drag-and-dropped between groups. An <b>"Unassigned Libraries"</b> pseudo-group shows all libraries that are not currently in any group.</p>
+<div class="image-placeholder">PLACE IMAGE OF DRAG-AND-DROP GROUP ASSIGNMENT IN SETTINGS HERE</div>
+
+<h2>Group Visibility</h2>
+<p>Groups can be shown or hidden in the navigation using the favorite/show-hide toggle. Hidden groups and their assigned libraries still exist but are not displayed as navigation tabs.</p>
+
+<h2>Data Persistence</h2>
+<p>Group definitions are stored in <code>groups.json</code> and group-to-library assignments are stored in <code>tree.json</code> within the user data directory. See <a href="DataModel.html">Data Model &amp; Persistence</a> for details.</p>
+
+<h2>Group Record Structure</h2>
+<div class="code"><pre>{
+  "_id": "abc123",
+  "name": "Pipetting Libraries",
+  "icon-class": "fa-book",
+  "default": false,
+  "navbar": "left",
+  "favorite": true
+}</pre></div>
+
+<h2>Tree Assignment Structure</h2>
+<div class="code"><pre>{
+  "group-id": "abc123",
+  "method-ids": ["lib-id-1", "lib-id-2", "lib-id-3"],
+  "locked": false
+}</pre></div>
+</div>
+<div class="footer">
+<p>Venus Library Manager Help</p>
+</div>
+</body>
+</html>

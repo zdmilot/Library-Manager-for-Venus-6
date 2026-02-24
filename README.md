@@ -1,6 +1,6 @@
-# Library Manager
+# Venus Library Manager
 
-Library Manager is a desktop tool (NW.js + Node.js) for managing Hamilton VENUS libraries and related assets.
+Venus Library Manager is a desktop tool (NW.js + Node.js) for managing Hamilton VENUS libraries and related assets.
 It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` files, including package creation, import, export, archive bundling, integrity checks, COM registration workflows, grouping, and visualization of installed libraries.
 
 ---
@@ -144,14 +144,18 @@ It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` fi
 
 ## 8) File integrity and change visualization
 
-- Computes SHA-256 hashes for tracked files during install:
+- **User-installed libraries:** Computes SHA-256 hashes for tracked files during install:
   - `.hsl`, `.hs_`, `.sub` (hashes all except last line)
   - COM-registered `.dll` files (full-file hash)
-- Stores file hash map in installed library records.
+- **System libraries (Hamilton built-in):** Uses Hamilton's own metadata footer — only HSL-type files with footers are tracked:
+  - `.hsl`, `.hs_`, `.smt` files are verified using the `$$valid$$` flag and `$$checksum$$` from the footer
+  - Binary resource files are **not** baselined (keeps the baseline portable and lightweight)
+  - See [docs/HSL-File-Architecture.md](docs/HSL-File-Architecture.md) for full details on the metadata footer format
+- Stores file hash/baseline map in installed library records.
 - Verifies integrity when building library cards/detail view.
 - Surfaces integrity states visually:
-  - Modified file
-  - Missing file
+  - Modified file / tampered checksum / valid flag changed
+  - Missing file / metadata footer removed
   - Legacy/no-hash warning
   - “All tracked files pass” success
 
@@ -187,7 +191,7 @@ It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` fi
 
 ## 12) Help and UX support
 
-- Opens local compiled help file (`Library Manager.chm`) from overflow menu.
+- Opens local compiled help file (`Venus Library Manager.chm`) from overflow menu.
 - Includes video modal infrastructure for in-app help/tutorial playback.
 - Responsive UI behavior for window resize + nav overflow handling.
 
@@ -218,14 +222,14 @@ It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` fi
 
 ## Command Line Interface (CLI)
 
-Library Manager ships a full-featured command-line tool (`cli.js`) that mirrors the GUI workflows, enabling scripted automation, CI/CD integration, and headless testing.
+Venus Library Manager ships a full-featured command-line tool (`cli.js`) that mirrors the GUI workflows, enabling scripted automation, CI/CD integration, and headless testing.
 
 ### Prerequisites
 
 Node.js must be installed independently of NW.js (or use the NW.js `nw` binary from the project directory). All Node.js dependencies (`adm-zip`, `diskdb`) are satisfied by the project's existing `node_modules`.
 
 ```
-cd "Library Manager"
+cd "Venus Library Manager"
 node cli.js help
 ```
 
@@ -542,6 +546,12 @@ The repository also includes Python desktop tools under `Library Packager/`:
 - The setting `chk_autoAddToGroup` is actively used during archive import grouping behavior.
 - The settings `chk_confirmBeforeInstall` and `chk_overwriteWithoutAsking` are stored and surfaced in UI, but current install flow still uses preview/confirmation and explicit overwrite/update handling in code paths reviewed.
 - Deleted libraries are soft-deleted in DB (kept for history state) while files are removed from disk.
+
+---
+
+## Documentation
+
+- **[HSL File Architecture](docs/HSL-File-Architecture.md)** — Detailed reference on Hamilton's HSL metadata footer, the `$$valid$$` / `$$checksum$$` mechanism, read-only flags, and how integrity checking works for system vs. user libraries.
 
 ---
 

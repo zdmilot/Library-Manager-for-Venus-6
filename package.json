@@ -1,7 +1,7 @@
 {
-  "name": "Library Manager",
+  "name": "VenusLibraryManager",
   "main": "html/index.html",
-  "description": "Library Manager",
+  "description": "Venus Library Manager",
   "version": "1.0.0",
   "keywords": [
     "VENUS",
@@ -16,8 +16,8 @@
     "help": "node cli.js help"
   },
   "window": {
-    "title": "Library Manager",
-    "icon": "/Hamilton_icon.png",
+    "title": "Venus Library Manager",
+    "icon": "/VenusLibraryManager.png",
     "toolbar": true,
     "frame": true,
     "width": 1280,
@@ -28,7 +28,10 @@
   "dependencies": {
     "adm-zip": "^0.5.16",
     "diskdb": "^0.1.17",
-    "edge-js": "15.5.2",
-    "image-size": "^0.9.5"
+    "image-size": "^0.9.5",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "rcedit": "^5.0.2"
   }
 }

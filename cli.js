@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Library Manager CLI  v1.0
+ * Venus Library Manager CLI  v1.0
  * Command-line interface for managing Hamilton VENUS libraries.
  *
  * Usage:
@@ -43,8 +43,8 @@ const MIME_MAP = {
 
 const HASH_EXTENSIONS = ['.hsl', '.hs_', '.sub'];
 
-// Extensions where the last line is a volatile checksum and must be omitted
-const SYSLIB_OMIT_LAST_LINE_EXTS = ['.hsl', '.hs_', '.smt'];
+// Extensions that carry Hamilton's metadata footer ($$author=...$$valid=...$$checksum=...$$)
+const HSL_METADATA_EXTS = ['.hsl', '.hs_', '.smt'];
 
 const DEFAULT_LIB_PATH  = 'C:\\Program Files (x86)\\HAMILTON\\Library';
 const DEFAULT_MET_PATH  = 'C:\\Program Files (x86)\\HAMILTON\\Methods';
@@ -111,7 +111,7 @@ function parseArgs(argv) {
 // ---------------------------------------------------------------------------
 
 /** Default user data directory (outside the app) */
-const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, '.LibraryManager');
+const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, '.VenusLibraryManager');
 
 /**
  * Connect diskdb to the settings DB (always in app's db/ folder).
@@ -226,28 +226,44 @@ function hashFile(filePath) {
 }
 
 /**
- * Hash a file, optionally omitting the last line for .hsl/.hs_/.smt files
- * whose final line contains a volatile checksum ($$checksum=...$$).
+ * Parse the Hamilton HSL metadata footer from the last non-empty line of a file.
+ * Footer format: // $$author=NAME$$valid=0|1$$time=TIMESTAMP$$checksum=HEX$$length=NNN$$
+ *
+ * The $$valid=1$$ flag marks a file as Hamilton-validated/protected.
+ * The $$checksum$$ is Hamilton's own CRC computed over the file body.
+ * Together these form the authoritative integrity indicator for system libraries.
+ *
+ * @param {string} filePath - full path to the file
+ * @returns {Object|null} { author, valid, time, checksum, length, raw } or null
  */
-function hashFileOmitLastLine(filePath) {
+function parseHslMetadataFooter(filePath) {
     try {
-        const ext = path.extname(filePath).toLowerCase();
-        if (SYSLIB_OMIT_LAST_LINE_EXTS.indexOf(ext) !== -1) {
-            const text = fs.readFileSync(filePath, 'utf8');
-            const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-            // Remove the last non-empty line (the $$checksum$$ line)
-            while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
-            if (lines.length > 0) lines.pop();
-            const content = lines.join('\n');
-            return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+        if (!fs.existsSync(filePath)) return null;
+        const text = fs.readFileSync(filePath, 'utf8');
+        const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        for (let i = lines.length - 1; i >= Math.max(0, lines.length - 5); i--) {
+            const line = lines[i].trim();
+            if (line === '') continue;
+            const m = line.match(/\$\$author=(.+?)\$\$valid=(\d)\$\$time=(.+?)\$\$checksum=([a-f0-9]+)\$\$length=(\d+)\$\$/);
+            if (m) {
+                return {
+                    author:   m[1],
+                    valid:    parseInt(m[2], 10),
+                    time:     m[3],
+                    checksum: m[4],
+                    length:   parseInt(m[5], 10),
+                    raw:      line
+                };
+            }
+            break;
         }
-        // Binary hash for all other file types
-        const data = fs.readFileSync(filePath);
-        return crypto.createHash('sha256').update(data).digest('hex');
+        return null;
     } catch (_) {
         return null;
     }
 }
+
+
 
 function computeLibraryHashes(libraryFiles, libBasePath, comDlls) {
     const hashes = {};
@@ -1459,88 +1475,111 @@ function cmdGenerateSyslibHashes(args) {
         die('Failed to parse system_libraries.json: ' + e.message);
     }
 
-    console.log(`Generating system library hashes from: ${sourceDir}`);
-    console.log(`System libraries defined: ${sysLibs.length}\n`);
+    console.log(`Generating system library baseline from: ${sourceDir}`);
+    console.log(`System libraries defined: ${sysLibs.length}`);
+    console.log(`Strategy: Hamilton metadata footer ($$valid$$/$$checksum$$) only.\n`);
 
-    const hashData = {
+    const baselineData = {
         _meta: {
             generated_at:   new Date().toISOString(),
             source_dir:     sourceDir,
-            hash_algorithm: 'sha256',
-            omit_last_line: SYSLIB_OMIT_LAST_LINE_EXTS.slice(),
-            description:    'Integrity hashes for Hamilton system libraries. '
-                          + 'Files with extensions ' + SYSLIB_OMIT_LAST_LINE_EXTS.join(', ')
-                          + ' are hashed with the last line (volatile $$checksum$$) removed.'
+            strategy:       'hamilton-footer',
+            hsl_extensions: HSL_METADATA_EXTS.slice(),
+            description:    'Integrity baseline for Hamilton system libraries. '
+                          + 'Only HSL-type files (' + HSL_METADATA_EXTS.join(', ') + ') with Hamilton\'s '
+                          + 'metadata footer are tracked. Binary files are not baselined.'
         },
         libraries: {}
     };
 
-    let totalFiles  = 0;
-    let totalHashed = 0;
-    let missing     = [];
+    let totalFiles     = 0;
+    let totalBaselined = 0;
+    let skippedBinary  = 0;
+    let noFooter       = [];
+    let missing        = [];
 
     sysLibs.forEach(function (lib) {
         const libName = lib.canonical_name || lib.library_name;
         const files   = lib.discovered_files || [];
 
-        const libHashes = {};
+        const libFiles = {};
 
         files.forEach(function (relPath) {
-            // discovered_files are stored as "Library\FileName.ext"
-            // Strip the leading "Library\" to get the bare filename
             const fname    = relPath.replace(/^Library\\/i, '');
             const fullPath = path.join(sourceDir, fname);
             totalFiles++;
+
+            const ext = path.extname(fname).toLowerCase();
+
+            // Only track HSL-type files with metadata footers
+            if (HSL_METADATA_EXTS.indexOf(ext) === -1) {
+                skippedBinary++;
+                return;
+            }
 
             if (!fs.existsSync(fullPath)) {
                 missing.push({ library: libName, file: fname });
                 return;
             }
 
-            const h = hashFileOmitLastLine(fullPath);
-            if (h) {
-                libHashes[fname] = h;
-                totalHashed++;
+            const footer = parseHslMetadataFooter(fullPath);
+            if (footer) {
+                libFiles[fname] = {
+                    valid:    footer.valid,
+                    checksum: footer.checksum,
+                    author:   footer.author,
+                    time:     footer.time,
+                    length:   footer.length
+                };
+                totalBaselined++;
+            } else {
+                noFooter.push({ library: libName, file: fname });
             }
         });
 
-        if (Object.keys(libHashes).length > 0) {
-            hashData.libraries[libName] = {
-                _id:    lib._id,
-                hashes: libHashes
+        if (Object.keys(libFiles).length > 0) {
+            baselineData.libraries[libName] = {
+                _id:   lib._id,
+                files: libFiles
             };
         }
     });
 
-    // Write the permanent hash file
+    // Write the baseline file
     const outputPath = args['output'] || path.join(__dirname, 'db', 'system_library_hashes.json');
     ensureOutDir(outputPath);
-    fs.writeFileSync(outputPath, JSON.stringify(hashData, null, 2), 'utf8');
+    fs.writeFileSync(outputPath, JSON.stringify(baselineData, null, 2), 'utf8');
 
-    console.log(`Hashed ${totalHashed} / ${totalFiles} files across ${Object.keys(hashData.libraries).length} libraries.`);
+    console.log(`Baselined ${totalBaselined} / ${totalFiles} files across ${Object.keys(baselineData.libraries).length} libraries.`);
+    console.log(`  Footer tracked  : ${totalBaselined} files`);
+    console.log(`  Binary skipped  : ${skippedBinary} files`);
+    if (noFooter.length > 0) {
+        console.log(`\nNote: ${noFooter.length} HSL-type file(s) had no metadata footer (not tracked):`);
+        noFooter.forEach(e => console.log(`  [${e.library}] ${e.file}`));
+    }
     if (missing.length > 0) {
         console.log(`\nWarning: ${missing.length} file(s) not found in source directory:`);
         missing.forEach(m => console.log(`  [${m.library}] ${m.file}`));
     }
-    console.log(`\nHash file written: ${outputPath}`);
+    console.log(`\nBaseline file written: ${outputPath}`);
 }
 
 // ===========================================================================
 // COMMAND: verify-syslib-hashes
 // ===========================================================================
 function cmdVerifySyslibHashes(args) {
-    // Load the permanent hash file
+    // Load the baseline file
     const hashFilePath = args['hash-file'] || path.join(__dirname, 'db', 'system_library_hashes.json');
     if (!fs.existsSync(hashFilePath)) {
-        die('System library hash file not found: ' + hashFilePath
+        die('System library baseline file not found: ' + hashFilePath
           + '\nRun  generate-syslib-hashes  first to create it.');
     }
 
-    let hashData;
+    let baselineData;
     try {
-        hashData = JSON.parse(fs.readFileSync(hashFilePath, 'utf8'));
+        baselineData = JSON.parse(fs.readFileSync(hashFilePath, 'utf8'));
     } catch (e) {
-        die('Failed to parse hash file: ' + e.message);
+        die('Failed to parse baseline file: ' + e.message);
     }
 
     // Determine the library directory to verify against
@@ -1560,23 +1599,25 @@ function cmdVerifySyslibHashes(args) {
     }
 
     const asJson = !!(args['json'] || args['j']);
+    const strategy = (baselineData._meta || {}).strategy || 'unknown';
 
     console.log('Verifying system library integrity...');
     console.log(`  Library dir : ${libBasePath}`);
-    console.log(`  Hash file   : ${hashFilePath}`);
-    console.log(`  Generated   : ${(hashData._meta || {}).generated_at || 'unknown'}`);
+    console.log(`  Baseline    : ${hashFilePath}`);
+    console.log(`  Generated   : ${(baselineData._meta || {}).generated_at || 'unknown'}`);
+    console.log(`  Strategy    : ${strategy}`);
     console.log('');
 
     const results = { ok: [], tampered: [], missing: [], errors: [] };
 
-    const libNames = Object.keys(hashData.libraries);
+    const libNames = Object.keys(baselineData.libraries);
     libNames.forEach(function (libName) {
-        const entry  = hashData.libraries[libName];
-        const hashes = entry.hashes || {};
+        const entry = baselineData.libraries[libName];
+        const files = entry.files || {};
 
-        Object.keys(hashes).forEach(function (fname) {
-            const expectedHash = hashes[fname];
-            const fullPath     = path.join(libBasePath, fname);
+        Object.keys(files).forEach(function (fname) {
+            const stored   = files[fname];
+            const fullPath = path.join(libBasePath, fname);
 
             if (!fs.existsSync(fullPath)) {
                 results.missing.push({ library: libName, file: fname });
@@ -1584,17 +1625,35 @@ function cmdVerifySyslibHashes(args) {
             }
 
             try {
-                const currentHash = hashFileOmitLastLine(fullPath);
-                if (currentHash === expectedHash) {
-                    results.ok.push({ library: libName, file: fname });
-                } else {
+                const footer = parseHslMetadataFooter(fullPath);
+                if (!footer) {
                     results.tampered.push({
-                        library:  libName,
-                        file:     fname,
-                        expected: expectedHash,
-                        actual:   currentHash
+                        library: libName, file: fname,
+                        reason:  'Metadata footer removed',
+                        expected: `valid=${stored.valid} checksum=${stored.checksum}`,
+                        actual:   'No footer'
                     });
+                    return;
                 }
+                if (stored.valid === 1 && footer.valid !== 1) {
+                    results.tampered.push({
+                        library: libName, file: fname,
+                        reason:  'Valid flag changed (1\u21920)',
+                        expected: `valid=1 checksum=${stored.checksum}`,
+                        actual:   `valid=${footer.valid} checksum=${footer.checksum}`
+                    });
+                    return;
+                }
+                if (stored.checksum && footer.checksum !== stored.checksum) {
+                    results.tampered.push({
+                        library: libName, file: fname,
+                        reason:  'Checksum changed',
+                        expected: `checksum=${stored.checksum}`,
+                        actual:   `checksum=${footer.checksum}`
+                    });
+                    return;
+                }
+                results.ok.push({ library: libName, file: fname });
             } catch (e) {
                 results.errors.push({ library: libName, file: fname, error: e.message });
             }
@@ -1611,8 +1670,9 @@ function cmdVerifySyslibHashes(args) {
             console.log('TAMPERED FILES:');
             results.tampered.forEach(function (t) {
                 console.log(`  [${t.library}] ${t.file}`);
-                console.log(`    Expected : ${t.expected}`);
-                console.log(`    Actual   : ${t.actual}`);
+                if (t.reason)   console.log(`    Reason   : ${t.reason}`);
+                if (t.expected) console.log(`    Expected : ${t.expected}`);
+                if (t.actual)   console.log(`    Actual   : ${t.actual}`);
             });
             console.log('');
         }
@@ -1766,7 +1826,7 @@ function cmdRollbackLib(args) {
 // ===========================================================================
 function printHelp() {
     console.log(`
-Library Manager CLI  v1.0
+Venus Library Manager CLI  v1.0
 Hamilton VENUS Library Package Management
 
 USAGE
@@ -1782,13 +1842,13 @@ COMMANDS
   create-package     Create a .hxlibpkg package from a JSON spec file
   list-versions      List cached package versions for a library
   rollback-lib       Reinstall a previously cached version of a library
-  generate-syslib-hashes   Generate integrity hashes for system libraries
-  verify-syslib-hashes     Verify system libraries against known-good hashes
+  generate-syslib-hashes   Generate integrity baseline for system libraries
+  verify-syslib-hashes     Verify system libraries against baseline
   help               Show this help text
 
 GLOBAL OPTIONS
   --db-path <dir>    Path to user data directory (default: from settings.json
-                     or <Hamilton Library>\\.LibraryManager)
+                     or <Hamilton Library>\\.VenusLibraryManager)
   --store-dir <dir>  Override package store location
                      (default: C:\\Program Files (x86)\\HAMILTON\\Library\\LibraryPackages)
 
@@ -1929,24 +1989,26 @@ rollback-lib
 
 ──────────────────────────────────────────────────────────────────────────────
 generate-syslib-hashes
-  Generate SHA-256 integrity hashes from a known-good Hamilton Library folder.
-  Produces a permanent hash file used by verify-syslib-hashes to detect
-  tampered system libraries. Files with .hsl, .hs_, and .smt extensions are
-  hashed with the last line omitted (volatile $$checksum$$ line).
+  Generate an integrity baseline from a known-good Hamilton Library folder.
+  Only tracks HSL-type files (.hsl, .hs_, .smt) that carry Hamilton's
+  built-in $$valid$$ flag and $$checksum$$ in the metadata footer.
+  Binary files are skipped. The baseline is used by verify-syslib-hashes
+  to detect tampered system libraries.
 
   --source-dir <path>  [required]  Path to the known-good Library folder
-  --output <path>                  Output hash file (default: db/system_library_hashes.json)
+  --output <path>                  Output baseline file (default: db/system_library_hashes.json)
 
   Examples:
     node cli.js generate-syslib-hashes --source-dir "D:\\Venus\\Library"
-    node cli.js generate-syslib-hashes --source-dir "D:\\Venus\\Library" --output hashes.json
+    node cli.js generate-syslib-hashes --source-dir "D:\\Venus\\Library" --output baseline.json
 
 ──────────────────────────────────────────────────────────────────────────────
 verify-syslib-hashes
-  Verify installed system library files against the known-good hash file.
-  Reports tampered, missing, or unreadable files.
+  Verify installed system library files against the known-good baseline.
+  Checks Hamilton's $$valid$$ and $$checksum$$ metadata footer on each
+  tracked HSL file. Reports tampered, missing, or unreadable files.
 
-  --hash-file <path>   Path to hash file  (default: db/system_library_hashes.json)
+  --hash-file <path>   Path to baseline file (default: db/system_library_hashes.json)
   --lib-dir <path>     Override library root to verify
   --json               Output results as JSON
 
