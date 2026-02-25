@@ -15,7 +15,7 @@
     "list-libs": "node cli.js list-libs",
     "help": "node cli.js help"
   },
-  "chromium-args": "--disable-logging",
+  "chromium-args": "--disable-logging --enable-logging=stderr --log-level=3 --disable-crash-reporter",
   "window": {
     "title": "Venus Library Manager",
     "icon": "/VenusLibraryManager.png",

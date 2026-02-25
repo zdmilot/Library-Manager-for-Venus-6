@@ -140,9 +140,9 @@ It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` fi
 - Supports optional custom icon/image selection with size/type handling.
 - Image picker accepts `.png`, `.jpg`, `.jpeg`, `.bmp`, `.ico`, `.gif`, and `.svg` formats.
 - Auto-detects matching `.bmp` when custom image not supplied (exact-name match only: the packager looks for `<LibraryName>.bmp` in the library files list — partial matches like `<LibraryName>.extra.bmp` are not matched).
-- **Package icon compositing:** When a package is built, the icon stored in the package is a composited image:
-  - If the user supplies a library image, the final icon is that image with a **grayscale Library Manager logo** overlaid in the bottom-right third (similar to a Windows shortcut arrow). This visually brands the package while preserving the library's distinctive image.
-  - If no image is supplied (and no `.bmp` auto-detected), the icon is a **full-size grayscale Library Manager logo**.
+- **Package icon compositing:** When a package is built, a composited icon is generated for the `icon/` directory inside the ZIP (used for Windows file-system display). The manifest's `library_image_base64` stores the **raw, uncomposited** image so imported libraries display the original artwork:
+  - If the user supplies a library image, the file-system icon is that image with a **grayscale Library Manager logo** overlaid in the bottom-right third (similar to a Windows shortcut arrow).
+  - If no image is supplied (and no `.bmp` auto-detected), the file-system icon is a **full-size grayscale Library Manager logo**.
   - The compositing is performed at build time using the HTML5 Canvas API (`pkgCompositeLibraryIcon()`). The grayscale logo is loaded from a pre-rendered static asset (`assets/app_logo_gray_128.png`).
 - Supports per-DLL **COM Register** selection inside package payload.
 - Writes package with standardized structure (`manifest.json`, `library/`, `demo_methods/`, optional `icon/`).
@@ -273,12 +273,12 @@ These pre-rendered PNGs replace earlier runtime approaches (SVG→Canvas renderi
 
 ### Package icon compositing
 
-When a `.hxlibpkg` is built (GUI or CLI), the icon written into the package's `manifest.json` and `icon/` directory is a **composited image**:
+When a `.hxlibpkg` is built via the GUI, a **composited icon** is generated and written only to the `icon/` directory inside the package ZIP. This composited icon is what Windows displays for the `.hxlibpkg` file in Explorer. The manifest's `library_image_base64` stores the **raw, uncomposited** library image so that imported libraries display the original artwork without any overlay.
 
-1. **With user image:** The user's chosen library image is drawn at full size on an HTML5 Canvas, then the grayscale logo (`app_logo_gray_128.png`) is overlaid in the bottom-right corner at one-third of the canvas size. This produces a branded icon that still prominently shows the library's own artwork — similar to how Windows draws shortcut arrows on shortcuts.
-2. **Without user image:** The grayscale logo is drawn at full canvas size, providing a consistent placeholder icon.
+1. **With user image:** The user's chosen library image is drawn at full size on an HTML5 Canvas, then the grayscale logo (`app_logo_gray_128.png`) is overlaid in the bottom-right corner at one-third of the canvas size. This produces a branded file-system icon — similar to how Windows draws shortcut arrows on shortcuts.
+2. **Without user image:** The grayscale logo is drawn at full canvas size, providing a consistent placeholder file-system icon.
 
-The compositing is performed by `pkgCompositeLibraryIcon()` in `main.js`, which returns a base64-encoded PNG data URL.
+The compositing is performed by `pkgCompositeLibraryIcon()` in `main.js`, which returns a base64-encoded PNG used exclusively for the `icon/` ZIP entry.
 
 ### Archive icon
 

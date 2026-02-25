@@ -25,7 +25,7 @@ const { NtExecutable, NtExecutableResource, Resource } = require("resedit");
 
 // ── Configuration ──────────────────────────────────────────────
 const OUTPUT_ICO = path.join(__dirname, "VenusLibraryManager.ico");
-const EXE_PATH = path.join(__dirname, "Library Manager.exe");
+const EXE_PATH = path.join(__dirname, "Venus Library Manager.exe");
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -120,6 +120,25 @@ async function main() {
     [iconItem]
   );
 
+  // Update version info strings (InternalName, ProductName, FileDescription)
+  const viList = Resource.VersionInfo.fromEntries(res.entries);
+  if (viList.length > 0) {
+    const vi = viList[0];
+    vi.setStringValues(
+      { lang: 1033, codepage: 1200 },
+      {
+        FileDescription: "Venus Library Manager",
+        ProductName: "Venus Library Manager",
+        InternalName: "Venus Library Manager",
+        OriginalFilename: "Venus Library Manager.exe",
+      }
+    );
+    vi.outputToResourceEntries(res.entries);
+    console.log(`\nVersion info updated: InternalName / ProductName / FileDescription → "Venus Library Manager"`);
+  } else {
+    console.log(`\n[WARN] No version info found in .exe — skipping version string update.`);
+  }
+
   // Write back to the .exe
   res.outputResource(exe);
   const newExeData = exe.generate();
@@ -139,7 +158,7 @@ async function main() {
     });
   });
 
-  console.log(`\nDone. Icon embedded into .exe successfully.`);
+  console.log(`\nDone. Icon and version info embedded into .exe successfully.`);
   console.log(`\nIf Explorer still shows the old icon, flush the cache:`);
   console.log(`  ie4uinit.exe -show`);
 }

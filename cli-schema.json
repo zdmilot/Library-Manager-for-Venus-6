@@ -5,7 +5,7 @@
   "description": "JSON specification file used by `node cli.js create-package --spec <file>` to build a .hxlibpkg library package. File paths inside this document are resolved relative to the directory containing the spec file itself.",
   "type": "object",
 
-  "required": ["author", "organization", "version", "venus_compatibility", "description", "library_files"],
+  "required": ["author", "version", "venus_compatibility", "description", "library_files"],
 
   "properties": {
 
@@ -25,7 +25,7 @@
 
     "organization": {
       "type": "string",
-      "description": "Author's organization or company. Required.",
+      "description": "Author's organization or company. Optional.",
       "examples": ["Hamilton Bonaduz AG", "Acme Pharma"]
     },
 

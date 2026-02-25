@@ -302,7 +302,16 @@ function connectSettingsDB() {
 }
 
 /**
- * Connect diskdb to the given directory with all collections.
+ * Connect diskdb to the user data directory.
+ * Returns a db object with collections: installed_libs, links, groups, tree.
+ */
+function connectUserDB(userDataDir) {
+    const diskdb = require('diskdb');
+    return diskdb.connect(userDataDir, ['installed_libs', 'links', 'groups', 'tree']);
+}
+
+/**
+ * Legacy: Connect diskdb to the given directory with all collections.
  * Returns a db object with collections: installed_libs, links, groups, settings, tree.
  */
 function connectDB(dbDir) {
@@ -1830,7 +1839,6 @@ function cmdCreatePackage(args) {
     // ---- Validate required fields ----
     const validationErrors = [];
     if (!spec.author)                              validationErrors.push('"author" is required');
-    if (!spec.organization)                        validationErrors.push('"organization" is required');
     if (!spec.version)                             validationErrors.push('"version" is required');
     if (!spec.venus_compatibility)                 validationErrors.push('"venus_compatibility" is required');
     if (!spec.description)                         validationErrors.push('"description" is required');

@@ -40,22 +40,22 @@ img.save("assets/app_logo_gray_128.png")</pre></div>
 <p>These pre-rendered PNGs replace earlier runtime approaches (SVG-to-Canvas rendering and live grayscale conversion), reducing code complexity and improving reliability.</p>
 
 <h2>Package Icon Compositing</h2>
-<p>When a <code>.hxlibpkg</code> is built (either through the GUI Library Packager or the CLI <code>create-package</code> command), the icon written into the package's <code>manifest.json</code> and <code>icon/</code> directory is a <b>composited image</b>, not just the raw library image.</p>
+<p>When a <code>.hxlibpkg</code> is built through the GUI Library Packager, a <b>composited icon</b> is generated and written <b>only</b> to the <code>icon/</code> directory inside the package ZIP. This composited icon is what Windows displays for the <code>.hxlibpkg</code> file in Explorer. The package manifest's <code>library_image_base64</code> field stores the <b>raw, uncomposited</b> library image so that imported libraries display the original artwork without any overlay.</p>
 
 <h3>With a User-Supplied Image</h3>
 <ol>
   <li>The user's chosen library image is drawn at full size on an HTML5 Canvas</li>
   <li>The grayscale Library Manager logo (<code>app_logo_gray_128.png</code>) is loaded from the assets folder</li>
   <li>The grayscale logo is overlaid in the <b>bottom-right corner</b> of the canvas at one-third of the canvas dimensions</li>
-  <li>The resulting composited image is exported as a base64-encoded PNG data URL</li>
+  <li>The resulting composited image is exported as a base64-encoded PNG and written to the <code>icon/</code> directory in the ZIP</li>
 </ol>
-<p>This produces a branded icon that prominently shows the library's own artwork while indicating it is a Venus Library Manager package — similar to how Windows draws shortcut arrows on desktop shortcuts.</p>
+<p>This produces a branded file-system icon that prominently shows the library's own artwork while indicating it is a Venus Library Manager package — similar to how Windows draws shortcut arrows on desktop shortcuts.</p>
 
 <h3>Without a User-Supplied Image</h3>
-<p>If no image was selected by the user and no matching <code>.bmp</code> was auto-detected from the library files, the grayscale Library Manager logo is drawn at full canvas size. This provides a consistent, recognizable placeholder icon for packages that lack custom artwork.</p>
+<p>If no image was selected by the user and no matching <code>.bmp</code> was auto-detected from the library files, the grayscale Library Manager logo is drawn at full canvas size and used as the file-system icon. The manifest will contain no image data in this case.</p>
 
 <h3>Implementation</h3>
-<p>The compositing is performed by the <code>pkgCompositeLibraryIcon()</code> function in <code>main.js</code>. It uses the HTML5 Canvas API (<code>&lt;canvas&gt;</code> element) to draw and composite the images, and returns the result as a base64-encoded PNG data URL that is stored in the package manifest.</p>
+<p>The compositing is performed by the <code>pkgCompositeLibraryIcon()</code> function in <code>main.js</code>. It uses the HTML5 Canvas API (<code>&lt;canvas&gt;</code> element) to draw and composite the images, and returns the result as a base64-encoded PNG. The composited result is used exclusively for the <code>icon/</code> ZIP entry; the manifest retains the original library image.</p>
 
 <h2>Archive Icon</h2>
 <p>Multi-library archive files (<code>.hxlibarch</code>) embed a distinctive <b>purple archive icon</b> that visually identifies the file as containing multiple library packages. The icon depicts three stacked purple diamonds.</p>

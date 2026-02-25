@@ -349,5 +349,41 @@
 		<param name="Name" value="default groups">
 		<param name="Local" value="DataModel.html">
 		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="splash screen">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="success dialogs">
+		<param name="Local" value="SuccessDialogs.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="success modal">
+		<param name="Local" value="SuccessDialogs.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="showGenericSuccessModal">
+		<param name="Local" value="SuccessDialogs.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="startup">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="loading screen">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="worker process">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="white flash">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="GPU compositing">
+		<param name="Local" value="SplashScreen.html">
+		</OBJECT>
 </UL>
 </BODY></HTML>

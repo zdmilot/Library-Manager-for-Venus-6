@@ -1703,7 +1703,7 @@ body {
 .evt-history-row {
 	display: flex;
 	align-items: flex-start;
-	padding: 14px 16px;
+	padding: 22px 20px;
 	border-bottom: 1px solid #eee;
 	transition: background 0.15s;
 	gap: 48px;
@@ -1739,7 +1739,7 @@ body {
 	font-weight: 600;
 	font-size: 0.93rem;
 	color: #212529;
-	margin-bottom: 3px;
+	margin-bottom: 8px;
 }
 
 .evt-history-detail-text {
@@ -1747,6 +1747,7 @@ body {
 	color: #6c757d;
 	word-break: break-word;
 	line-height: 1.45;
+	margin-bottom: 8px;
 }
 
 .evt-history-meta {
@@ -1759,7 +1760,7 @@ body {
 	font-size: 0.8rem;
 	color: #6c757d;
 	white-space: nowrap;
-	margin-bottom: 2px;
+	margin-bottom: 6px;
 }
 
 .evt-history-user {
@@ -1792,8 +1793,8 @@ body {
 }
 
 .evt-history-detail-block {
-	margin-top: 6px;
-	padding: 8px 10px;
+	margin-top: 12px;
+	padding: 12px 14px;
 	background: var(--body-background);
 	border-radius: 6px;
 	font-size: 0.8rem;

@@ -26,6 +26,10 @@
 			<param name="Local" value="GUIOverview.html">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Splash Screen &amp; Startup Pipeline">
+			<param name="Local" value="SplashScreen.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Core Concepts">
 			</OBJECT>
 		<UL>
@@ -52,6 +56,10 @@
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Visual Identity &amp; Assets">
 				<param name="Local" value="VisualIdentity.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Success Dialogs">
+				<param name="Local" value="SuccessDialogs.html">
 				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">

@@ -44,10 +44,10 @@
 <div class="image-placeholder">PLACE IMAGE OF PACKAGER WITH FILLED METADATA AND FILE LIST HERE</div>
 
 <h3>Package Icon Compositing</h3>
-<p>When the package is built, the icon stored in the package is a <b>composited image</b>, not just the raw image you selected:</p>
+<p>When the package is built, a <b>composited icon</b> is generated for the file-system representation of the <code>.hxlibpkg</code> file (the <code>icon/</code> directory inside the ZIP). The <b>manifest</b> stores the <b>raw, uncomposited</b> library image so that imported libraries display your original artwork without any overlay:</p>
 <ul>
-  <li><b>With a selected image:</b> Your library image is drawn at full size, then a <b>grayscale Library Manager logo</b> is overlaid in the bottom-right corner at one-third of the image size. This creates a branded icon that prominently shows your library artwork while indicating it is a Venus Library Manager package (similar to how Windows draws shortcut arrows on shortcut icons).</li>
-  <li><b>Without an image:</b> If no image was selected or auto-detected, a full-size grayscale Library Manager logo is used as the package icon.</li>
+  <li><b>With a selected image:</b> Your library image is drawn at full size, then a <b>grayscale Library Manager logo</b> is overlaid in the bottom-right corner at one-third of the image size. This composited version is used only as the Windows file-system icon for the <code>.hxlibpkg</code> file — similar to how Windows draws shortcut arrows on shortcut icons.</li>
+  <li><b>Without an image:</b> If no image was selected or auto-detected, a full-size grayscale Library Manager logo is used as the file-system icon.</li>
 </ul>
 <p>The compositing is performed using the HTML5 Canvas API at package build time. The grayscale logo is a pre-rendered static asset (<code>assets/app_logo_gray_128.png</code>). See <a href="VisualIdentity.html">Visual Identity &amp; Assets</a> for details on how assets are generated.</p>
 
