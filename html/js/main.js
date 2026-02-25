@@ -6542,8 +6542,64 @@
 			if (!lib) { alert("Library not found."); return; }
 
 			var libName = lib.library_name || "Unknown";
-			$("#lib-export-save-dialog").attr("nwsaveas", libName + ".hxlibpkg");
-			$("#lib-export-save-dialog").trigger("click");
+
+			// Populate and show the export choice modal
+			$("#exportChoiceModal").attr("data-lib-id", libId);
+			$(".export-choice-libname").text(libName);
+
+			// Resolve dependencies and show summary
+			var allDepLibIds = resolveAllDependencyLibIds(libId);
+			var depSummary = $(".export-choice-dep-summary");
+			var depList = $(".export-choice-dep-list");
+			var $depsOption = $(".export-choice-option[data-choice='deps']");
+			if (allDepLibIds.length > 0) {
+				var depNames = allDepLibIds.map(function(did) {
+					var dl = db_installed_libs.installed_libs.findOne({"_id": did});
+					return dl ? (dl.library_name || "Unknown") : "Unknown";
+				});
+				var listHtml = '<i class="fas fa-info-circle mr-1" style="color:var(--medium)"></i>' +
+					allDepLibIds.length + ' dependenc' + (allDepLibIds.length !== 1 ? 'ies' : 'y') + ' found: ' +
+					depNames.map(function(n) { return '<b>' + n.replace(/</g,'&lt;') + '</b>'; }).join(', ');
+				depList.html(listHtml);
+				depSummary.removeClass('d-none');
+				$depsOption.removeClass('export-choice-disabled').css({ opacity: '', cursor: 'pointer', pointerEvents: '' });
+			} else {
+				depList.html('<i class="fas fa-ban mr-1" style="color:var(--lightgray)"></i>No exportable dependencies found');
+				depSummary.removeClass('d-none');
+				$depsOption.addClass('export-choice-disabled').css({ opacity: '0.45', cursor: 'not-allowed', pointerEvents: 'none' });
+			}
+
+			$("#exportChoiceModal").modal("show");
+		});
+
+		// Export choice modal — hover effect (skip disabled)
+		$(document).on("mouseenter", ".export-choice-option:not(.export-choice-disabled)", function() {
+			$(this).css("background", "var(--body-background)");
+		}).on("mouseleave", ".export-choice-option:not(.export-choice-disabled)", function() {
+			$(this).css("background", "");
+		});
+
+		// Export choice modal — click an option (ignore disabled)
+		$(document).on("click", ".export-choice-option:not(.export-choice-disabled)", function() {
+			var choice = $(this).attr("data-choice");
+			var libId = $("#exportChoiceModal").attr("data-lib-id");
+			if (!libId) return;
+			$("#exportChoiceModal").modal("hide");
+
+			var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
+			if (!lib) { alert("Library not found."); return; }
+			var libName = lib.library_name || "Unknown";
+
+			if (choice === "single") {
+				// Single library export (.hxlibpkg)
+				$("#lib-export-save-dialog").attr("nwsaveas", libName + ".hxlibpkg");
+				$("#lib-export-save-dialog").trigger("click");
+			} else if (choice === "deps") {
+				// Export with all dependencies (.hxlibarch)
+				$("#lib-export-deps-save-dialog").attr("nwsaveas", libName + "_with_dependencies.hxlibarch");
+				$("#lib-export-deps-save-dialog").data("libId", libId);
+				$("#lib-export-deps-save-dialog").trigger("click");
+			}
 		});
 
 		$(document).on("change", "#lib-export-save-dialog", function() {
@@ -6553,6 +6609,16 @@
 			var libId = $("#libDetailModal").attr("data-lib-id");
 			if (!libId) return;
 			exportSingleLibrary(libId, savePath);
+		});
+
+		// Save dialog for export with dependencies
+		$(document).on("change", "#lib-export-deps-save-dialog", function() {
+			var savePath = $(this).val();
+			if (!savePath) return;
+			$(this).val('');
+			var libId = $(this).data("libId");
+			if (!libId) return;
+			exportLibraryWithDependencies(libId, savePath);
 		});
 
 		function exportSingleLibrary(libId, savePath) {
@@ -6655,6 +6721,219 @@
 
 			} catch(e) {
 				alert("Error exporting library:\n" + e.message);
+			}
+		}
+
+		/**
+		 * Recursively resolve all user-installed dependency library IDs for a
+		 * given library.  Walks the dependency tree via extractRequiredDependencies
+		 * and collects every user-installed library that is required (directly or
+		 * transitively), excluding the root library itself.
+		 *
+		 * @param {string} rootLibId - The _id of the starting library
+		 * @returns {Array<string>} deduplicated array of dependency library _ids
+		 */
+		function resolveAllDependencyLibIds(rootLibId) {
+			var visited = {};   // _id -> true
+			var result  = [];   // ordered list of dependency _ids
+
+			function walk(libId) {
+				if (visited[libId]) return;
+				visited[libId] = true;
+
+				var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
+				if (!lib || lib.deleted) return;
+
+				var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
+				(deps || []).forEach(function(dep) {
+					if (dep.type !== 'user') return;          // only user-installed libraries can be exported
+					// Resolve dep.libraryName back to a library record
+					var allLibs = db_installed_libs.installed_libs.find() || [];
+					for (var i = 0; i < allLibs.length; i++) {
+						var candidate = allLibs[i];
+						if (candidate.deleted) continue;
+						if ((candidate.library_name || '').toLowerCase() === (dep.libraryName || '').toLowerCase()) {
+							if (!visited[candidate._id]) {
+								result.push(candidate._id);
+								walk(candidate._id);   // recurse into this dependency's own deps
+							}
+							break;
+						}
+					}
+				});
+			}
+
+			walk(rootLibId);
+			return result;
+		}
+
+		/**
+		 * Export a library together with all of its recursively-resolved
+		 * user-installed dependencies as a .hxlibarch archive.
+		 *
+		 * @param {string} libId    - The _id of the root library
+		 * @param {string} savePath - Destination path for the .hxlibarch file
+		 */
+		function exportLibraryWithDependencies(libId, savePath) {
+			try {
+				// Build full list: root library + all recursive dependencies
+				var depIds = resolveAllDependencyLibIds(libId);
+				var allIds = [libId].concat(depIds);
+
+				var archiveZip = new AdmZip();
+				var exportedLibs = [];
+				var errors = [];
+
+				allIds.forEach(function(id) {
+					var lib = db_installed_libs.installed_libs.findOne({"_id": id});
+					if (!lib) {
+						errors.push("Library ID " + id + " not found in database.");
+						return;
+					}
+
+					var libName     = lib.library_name || "Unknown";
+					var libBasePath = lib.lib_install_path || "";
+					var demoBasePath= lib.demo_install_path || "";
+					var libraryFiles= lib.library_files || [];
+					var demoFiles   = lib.demo_method_files || [];
+					var helpFiles   = lib.help_files || [];
+					var comDlls     = lib.com_register_dlls || [];
+
+					// Include CHMs in manifest library_files for backward compatibility
+					var manifestLibFiles = libraryFiles.slice();
+					helpFiles.forEach(function(hf) {
+						if (manifestLibFiles.indexOf(hf) === -1) manifestLibFiles.push(hf);
+					});
+
+					var manifest = {
+						format_version: "1.0",
+						library_name: libName,
+						author: lib.author || "",
+						organization: lib.organization || "",
+						version: lib.version || "",
+						venus_compatibility: lib.venus_compatibility || "",
+						description: lib.description || "",
+						tags: lib.tags || [],
+						created_date: new Date().toISOString(),
+						library_image: lib.library_image || null,
+						library_image_base64: lib.library_image_base64 || null,
+						library_image_mime: lib.library_image_mime || null,
+						library_files: manifestLibFiles,
+						demo_method_files: demoFiles.slice(),
+						help_files: helpFiles.slice(),
+						com_register_dlls: comDlls.slice()
+					};
+
+					// Create an inner zip for this library (.hxlibpkg)
+					var innerZip = new AdmZip();
+					innerZip.addFile("manifest.json", Buffer.from(JSON.stringify(manifest, null, 2), "utf8"));
+
+					var libFilesAdded = 0;
+					libraryFiles.forEach(function(f) {
+						var fullPath = path.join(libBasePath, f);
+						if (fs.existsSync(fullPath)) {
+							innerZip.addLocalFile(fullPath, "library");
+							libFilesAdded++;
+						}
+					});
+
+					helpFiles.forEach(function(f) {
+						var fullPath = path.join(libBasePath, f);
+						if (fs.existsSync(fullPath)) {
+							innerZip.addLocalFile(fullPath, "library");
+						}
+					});
+
+					var demoFilesAdded = 0;
+					demoFiles.forEach(function(f) {
+						var fullPath = path.join(demoBasePath, f);
+						if (fs.existsSync(fullPath)) {
+							innerZip.addLocalFile(fullPath, "demo_methods");
+							demoFilesAdded++;
+						}
+					});
+
+					signPackageZip(innerZip);
+
+					var innerBuffer = innerZip.toBuffer();
+					var innerFileName = libName.replace(/[<>:"\\\/|?*]/g, '_') + ".hxlibpkg";
+					archiveZip.addFile(innerFileName, innerBuffer);
+
+					exportedLibs.push({
+						name: libName,
+						libFiles: libFilesAdded,
+						demoFiles: demoFilesAdded,
+						isRoot: (id === libId)
+					});
+				});
+
+				if (exportedLibs.length === 0) {
+					alert("No libraries could be exported.\n\n" + errors.join("\n"));
+					return;
+				}
+
+				// Load archive icon
+				var archiveIconBase64 = null;
+				var archiveIconMime   = null;
+				var iconResult = getArchiveIconPng();
+				if (iconResult && iconResult.base64) {
+					archiveIconBase64 = iconResult.base64;
+					archiveIconMime   = iconResult.mime || 'image/png';
+				}
+
+				// Add archive manifest
+				var archManifest = {
+					format_version: "1.0",
+					archive_type: "hxlibarch",
+					created_date: new Date().toISOString(),
+					library_count: exportedLibs.length,
+					libraries: exportedLibs.map(function(l) { return l.name; }),
+					archive_icon: archiveIconBase64 ? 'archive_icon.png' : null,
+					archive_icon_base64: archiveIconBase64,
+					archive_icon_mime: archiveIconMime
+				};
+				archiveZip.addFile("archive_manifest.json", Buffer.from(JSON.stringify(archManifest, null, 2), "utf8"));
+
+				if (archiveIconBase64) {
+					archiveZip.addFile("icon/archive_icon.png", Buffer.from(archiveIconBase64, 'base64'));
+				}
+
+				archiveZip.writeZip(savePath);
+
+				// Build success list
+				var rootLib = exportedLibs.filter(function(l) { return l.isRoot; })[0];
+				var depLibs = exportedLibs.filter(function(l) { return !l.isRoot; });
+
+				var archListHtml = '<div style="text-align:left;">';
+				archListHtml += '<div style="margin-bottom:4px;"><i class="fas fa-book text-success mr-1"></i><b>' + (rootLib ? rootLib.name.replace(/</g,'&lt;') : '') + '</b> <span class="text-muted" style="font-size:0.8rem;">(root library)</span></div>';
+				if (depLibs.length > 0) {
+					archListHtml += '<div class="text-muted text-sm mb-1" style="margin-left:1.25rem;">Dependencies:</div>';
+					depLibs.forEach(function(l) {
+						archListHtml += '<div style="margin-bottom:4px; margin-left:1.25rem;"><i class="fas fa-check text-success mr-1"></i>' + l.name.replace(/</g,'&lt;') + ' <span class="text-muted" style="font-size:0.8rem;">(' + l.libFiles + ' lib, ' + l.demoFiles + ' demo)</span></div>';
+					});
+				}
+				archListHtml += '</div>';
+
+				var archStatusHtml = null;
+				var archStatusClass = null;
+				if (errors.length > 0) {
+					archStatusHtml = '<i class="fas fa-exclamation-triangle mr-1"></i>' + errors.join('<br>');
+					archStatusClass = 'com-warning';
+				}
+
+				showGenericSuccessModal({
+					title: "Library Archive Exported Successfully!",
+					detail: exportedLibs.length + " librar" + (exportedLibs.length !== 1 ? "ies" : "y") + " included (" + (exportedLibs.length - 1) + " dependenc" + ((exportedLibs.length - 1) !== 1 ? "ies" : "y") + ")",
+					paths: [
+						{ label: "Saved To", value: savePath }
+					],
+					listHtml: archListHtml,
+					statusHtml: archStatusHtml,
+					statusClass: archStatusClass
+				});
+
+			} catch(e) {
+				alert("Error exporting library with dependencies:\n" + e.message);
 			}
 		}
 
@@ -8858,6 +9137,82 @@
 		var ulib_allLibFiles = [];        // combined: discovered + user-added library files (absolute paths)
 		var ulib_demoMethodFiles = [];    // user-added demo method files (absolute paths)
 		var ulib_comRegisterDlls = [];    // DLL basenames selected for COM registration
+		var ulib_iconBase64 = null;       // base64-encoded icon data (user-picked or from DB)
+		var ulib_iconMime = null;         // MIME type of the icon
+		var ulib_iconFilename = null;     // original filename of the icon
+		var ulib_iconFilePath = null;     // path of the user-picked icon file (null if from DB)
+
+		/**
+		 * Render the library file list in the unsigned library detail modal.
+		 * Mirrors pkgUpdateLibFileList() from the Create Package form.
+		 */
+		function ulibUpdateLibFileList() {
+			var $list = $("#ulib-file-list");
+			$list.empty();
+			if (ulib_allLibFiles.length === 0) {
+				$list.html('<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No library files added</div>');
+			} else {
+				ulib_allLibFiles.forEach(function(f) {
+					var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+					var baseName = path.basename(f);
+					var isDll = baseName.toLowerCase().endsWith('.dll');
+					var isChecked = ulib_comRegisterDlls.indexOf(baseName) !== -1;
+					var comCheckbox = '';
+					if (isDll) {
+						comCheckbox = '<label class="pkg-com-checkbox-label mb-0 ml-auto mr-2" title="Register this DLL as a COM object using RegAsm.exe /codebase during import. Requires administrator rights.">' +
+							'<input type="checkbox" class="pkg-com-checkbox mr-1" data-dll="' + baseName.replace(/"/g, '&quot;') + '"' + (isChecked ? ' checked' : '') + '>' +
+							'<span class="text-xs text-muted">COM Register</span>' +
+						'</label>';
+					}
+					$list.append(
+						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
+						'<i class="far fa-file pkg-file-icon"></i>' +
+						'<span class="pkg-file-name">' + baseName + '</span>' +
+						comCheckbox +
+						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'</div>'
+					);
+				});
+			}
+			$("#ulib-lib-count").text(ulib_allLibFiles.length + " file" + (ulib_allLibFiles.length !== 1 ? "s" : ""));
+		}
+
+		/**
+		 * Render the demo method file list in the unsigned library detail modal.
+		 * Mirrors pkgUpdateDemoFileList() from the Create Package form.
+		 */
+		function ulibUpdateDemoFileList() {
+			var $list = $("#ulib-demo-list");
+			$list.empty();
+			if (ulib_demoMethodFiles.length === 0) {
+				$list.html('<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No demo method files added</div>');
+			} else {
+				ulib_demoMethodFiles.forEach(function(f) {
+					var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+					$list.append(
+						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
+						'<i class="far fa-file pkg-file-icon"></i>' +
+						'<span class="pkg-file-name">' + path.basename(f) + '</span>' +
+						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'</div>'
+					);
+				});
+			}
+			$("#ulib-demo-count").text(ulib_demoMethodFiles.length + " file" + (ulib_demoMethodFiles.length !== 1 ? "s" : ""));
+		}
+
+		/**
+		 * Show or hide the COM registration warning in the unsigned library modal footer.
+		 * Unlike the old behaviour, export is NOT blocked — the warning is informational only.
+		 */
+		function ulibUpdateComWarning() {
+			var $warning = $("#ulib-com-warning");
+			if (ulib_comRegisterDlls.length > 0) {
+				$warning.removeClass("d-none");
+			} else {
+				$warning.addClass("d-none");
+			}
+		}
 
 		/**
 		 * Scan the Library folder for .hsl and .smt files that are NOT part of a
@@ -9203,6 +9558,9 @@
 			// Title
 			$modal.find(".unsigned-lib-detail-name").text(uLib.library_name || "Unknown");
 
+			// Update install path subtitles in card headers
+			$modal.find(".ulib-path-libname").text(uLib.library_name || "libraryname");
+
 			// Populate editable fields
 			$("#ulib-name").val(uLib.library_name || "");
 			$("#ulib-author").val(uLib.author || "");
@@ -9212,28 +9570,37 @@
 			$("#ulib-description").val(uLib.description || "");
 			$("#ulib-tags").val((uLib.tags || []).join(", "));
 
-			// File list
-			var $fileList = $("#ulib-file-list");
-			$fileList.empty();
-			(uLib.library_files || []).forEach(function(f) {
-				var ext = path.extname(f).toLowerCase();
-				var iconClass = 'fa-file';
-				if (ext === '.hsl' || ext === '.hs_') iconClass = 'fa-file-code';
-				else if (ext === '.smt') iconClass = 'fa-file-alt';
-				else if (ext === '.bmp' || ext === '.ico') iconClass = 'fa-image';
-				else if (ext === '.chm') iconClass = 'fa-book';
-				else if (ext === '.dll') iconClass = 'fa-cog';
-				$fileList.append(
-					'<div class="d-flex align-items-center py-1" style="font-size:0.85rem;">' +
-						'<i class="fas ' + iconClass + ' mr-2 text-muted" style="width:16px; text-align:center;"></i>' +
-						'<span class="text-muted">' + escapeHtml(f) + '</span>' +
-					'</div>'
-				);
+			// Initialize module-level state arrays from DB record
+			var libDir = uLib.lib_base_path || '';
+			ulib_allLibFiles = (uLib.library_files || []).map(function(f) { return path.join(libDir, f); });
+			(uLib.additional_library_files || []).forEach(function(f) {
+				if (ulib_allLibFiles.indexOf(f) === -1) ulib_allLibFiles.push(f);
 			});
+			ulib_demoMethodFiles = (uLib.demo_method_files || []).slice();
+			ulib_comRegisterDlls = (uLib.com_register_dlls || []).slice();
 
-			if ((uLib.library_files || []).length === 0) {
-				$fileList.html('<div class="text-muted text-center py-2"><i class="fas fa-inbox mr-1"></i>No files discovered</div>');
+			// Initialize icon state from DB record
+			ulib_iconFilePath = null; // will be set if user picks a new image
+			ulib_iconBase64 = uLib.library_image_base64 || null;
+			ulib_iconMime = uLib.library_image_mime || null;
+			ulib_iconFilename = uLib.library_image || null;
+
+			// Render icon preview
+			if (ulib_iconBase64) {
+				var iconMime = ulib_iconMime || 'image/bmp';
+				$("#ulib-icon-preview").html('<img src="data:' + iconMime + ';base64,' + ulib_iconBase64 + '">').addClass('has-image');
+				$("#ulib-icon-name").text(ulib_iconFilename || "Library image");
+				$("#ulib-removeIcon").show();
+			} else {
+				$("#ulib-icon-preview").html('<i class="fas fa-image fa-2x" style="color:#ccc;"></i>').removeClass('has-image');
+				$("#ulib-icon-name").text("No image selected");
+				$("#ulib-removeIcon").hide();
 			}
+
+			// Render file lists using the shared update functions
+			ulibUpdateLibFileList();
+			ulibUpdateDemoFileList();
+			ulibUpdateComWarning();
 
 			// Set save dialog filename
 			$("#ulib-export-save-dialog").attr("nwsaveas", (uLib.library_name || "library") + ".hxlibpkg");
@@ -9246,6 +9613,61 @@
 		$(document).on("click", "#ulib-addLibFolder", function() { $("#ulib-input-libfolder").trigger("click"); });
 		$(document).on("click", "#ulib-addDemoFiles", function() { $("#ulib-input-demofiles").trigger("click"); });
 		$(document).on("click", "#ulib-addDemoFolder", function() { $("#ulib-input-demofolder").trigger("click"); });
+
+		// ---- Unsigned lib: icon / image picker (mirrors pkg icon picker) ----
+		$(document).on("click", "#ulib-pickIcon", function() {
+			$("#ulib-input-icon").trigger("click");
+		});
+
+		$(document).on("change", "#ulib-input-icon", function() {
+			var fileInput = this;
+			if (!fileInput.files || fileInput.files.length === 0) return;
+			var filePath = fileInput.files[0].path;
+			$(this).val('');
+			if (!filePath) return;
+
+			try {
+				if (!fs.existsSync(filePath)) {
+					alert("File not found: " + filePath);
+					return;
+				}
+				var stats = fs.statSync(filePath);
+				if (stats.size > 2 * 1024 * 1024) {
+					alert("Image file is too large (max 2 MB).");
+					return;
+				}
+
+				var ext = path.extname(filePath).toLowerCase();
+				var mime = IMAGE_MIME_MAP[ext] || 'image/png';
+				var b64 = fs.readFileSync(filePath).toString('base64');
+
+				ulib_iconFilePath = filePath;
+				ulib_iconBase64 = b64;
+				ulib_iconMime = mime;
+				ulib_iconFilename = path.basename(filePath);
+
+				$("#ulib-icon-preview").html('<img src="data:' + mime + ';base64,' + b64 + '">').addClass('has-image');
+				$("#ulib-icon-name").text(path.basename(filePath));
+				$("#ulib-removeIcon").show();
+			} catch(e) {
+				alert("Error loading image: " + e.message);
+			}
+		});
+
+		$(document).on("click", "#ulib-removeIcon", function() {
+			ulib_iconFilePath = null;
+			ulib_iconBase64 = null;
+			ulib_iconMime = null;
+			ulib_iconFilename = null;
+
+			$("#ulib-icon-preview").html('<i class="fas fa-image fa-2x" style="color:#ccc;"></i>').removeClass('has-image');
+			$("#ulib-icon-name").text("No image selected");
+			$("#ulib-removeIcon").hide();
+
+			// Also update modal header icon
+			$("#unsignedLibDetailModal .unsigned-lib-detail-icon")
+				.html('<i class="far fa-times-circle fa-3x" style="color:var(--medium)"></i>');
+		});
 
 		$(document).on("change", "#ulib-input-libfiles", function() {
 			var fileInput = this;
@@ -9333,7 +9755,7 @@
 		// ---- Unsigned lib: remove selected files ----
 		$(document).on("click", "#ulib-removeLibFiles", function() {
 			var selected = [];
-			$("#ulib-file-list .ulib-file-item.selected").each(function() {
+			$("#ulib-file-list .pkg-file-item.selected").each(function() {
 				selected.push($(this).attr("data-path"));
 			});
 			if (selected.length === 0) return;
@@ -9349,7 +9771,7 @@
 
 		$(document).on("click", "#ulib-removeDemoFiles", function() {
 			var selected = [];
-			$("#ulib-demo-list .ulib-file-item.selected").each(function() {
+			$("#ulib-demo-list .pkg-file-item.selected").each(function() {
 				selected.push($(this).attr("data-path"));
 			});
 			if (selected.length === 0) return;
@@ -9360,7 +9782,7 @@
 		});
 
 		// ---- Unsigned lib: toggle file selection (click / ctrl+click) ----
-		$(document).on("click", ".ulib-file-item", function(e) {
+		$(document).on("click", "#unsignedLibDetailModal .pkg-file-item", function(e) {
 			if (e.ctrlKey || e.metaKey) {
 				$(this).toggleClass("selected");
 			} else {
@@ -9370,7 +9792,7 @@
 		});
 
 		// ---- Unsigned lib: COM register checkbox handler ----
-		$(document).on("change", ".ulib-com-checkbox", function(e) {
+		$(document).on("change", "#unsignedLibDetailModal .pkg-com-checkbox", function(e) {
 			e.stopPropagation();
 			var dllName = $(this).attr("data-dll");
 			if ($(this).is(":checked")) {
@@ -9383,7 +9805,7 @@
 			ulibUpdateComWarning();
 		});
 
-		$(document).on("click", ".ulib-com-checkbox-label", function(e) {
+		$(document).on("click", "#unsignedLibDetailModal .pkg-com-checkbox-label", function(e) {
 			e.stopPropagation();
 		});
 
@@ -9456,7 +9878,10 @@
 				tags: tags,
 				additional_library_files: additionalLibFiles,
 				demo_method_files: ulib_demoMethodFiles.slice(),
-				com_register_dlls: ulib_comRegisterDlls.slice()
+				com_register_dlls: ulib_comRegisterDlls.slice(),
+				library_image: ulib_iconFilename,
+				library_image_base64: ulib_iconBase64,
+				library_image_mime: ulib_iconMime
 			};
 
 			// Update in DB
@@ -9535,12 +9960,7 @@
 				var uLib = db_unsigned_libs.unsigned_libs.findOne({"_id": ulibId});
 				if (!uLib) { alert("Unsigned library not found."); return; }
 
-				// Block export if COM DLLs are checked
 				var comDlls = uLib.com_register_dlls || [];
-				if (comDlls.length > 0) {
-					alert("Export is not allowed when DLLs are marked for COM registration.\n\nCOM-registered packages must be imported through the standard import workflow.");
-					return;
-				}
 
 				var libName = uLib.library_name || "Unknown";
 				var libDir = uLib.lib_base_path || '';
@@ -9605,7 +10025,7 @@
 					library_files: manifestLibFiles,
 					demo_method_files: manifestDemoFiles,
 					help_files: manifestHelpFiles,
-					com_register_dlls: []
+					com_register_dlls: comDlls
 				};
 
 				// Create ZIP package

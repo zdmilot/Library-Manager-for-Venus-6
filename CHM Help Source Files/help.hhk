@@ -78,6 +78,22 @@
 		<param name="Local" value="ExportingLibraries.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="export with dependencies">
+		<param name="Local" value="ExportingLibraries.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="export choice modal">
+		<param name="Local" value="ExportingLibraries.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="dependency export">
+		<param name="Local" value="ExportingLibraries.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="recursive dependencies">
+		<param name="Local" value="ExportingLibraries.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="file hashes">
 		<param name="Local" value="IntegrityVerification.html">
 		</OBJECT>

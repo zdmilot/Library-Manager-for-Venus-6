@@ -70,8 +70,9 @@ node cli.js help</pre></div>
 
 <h3>Export a Library</h3>
 <ol>
-  <li>In the GUI: Open the library detail modal and click Export</li>
-  <li>Choose a save location — the current on-disk files are packaged into a <code>.hxlibpkg</code></li>
+  <li>In the GUI: Open the library detail modal and click <b>Export Library</b></li>
+  <li>Choose <b>Export Single Library</b> for a <code>.hxlibpkg</code>, or <b>Export with All Dependencies</b> for a <code>.hxlibarch</code> that includes all required dependency libraries</li>
+  <li>Choose a save location — the current on-disk files are packaged into the selected format</li>
 </ol>
 <p>From the CLI:</p>
 <div class="code"><pre>node cli.js export-lib --name "MyLibrary" --output MyLibrary.hxlibpkg</pre></div>

@@ -969,6 +969,57 @@
 	</div>
 	<!--Modal Library Detail end --->
 
+	<!---- Modal Export Choice start --->
+	<div class="modal" tabindex="-1" role="dialog" id="exportChoiceModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:520px;">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3">
+							<i class="fas fa-box-open fa-2x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Export Library</h5>
+							<span class="text-muted text-sm export-choice-libname"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body">
+					<p class="mb-3">How would you like to export this library?</p>
+					<div class="export-choice-option p-3 mb-2" data-choice="single" style="border:1px solid var(--border-color); border-radius:8px; cursor:pointer; transition:background 0.15s;">
+						<div class="d-flex align-items-center">
+							<i class="fas fa-book fa-lg mr-3" style="color:var(--medium)"></i>
+							<div>
+								<div class="font-weight-bold" style="color:var(--medium2);">Export Single Library</div>
+								<div class="text-muted text-sm">Export only this library as a <b>.hxlibpkg</b> package</div>
+							</div>
+						</div>
+					</div>
+					<div class="export-choice-option p-3" data-choice="deps" style="border:1px solid var(--border-color); border-radius:8px; cursor:pointer; transition:background 0.15s;">
+						<div class="d-flex align-items-center">
+							<i class="fas fa-project-diagram fa-lg mr-3" style="color:var(--medium)"></i>
+							<div>
+								<div class="font-weight-bold" style="color:var(--medium2);">Export with All Dependencies</div>
+								<div class="text-muted text-sm">Recursively include all required dependencies as a <b>.hxlibarch</b> archive</div>
+							</div>
+						</div>
+						<div class="export-choice-dep-summary mt-2 d-none" style="margin-left:2.5rem;">
+							<div class="text-sm text-muted export-choice-dep-list"></div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<input type="file" class="d-none" id="lib-export-deps-save-dialog" nwsaveas="library.hxlibarch" accept=".hxlibarch">
+	<!---- Modal Export Choice end --->
+
 	<!---- Modal Delete Library Confirmation start --->
 	<div class="modal" tabindex="-1" role="dialog" id="deleteLibConfirmModal">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:480px;">
@@ -1286,79 +1337,120 @@
 					</button>
 				</div>
 				<div class="modal-body detail-modal-body" style="max-height:65vh; overflow-y:auto;">
-					<!-- Editable metadata form -->
-					<h6 class="detail-section-label"><i class="fas fa-edit mr-1" style="color:var(--medium);"></i>Package Metadata <small class="text-muted">(editable)</small></h6>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Library Name</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-name" readonly style="background:#e9ecef; cursor:default;">
+					<!-- Metadata Section -->
+					<div class="card mb-3 exporter-card">
+						<div class="card-header"><i class="fas fa-info-circle mr-2 color-medium"></i>Package Metadata</div>
+						<div class="card-body">
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Library Name</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-name" readonly style="background:#e9ecef; cursor:default;">
+								</div>
+							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Author</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-author" placeholder="Author name">
+								</div>
+							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Organization</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-organization" placeholder="Organization (optional)">
+								</div>
+							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Version</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-version" placeholder="e.g. 1.0.0">
+								</div>
+							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">VENUS Compatibility</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-venus-compat" placeholder="e.g. 4.7+">
+								</div>
+							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Description</label>
+								<div class="col-sm-8">
+									<textarea class="form-control form-control-sm" id="ulib-description" rows="2" placeholder="Library description"></textarea>
+								</div>
+							</div>
+							<div class="form-group row mb-0">
+								<label class="col-sm-4 col-form-label col-form-label-sm">Tags</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control form-control-sm" id="ulib-tags" placeholder="Comma-separated (e.g. pipetting, assay)">
+								</div>
+							</div>
 						</div>
 					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Author</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-author" placeholder="Author name">
-						</div>
-					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Organization</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-organization" placeholder="Organization (optional)">
-						</div>
-					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Version</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-version" placeholder="e.g. 1.0.0">
-						</div>
-					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">VENUS Compatibility</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-venus-compat" placeholder="e.g. 4.7+">
-						</div>
-					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Description</label>
-						<div class="col-sm-8">
-							<textarea class="form-control form-control-sm" id="ulib-description" rows="2" placeholder="Library description"></textarea>
-						</div>
-					</div>
-					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label col-form-label-sm">Tags</label>
-						<div class="col-sm-8">
-							<input type="text" class="form-control form-control-sm" id="ulib-tags" placeholder="Comma-separated (e.g. pipetting, assay)">
+
+					<!-- Icon / Image Section -->
+					<div class="card mb-3 exporter-card">
+						<div class="card-header"><i class="fas fa-image mr-2 color-medium"></i>Library Icon / Image</div>
+						<div class="card-body">
+							<p class="text-muted text-sm mb-2">Choose an image to represent this library. If none is selected, the auto-detected .bmp (if any) will be used.</p>
+							<div class="d-flex align-items-center">
+								<div class="pkg-icon-preview mr-3" id="ulib-icon-preview">
+									<i class="fas fa-image fa-2x" style="color:#ccc;"></i>
+								</div>
+								<div>
+									<button class="btn btn-sm btn-outlined" id="ulib-pickIcon">Choose Image...</button>
+									<button class="btn btn-sm btn-outlined ml-1" id="ulib-removeIcon" style="display:none;">Remove</button>
+									<input type="file" class="d-none" id="ulib-input-icon" accept=".png,.jpg,.jpeg,.bmp,.ico,.gif,.svg">
+									<div class="text-muted text-sm mt-1" id="ulib-icon-name">No image selected</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
 					<!-- Library Files Section -->
-					<h6 class="detail-section-label mt-3"><i class="fas fa-book mr-1" style="color:var(--medium);"></i>Library Files</h6>
-					<div class="mb-2">
-						<button class="btn btn-sm btn-outlined" id="ulib-addLibFiles">Add Files...</button>
-						<button class="btn btn-sm btn-outlined" id="ulib-addLibFolder">Add Folder...</button>
-						<button class="btn btn-sm btn-outlined" id="ulib-removeLibFiles">Remove Selected</button>
-						<span class="text-muted text-sm ml-2" id="ulib-lib-count">0 files</span>
-						<input type="file" class="d-none" id="ulib-input-libfiles" multiple accept=".bmp,.chm,.hsl,.hsi,.hs_,.smt,.stp,.sub,.mth,.res,.fdb,.sii,.dec,.lay,.rck,.ctr,.dck,.dll">
-						<input type="file" class="d-none" id="ulib-input-libfolder" nwdirectory>
+					<div class="card mb-3 exporter-card">
+						<div class="card-header">
+							<i class="fas fa-book mr-2 color-medium"></i>Library Files
+							<span class="text-muted ml-2 text-sm font-weight-normal">Installed to: ...\Hamilton\Library\<span class="ulib-path-libname">&lt;libraryname&gt;</span></span>
+						</div>
+						<div class="card-body">
+							<div class="mb-2">
+								<button class="btn btn-sm btn-outlined" id="ulib-addLibFiles">Add Files...</button>
+								<button class="btn btn-sm btn-outlined" id="ulib-addLibFolder">Add Folder...</button>
+								<button class="btn btn-sm btn-outlined" id="ulib-removeLibFiles">Remove Selected</button>
+								<span class="text-muted text-sm ml-2" id="ulib-lib-count">0 files</span>
+								<input type="file" class="d-none" id="ulib-input-libfiles" multiple accept=".bmp,.chm,.hsl,.hsi,.hs_,.smt,.stp,.sub,.mth,.res,.fdb,.sii,.dec,.lay,.rck,.ctr,.dck,.dll">
+								<input type="file" class="d-none" id="ulib-input-libfolder" nwdirectory>
+							</div>
+							<p class="text-muted text-sm mb-2"><i class="fas fa-info-circle mr-1"></i>For <b>.dll</b> files that require COM registration, check the <b>COM Register</b> checkbox next to the file. <span class="text-danger">Administrator rights will be required during import.</span></p>
+							<div class="pkg-file-list" id="ulib-file-list">
+								<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No library files added</div>
+							</div>
+						</div>
 					</div>
-					<p class="text-muted text-sm mb-2"><i class="fas fa-info-circle mr-1"></i>For <b>.dll</b> files that require COM registration, check the <b>COM Register</b> checkbox next to the file. <span class="text-danger">Packages with COM-registered DLLs cannot be exported and must be imported through the standard import workflow.</span></p>
-					<div class="unsigned-lib-file-list" id="ulib-file-list" style="max-height:200px; overflow-y:auto;"></div>
 
 					<!-- Demo Method Files Section -->
-					<h6 class="detail-section-label mt-3"><i class="fas fa-flask mr-1" style="color:var(--medium);"></i>Demo Method Files</h6>
-					<div class="mb-2">
-						<button class="btn btn-sm btn-outlined" id="ulib-addDemoFiles">Add Files...</button>
-						<button class="btn btn-sm btn-outlined" id="ulib-addDemoFolder">Add Folder...</button>
-						<button class="btn btn-sm btn-outlined" id="ulib-removeDemoFiles">Remove Selected</button>
-						<span class="text-muted text-sm ml-2" id="ulib-demo-count">0 files</span>
-						<input type="file" class="d-none" id="ulib-input-demofiles" multiple accept=".hsl,.stp,.csv,.txt,.med,.wfl">
-						<input type="file" class="d-none" id="ulib-input-demofolder" nwdirectory>
+					<div class="card mb-3 exporter-card">
+						<div class="card-header">
+							<i class="fas fa-flask mr-2 color-medium"></i>Demo Method Files
+							<span class="text-muted ml-2 text-sm font-weight-normal">Installed to: ...\Hamilton\Methods\Library Demo Methods\<span class="ulib-path-libname">&lt;libraryname&gt;</span></span>
+						</div>
+						<div class="card-body">
+							<div class="mb-2">
+								<button class="btn btn-sm btn-outlined" id="ulib-addDemoFiles">Add Files...</button>
+								<button class="btn btn-sm btn-outlined" id="ulib-addDemoFolder">Add Folder...</button>
+								<button class="btn btn-sm btn-outlined" id="ulib-removeDemoFiles">Remove Selected</button>
+								<span class="text-muted text-sm ml-2" id="ulib-demo-count">0 files</span>
+								<input type="file" class="d-none" id="ulib-input-demofiles" multiple accept=".hsl,.stp,.csv,.txt,.med,.wfl">
+								<input type="file" class="d-none" id="ulib-input-demofolder" nwdirectory>
+							</div>
+							<div class="pkg-file-list" id="ulib-demo-list">
+								<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No demo method files added</div>
+							</div>
+						</div>
 					</div>
-					<div class="unsigned-lib-file-list" id="ulib-demo-list" style="max-height:200px; overflow-y:auto;"></div>
 				</div>
 				<div class="modal-footer detail-modal-footer flex-column">
-					<div class="w-100 d-none text-danger text-sm mb-2 text-center" id="ulib-com-warning">
-						<i class="fas fa-exclamation-triangle mr-1"></i>Export disabled &mdash; one or more DLLs are marked for COM registration. Use the standard import workflow instead.
+					<div class="w-100 d-none text-warning text-sm mb-2 text-center" id="ulib-com-warning">
+						<i class="fas fa-exclamation-triangle mr-1"></i>One or more DLLs are marked for COM registration. Administrator rights will be required during import.
 					</div>
 					<div class="w-100 d-flex">
 						<button type="button" class="btn btn-outlined mr-auto" id="ulib-remove-btn" title="Remove this entry from the unsigned list"><i class="fas fa-trash-alt mr-1"></i>Remove</button>

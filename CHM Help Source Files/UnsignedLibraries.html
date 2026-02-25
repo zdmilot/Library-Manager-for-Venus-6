@@ -71,9 +71,10 @@
 </ul>
 
 <h2>Detail &amp; Edit Modal</h2>
-<p>Clicking a library card name or the <b>Edit &amp; Export</b> link opens the Unsigned Library Detail modal. This modal provides:</p>
+<p>Clicking a library card name or the <b>Edit &amp; Export</b> link opens the Unsigned Library Detail modal. This modal uses the same <b>card-based layout</b> as the <a href="CreatingPackages.html">Create Package</a> form, providing a consistent visual experience across the application. Each section — Package Metadata, Library Icon / Image, Library Files, and Demo Method Files — is presented within its own styled card with a header, matching the packager form 1:1.</p>
 
 <h3>Editable Fields</h3>
+<p>The <b>Package Metadata</b> card contains the following form fields:</p>
 <table>
 <thead><tr><th>Field</th><th>Description</th></tr></thead>
 <tbody>
@@ -87,26 +88,29 @@
 </tbody>
 </table>
 
+<h3>Library Icon / Image</h3>
+<p>The <b>Library Icon / Image</b> card lets users assign a custom icon or image to the unsigned library. Supported formats include <code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.bmp</code>, <code>.ico</code>, <code>.gif</code>, and <code>.svg</code>. If no image is selected, the auto-detected <code>.bmp</code> file (if any) is used. A 72×72 pixel preview is displayed alongside <b>Choose Image...</b> and <b>Remove</b> buttons. The chosen image is also shown in the modal header next to the library name. When saved, the image data (<code>library_image</code>, <code>library_image_base64</code>, <code>library_image_mime</code>) is persisted to the database and included in exported packages.</p>
+
 <h3>Library Files</h3>
-<p>The Library Files section displays all files discovered for this library and allows adding more. Users can manage files using:</p>
+<p>The <b>Library Files</b> card displays all files discovered for this library and allows adding more. Its card header includes a subtitle showing the install destination path: <code>...\Hamilton\Library\&lt;libraryname&gt;</code>. Users can manage files using:</p>
 <ul>
   <li><b>Add Files...</b> — opens a file picker to add individual library files</li>
   <li><b>Add Folder...</b> — opens a folder picker; all files in the selected folder are added</li>
   <li><b>Remove Selected</b> — removes files selected in the list (click to select, Ctrl+click for multi-select)</li>
 </ul>
-<p>A file count is displayed next to the buttons. Files added by the user are persisted as <code>additional_library_files</code> in the database record, separate from the originally discovered files.</p>
+<p>A file count is displayed next to the buttons. Files are shown in a styled scrollable list container (matching the Create Package form). Files added by the user are persisted as <code>additional_library_files</code> in the database record, separate from the originally discovered files.</p>
 
 <h4>COM Registration</h4>
 <p>For any <code>.dll</code> file in the library file list, a <b>COM Register</b> checkbox is shown next to the filename. Check this box if the DLL requires COM registration via <code>RegAsm.exe /codebase</code> during import (administrator rights will be required).</p>
 
 <div class="note">
-<p><b>Important:</b> When one or more DLLs are marked for COM registration, the <b>Export</b> button is <b>disabled</b>. A warning message is displayed in the modal footer: <i>"Export disabled — one or more DLLs are marked for COM registration."</i> COM-registered packages must be imported through the standard import workflow rather than exported as standalone packages.</p>
+<p><b>Note:</b> When one or more DLLs are marked for COM registration, a warning is displayed in the modal footer: <i>"One or more DLLs are marked for COM registration. Administrator rights will be required during import."</i> The package can still be exported normally — the COM registration data is included in the package manifest and will be applied during import.</p>
 </div>
 
 <p>When exactly one DLL is added in a single batch (via Add Files or Add Folder), it is automatically checked for COM registration. Uncheck it manually if registration is not needed.</p>
 
 <h3>Demo Method Files</h3>
-<p>The Demo Method Files section allows users to attach demo or example method files to the unsigned library. These files are placed in the <code>demo_methods/</code> directory inside the exported package and installed to <code>Hamilton\Methods\Library Demo Methods\&lt;libraryname&gt;</code> during import.</p>
+<p>The <b>Demo Method Files</b> card allows users to attach demo or example method files to the unsigned library. Its card header includes a subtitle showing the install destination path: <code>...\Hamilton\Methods\Library Demo Methods\&lt;libraryname&gt;</code>. These files are placed in the <code>demo_methods/</code> directory inside the exported package and installed to <code>Hamilton\Methods\Library Demo Methods\&lt;libraryname&gt;</code> during import.</p>
 <ul>
   <li><b>Add Files...</b> — opens a file picker for demo method files (<code>.hsl</code>, <code>.stp</code>, <code>.csv</code>, <code>.txt</code>, <code>.med</code>, <code>.wfl</code>)</li>
   <li><b>Add Folder...</b> — adds all files from a selected folder</li>
@@ -131,7 +135,6 @@
 <h3>Export Process</h3>
 <ol>
   <li>Any pending metadata edits are automatically saved</li>
-  <li>If any DLLs are marked for COM registration, the export is blocked (the Export button is disabled)</li>
   <li>A save dialog prompts for the output file location (suggested filename: <code>&lt;LibraryName&gt;.hxlibpkg</code>)</li>
   <li>All library files (discovered + user-added) and demo method files are verified to still exist on disk — if any are missing, the export is aborted</li>
   <li>A <code>manifest.json</code> is generated from the current metadata fields, including the demo method file list</li>
