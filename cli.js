@@ -25,6 +25,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const os   = require('os');
 const AdmZip = require('adm-zip');
 const crypto = require('crypto');
 
@@ -178,6 +179,114 @@ function parseArgs(argv) {
 }
 
 // ---------------------------------------------------------------------------
+// Environment / identity helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the current Windows username.
+ * Uses os.userInfo() or falls back to environment variables.
+ */
+function getWindowsUsername() {
+    try {
+        return os.userInfo().username || process.env.USERNAME || process.env.USER || 'Unknown';
+    } catch (_) {
+        return process.env.USERNAME || process.env.USER || 'Unknown';
+    }
+}
+
+/**
+ * Get a concise Windows version string (e.g. "Windows_NT 10.0.19045 x64").
+ */
+function getWindowsVersion() {
+    try {
+        return os.type() + ' ' + os.release() + ' (' + os.arch() + ')';
+    } catch (_) {
+        return 'Unknown';
+    }
+}
+
+/**
+ * Query the Windows registry for the Hamilton VENUS software version.
+ * Returns the version string (e.g. "6.2.2.4006") or null.
+ */
+function getVENUSVersion() {
+    try {
+        const execSync = require('child_process').execSync;
+        const regPaths = [
+            'HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall',
+            'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+        ];
+        for (const rp of regPaths) {
+            try {
+                const subkeysRaw = execSync('reg query "' + rp + '"', { encoding: 'utf8', timeout: 10000 });
+                const subkeys = subkeysRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                for (const sk of subkeys) {
+                    try {
+                        const entryRaw = execSync('reg query "' + sk + '" /v DisplayName', { encoding: 'utf8', timeout: 5000 });
+                        if (!/Hamilton\s+VENUS\s+\d/i.test(entryRaw)) continue;
+                        const allVals = execSync('reg query "' + sk + '"', { encoding: 'utf8', timeout: 5000 });
+                        const verMatch = allVals.match(/DisplayVersion\s+REG_SZ\s+(.+)/i);
+                        if (verMatch) return verMatch[1].trim();
+                    } catch (_) { /* skip subkey */ }
+                }
+            } catch (_) { /* skip registry path */ }
+        }
+    } catch (_) { /* registry query failed */ }
+    return null;
+}
+
+// ---------------------------------------------------------------------------
+// Audit trail logging
+// ---------------------------------------------------------------------------
+
+/**
+ * Append an entry to the audit trail JSON log stored in the user data directory.
+ * The audit trail records packaging, import, and other lifecycle events with
+ * environmental context (Windows version, VENUS version, username) for
+ * traceability purposes.
+ *
+ * @param {string} userDataDir - Path to the user data directory
+ * @param {object} entry       - Audit trail entry object
+ */
+function appendAuditTrailEntry(userDataDir, entry) {
+    try {
+        var filePath = path.join(userDataDir, 'audit_trail.json');
+        var trail = [];
+        if (fs.existsSync(filePath)) {
+            try {
+                trail = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                if (!Array.isArray(trail)) trail = [];
+            } catch (_) {
+                trail = [];
+            }
+        }
+        trail.push(entry);
+        fs.writeFileSync(filePath, JSON.stringify(trail, null, 2), 'utf8');
+    } catch (e) {
+        process.stderr.write('  Warning: could not write audit trail entry: ' + e.message + '\n');
+    }
+}
+
+/**
+ * Build a standard audit trail entry with common environmental fields.
+ *
+ * @param {string} eventType    - e.g. "package_created", "library_imported", "archive_imported"
+ * @param {object} details      - Event-specific details (library_name, version, etc.)
+ * @returns {object} Complete audit trail entry
+ */
+function buildAuditTrailEntry(eventType, details) {
+    return {
+        event:            eventType,
+        timestamp:        new Date().toISOString(),
+        username:         getWindowsUsername(),
+        windows_version:  getWindowsVersion(),
+        venus_version:    getVENUSVersion() || 'N/A',
+        hostname:         os.hostname(),
+        details:          details || {}
+    };
+}
+
+// ---------------------------------------------------------------------------
 // Database helpers
 // ---------------------------------------------------------------------------
 
@@ -193,16 +302,7 @@ function connectSettingsDB() {
 }
 
 /**
- * Connect diskdb to the user data directory.
- * Returns a db object with collections: installed_libs, links, groups, tree.
- */
-function connectUserDB(userDataDir) {
-    const diskdb = require('diskdb');
-    return diskdb.connect(userDataDir, ['installed_libs', 'links', 'groups', 'tree']);
-}
-
-/**
- * Legacy: Connect diskdb to the given directory with all collections.
+ * Connect diskdb to the given directory with all collections.
  * Returns a db object with collections: installed_libs, links, groups, settings, tree.
  */
 function connectDB(dbDir) {
@@ -973,6 +1073,7 @@ function installPackage(manifest, zip, libDestDir, demoDestDir, sourceName, db, 
         lib_install_path:    libDestDir,
         demo_install_path:   demoDestDir,
         installed_date:      new Date().toISOString(),
+        installed_by:        getWindowsUsername(),
         source_package:      sourceName,
         file_hashes:         fileHashes,
         public_functions:    publicFunctions,
@@ -1146,6 +1247,7 @@ function cmdListLibs(args) {
         console.log(`  Lib path:    ${lib.lib_install_path  || '—'}`);
         console.log(`  Demo path:   ${lib.demo_install_path || '—'}`);
         console.log(`  Installed:   ${lib.installed_date    || '—'}`);
+        console.log(`  Installed By:${lib.installed_by       || '—'}`);
         if ((lib.com_register_dlls || []).length > 0)
             console.log(`  COM DLLs:    ${lib.com_register_dlls.join(', ')}`);
         const pubFns = lib.public_functions || [];
@@ -1235,6 +1337,22 @@ function cmdImportLib(args) {
     console.log(`\nSuccess: "${libName}" installed (${result.extractedCount} files)`);
     console.log(`  Library files  -> ${libDestDir}`);
     console.log(`  Demo methods   -> ${demoDestDir}`);
+
+    // ---- Audit trail entry ----
+    try {
+        const userDataDir = resolveDBPath(args);
+        appendAuditTrailEntry(userDataDir, buildAuditTrailEntry('library_imported', {
+            library_name:    libName,
+            version:         manifest.version || '',
+            author:          manifest.author || '',
+            organization:    manifest.organization || '',
+            source_file:     path.resolve(filePath),
+            lib_install_path: libDestDir,
+            demo_install_path: demoDestDir,
+            files_extracted: result.extractedCount,
+            signature_status: sigResult.signed ? (sigResult.valid ? 'valid' : 'failed') : 'unsigned'
+        }));
+    } catch (_) { /* non-critical */ }
 
     // Cache the package file for repair & rollback
     if (!args['no-cache']) {
@@ -1356,6 +1474,18 @@ function cmdImportArchive(args) {
     console.log('\nArchive Import Summary:');
     console.log(`  Succeeded : ${results.success.length}`);
     console.log(`  Failed    : ${results.failed.length}`);
+
+    // ---- Audit trail entry ----
+    try {
+        const userDataDir = resolveDBPath(args);
+        appendAuditTrailEntry(userDataDir, buildAuditTrailEntry('archive_imported', {
+            archive_file:    path.resolve(filePath),
+            packages_total:  pkgEntries.length,
+            succeeded:       results.success,
+            failed:          results.failed
+        }));
+    } catch (_) { /* non-critical */ }
+
     if (results.failed.length > 0) {
         results.failed.forEach(f => process.stderr.write('    ' + f + '\n'));
         process.exit(1);
@@ -1661,6 +1791,18 @@ function cmdDeleteLib(args) {
 
     console.log(`\nSuccess: "${displayName}" deleted.`);
 
+    // ---- Audit trail entry ----
+    try {
+        const userDataDir = resolveDBPath(args);
+        appendAuditTrailEntry(userDataDir, buildAuditTrailEntry('library_deleted', {
+            library_name:    displayName,
+            version:         lib.version || '',
+            author:          lib.author || '',
+            delete_type:     args['hard'] ? 'hard' : 'soft',
+            keep_files:      !!(args['keep-files'])
+        }));
+    } catch (_) { /* non-critical */ }
+
     const comDlls = lib.com_register_dlls || [];
     if (comDlls.length > 0) {
         console.log(`\n  NOTE: COM DLLs were NOT automatically deregistered: ${comDlls.join(', ')}`);
@@ -1688,7 +1830,10 @@ function cmdCreatePackage(args) {
     // ---- Validate required fields ----
     const validationErrors = [];
     if (!spec.author)                              validationErrors.push('"author" is required');
+    if (!spec.organization)                        validationErrors.push('"organization" is required');
     if (!spec.version)                             validationErrors.push('"version" is required');
+    if (!spec.venus_compatibility)                 validationErrors.push('"venus_compatibility" is required');
+    if (!spec.description)                         validationErrors.push('"description" is required');
     if (!spec.library_files || spec.library_files.length === 0)
                                                    validationErrors.push('"library_files" must contain at least one entry');
     if (validationErrors.length > 0) {
@@ -1815,6 +1960,22 @@ function cmdCreatePackage(args) {
     console.log(`  Demo method files : ${resolvedDemoFiles.length}`);
     if (comDlls.length > 0) console.log(`  COM DLLs          : ${comDlls.join(', ')}`);
     if (libraryImageFilename) console.log(`  Icon              : ${libraryImageFilename}`);
+
+    // ---- Audit trail entry ----
+    try {
+        const dbPath = resolveDBPath(args);
+        appendAuditTrailEntry(dbPath, buildAuditTrailEntry('package_created', {
+            library_name:    libName,
+            version:         spec.version || '',
+            author:          spec.author || '',
+            organization:    spec.organization || '',
+            output_file:     path.resolve(args['output']),
+            library_files:   resolvedLibFiles.length,
+            demo_files:      resolvedDemoFiles.length,
+            help_files:      resolvedHelpFiles.length,
+            com_dlls:        comDlls
+        }));
+    } catch (_) { /* non-critical */ }
 }
 
 // ===========================================================================
@@ -2183,6 +2344,20 @@ function cmdRollbackLib(args) {
     console.log(`\nSuccess: "${libName}" rolled back to version ${target.version} (${result.extractedCount} files)`);
     console.log(`  Library files  -> ${libDestDir}`);
     console.log(`  Demo methods   -> ${demoDestDir}`);
+
+    // ---- Audit trail entry ----
+    try {
+        const userDataDir = resolveDBPath(args);
+        appendAuditTrailEntry(userDataDir, buildAuditTrailEntry('library_rollback', {
+            library_name:     libName,
+            version:          target.version || '',
+            author:           manifest.author || '',
+            source_file:      target.fullPath,
+            lib_install_path: libDestDir,
+            demo_install_path: demoDestDir,
+            files_extracted:  result.extractedCount
+        }));
+    } catch (_) { /* non-critical */ }
 
     const comDlls = manifest.com_register_dlls || [];
     if (comDlls.length > 0) {

@@ -105,6 +105,17 @@
 <div class="note">
 <p><b>Note:</b> COM registration requires administrator privileges. If registration fails in the GUI, you are given the choice to continue the import (with a COM warning badge on the library card) or cancel and clean up the extracted files.</p>
 </div>
+
+<h2>Audit Trail</h2>
+<p>Every import operation (single package or archive) is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures:</p>
+<ul>
+  <li>The Windows username of the person who performed the import</li>
+  <li>The Windows OS version of the importing machine</li>
+  <li>The installed Hamilton VENUS version at the time of import</li>
+  <li>The computer hostname</li>
+  <li>The library name, version, author, source file path, install paths, and signature verification status</li>
+</ul>
+<p>This enables full traceability of who installed each library, on which system, and under what environmental conditions. Combined with the packaging audit trail entry (recorded on the packager's machine), a complete chain of custody is established from package creation to deployment. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
 <p>Venus Library Manager Help</p>

@@ -117,6 +117,9 @@
 
 <h2>Output Structure</h2>
 <p>The resulting <code>.hxlibpkg</code> contains the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the HMAC-SHA256 integrity signature. This signature allows recipients to verify the package has not been corrupted or tampered with before importing it.</p>
+
+<h2>Audit Trail</h2>
+<p>Every package build is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username of the packager, the Windows OS version, the installed VENUS version, the computer hostname, and the package metadata (library name, version, author). This enables full traceability of who created each package and on which system. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
 <p>Venus Library Manager Help</p>

@@ -5,7 +5,7 @@
   "description": "JSON specification file used by `node cli.js create-package --spec <file>` to build a .hxlibpkg library package. File paths inside this document are resolved relative to the directory containing the spec file itself.",
   "type": "object",
 
-  "required": ["author", "version", "library_files"],
+  "required": ["author", "organization", "version", "venus_compatibility", "description", "library_files"],
 
   "properties": {
 
@@ -25,7 +25,7 @@
 
     "organization": {
       "type": "string",
-      "description": "Author's organization or company. Optional.",
+      "description": "Author's organization or company. Required.",
       "examples": ["Hamilton Bonaduz AG", "Acme Pharma"]
     },
 
@@ -38,13 +38,13 @@
 
     "venus_compatibility": {
       "type": "string",
-      "description": "VENUS software version compatibility range or description. Optional.",
+      "description": "VENUS software version compatibility range or description. Required.",
       "examples": ["4.7+", "5.0 - 6.x", "4.4 and above", "6.1"]
     },
 
     "description": {
       "type": "string",
-      "description": "Human-readable description of the library's purpose, features, and usage notes. Optional.",
+      "description": "Human-readable description of the library's purpose, features, and usage notes. Required.",
       "examples": ["Provides high-level pipetting helpers for the ML600 syringe pump."]
     },
 

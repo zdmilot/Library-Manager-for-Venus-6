@@ -18,10 +18,8 @@
 		//Default VENUS folders.
 		var HxFolder_LogFiles = "C:\\Program Files (x86)\\HAMILTON\\LogFiles";
 		var HxFolder_Methods = "C:\\Program Files (x86)\\HAMILTON\\Methods";
-		var HxFolder_Bin = "C:\\Program Files (x86)\\HAMILTON\\Bin";
 
 		const fs = require('fs');
-		const sizeOf = require('image-size');
 		const os = require("os");
 		const crypto = require('crypto');
 
@@ -77,8 +75,363 @@
 			return true;
 		}
 
+		/**
+		 * Get the current Windows username via WScript.Network COM object.
+		 * Falls back to os.userInfo().username if the COM call fails.
+		 */
+		function getWindowsUsername() {
+			try {
+				var network = new ActiveXObject('WScript.Network');
+				return network.UserName || os.userInfo().username || 'Unknown';
+			} catch(e) {
+				return os.userInfo().username || 'Unknown';
+			}
+		}
+
+		/**
+		 * Query the Windows registry for Hamilton VENUS install date and version.
+		 * Returns { version: string|null, installDate: string|null (ISO 8601 UTC) }
+		 */
+		function getVENUSInstallInfo() {
+			var result = { version: null, installDate: null };
+			try {
+				var execSync = require('child_process').execSync;
+
+				// Query all Uninstall keys and find Hamilton VENUS by name
+				var regPaths = [
+					'HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall',
+					'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+				];
+
+				for (var rp = 0; rp < regPaths.length; rp++) {
+					try {
+						// List subkeys under Uninstall
+						var subkeysRaw = execSync('reg query "' + regPaths[rp] + '"', { encoding: 'utf8', timeout: 10000 });
+						var subkeys = subkeysRaw.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+
+						for (var sk = 0; sk < subkeys.length; sk++) {
+							try {
+								var entryRaw = execSync('reg query "' + subkeys[sk] + '" /v DisplayName', { encoding: 'utf8', timeout: 5000 });
+								if (!/Hamilton\s+VENUS\s+\d/i.test(entryRaw)) continue;
+
+								// Found the Hamilton VENUS entry — read all values
+								var allVals = execSync('reg query "' + subkeys[sk] + '"', { encoding: 'utf8', timeout: 5000 });
+
+								// Extract DisplayVersion
+								var verMatch = allVals.match(/DisplayVersion\s+REG_SZ\s+(.+)/i);
+								if (verMatch) result.version = verMatch[1].trim();
+
+								// Extract InstallDate (YYYYMMDD format)
+								var dateMatch = allVals.match(/InstallDate\s+REG_SZ\s+(\d{8})/i);
+								if (dateMatch) {
+									var ds = dateMatch[1];
+									result.installDate = new Date(Date.UTC(
+										parseInt(ds.substring(0,4), 10),
+										parseInt(ds.substring(4,6), 10) - 1,
+										parseInt(ds.substring(6,8), 10)
+									)).toISOString();
+								}
+
+								// If we got a version, we found the right entry — stop searching
+								if (result.version) break;
+							} catch(e2) { /* skip subkey */ }
+						}
+					} catch(e3) { /* skip registry path */ }
+					if (result.version) break;
+				}
+
+				// Fallback for install date: use the HAMILTON folder creation time
+				if (!result.installDate) {
+					try {
+						var hamiltonDir = 'C:\\Program Files (x86)\\HAMILTON';
+						if (fs.existsSync(hamiltonDir)) {
+							var stats = fs.statSync(hamiltonDir);
+							result.installDate = stats.birthtime.toISOString();
+						}
+					} catch(e4) { /* ignore */ }
+				}
+			} catch(e) {
+				console.warn('Could not query VENUS install info from registry: ' + e.message);
+			}
+			return result;
+		}
+
+		/**
+		 * Stamp system libraries with VENUS install metadata (install date, version,
+		 * installed_by). Runs once on first launch, tracked by the
+		 * 'sysLibMetadataComplete' setting. Writes metadata to
+		 * system_library_metadata.json in the user data directory (not the program dir).
+		 */
+		function ensureSystemLibraryMetadata() {
+			if (getSettingValue('sysLibMetadataComplete')) return;
+
+			console.log('First run detected \u2014 stamping system libraries with VENUS install metadata...');
+			var info = getVENUSInstallInfo();
+			console.log('VENUS install info: version=' + (info.version || 'N/A') + ', installDate=' + (info.installDate || 'N/A'));
+
+			var metadata = {};
+			for (var i = 0; i < systemLibraries.length; i++) {
+				var sLib = systemLibraries[i];
+				var id = sLib._id || sLib.canonical_name;
+				metadata[id] = {
+					installed_date: info.installDate || new Date().toISOString(),
+					installed_by: 'System',
+					venus_version: info.version || ''
+				};
+				// Merge into in-memory array immediately
+				sLib.installed_date = metadata[id].installed_date;
+				sLib.installed_by = metadata[id].installed_by;
+				if (info.version) sLib.venus_version = info.version;
+			}
+
+			try {
+				var metaPath = path.join(USER_DATA_DIR, 'system_library_metadata.json');
+				fs.writeFileSync(metaPath, JSON.stringify(metadata, null, 2), 'utf8');
+				console.log('System library metadata saved to ' + metaPath);
+			} catch(e) {
+				console.warn('Could not save system library metadata: ' + e.message);
+			}
+
+			saveSetting('sysLibMetadataComplete', true);
+			console.log('System library metadata stamping complete.');
+
+			// Cache the detected version for the packager
+			if (info.version) _cachedVENUSVersion = info.version;
+		}
+
 		/** Concurrency guard for import operations */
 		var _isImporting = false;
+
+		/**
+		 * Cached VENUS software version string (e.g. "6.2.2.4006").
+		 * Populated on startup from system_libraries.json or the Windows registry.
+		 * Used to pre-fill the VENUS Compatibility field in the GUI packager.
+		 */
+		var _cachedVENUSVersion = '';
+
+		/**
+		 * Get a concise Windows version string (e.g. "Windows_NT 10.0.19045 (x64)").
+		 */
+		function getWindowsVersion() {
+			try {
+				return os.type() + ' ' + os.release() + ' (' + os.arch() + ')';
+			} catch(_) {
+				return 'Unknown';
+			}
+		}
+
+		/**
+		 * Append an entry to the audit trail JSON log stored in the user data directory.
+		 * The audit trail records packaging, import, and other lifecycle events with
+		 * environmental context (Windows version, VENUS version, username) for
+		 * traceability purposes. This file is NOT displayed in the GUI details view;
+		 * it exists solely as a persistent audit record.
+		 *
+		 * @param {object} entry - Audit trail entry object
+		 */
+		function appendAuditTrailEntry(entry) {
+			try {
+				// USER_DATA_DIR may not be defined yet at call time; use lazy resolution
+				var dir = (typeof USER_DATA_DIR !== 'undefined') ? USER_DATA_DIR : resolveUserDataPath();
+				var filePath = path.join(dir, 'audit_trail.json');
+				var trail = [];
+				if (fs.existsSync(filePath)) {
+					try {
+						trail = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+						if (!Array.isArray(trail)) trail = [];
+					} catch(_) {
+						trail = [];
+					}
+				}
+				trail.push(entry);
+				fs.writeFileSync(filePath, JSON.stringify(trail, null, 2), 'utf8');
+			} catch(e) {
+				console.warn('Could not write audit trail entry: ' + e.message);
+			}
+		}
+
+		/**
+		 * Build a standard audit trail entry with common environmental fields.
+		 *
+		 * @param {string} eventType - e.g. "package_created", "library_imported", "archive_imported"
+		 * @param {object} details   - Event-specific details (library_name, version, etc.)
+		 * @returns {object} Complete audit trail entry
+		 */
+		function buildAuditTrailEntry(eventType, details) {
+			return {
+				event:            eventType,
+				timestamp:        new Date().toISOString(),
+				username:         getWindowsUsername(),
+				windows_version:  getWindowsVersion(),
+				venus_version:    _cachedVENUSVersion || 'N/A',
+				hostname:         os.hostname(),
+				details:          details || {}
+			};
+		}
+
+		/**
+		 * Safely open a file/folder path via nw.Shell.openItem().
+		 * Validates the path exists on disk before opening to prevent
+		 * unvalidated DOM-sourced paths from being passed to the shell.
+		 * @param {string} filePath
+		 */
+		function safeOpenItem(filePath) {
+			if (!filePath || typeof filePath !== 'string' || filePath.trim() === '') return;
+			var normalized = path.resolve(filePath);
+			if (!fs.existsSync(normalized)) {
+				console.warn('safeOpenItem: path does not exist: ' + normalized);
+				return;
+			}
+			nw.Shell.openItem(normalized);
+		}
+
+		//**************************************************************************************
+		//****** EVENT HISTORY — Global GxP-compliant activity log *****************************
+		//**************************************************************************************
+
+		/**
+		 * Event category constants for grouping in the History viewer.
+		 */
+		var EVENT_CATEGORIES = {
+			IMPORT:   'Import',
+			EXPORT:   'Export',
+			CREATE:   'Create',
+			DELETE:   'Delete',
+			SETTINGS: 'Settings',
+			GROUP:    'Group',
+			REPAIR:   'Repair',
+			ROLLBACK: 'Rollback',
+			AUDIT:    'Audit',
+			SYSTEM:   'System'
+		};
+
+		/**
+		 * Human-readable labels for each event type.
+		 */
+		var EVENT_TYPE_LABELS = {
+			'library_imported':       'Library Imported',
+			'library_exported':       'Library Exported',
+			'package_created':        'Package Created',
+			'archive_exported':       'Archive Exported',
+			'archive_imported':       'Archive Imported',
+			'library_deleted':        'Library Deleted',
+			'library_rollback':       'Library Rolled Back',
+			'library_repaired':       'Library Repaired',
+			'setting_changed':        'Setting Changed',
+			'data_path_changed':      'Data Path Changed',
+			'recent_list_cleared':    'Recent List Cleared',
+			'group_created':          'Group Created',
+			'group_edited':           'Group Edited',
+			'group_deleted':          'Group Deleted',
+			'audit_log_generated':    'Audit Log Generated',
+			'audit_log_verified':     'Audit Log Verified',
+			'application_started':    'Application Started',
+			'syslib_integrity_check': 'System Library Integrity Check'
+		};
+
+		/**
+		 * Icon and badge colour for each event category.
+		 */
+		var EVENT_CATEGORY_STYLE = {
+			'Import':   { icon: 'fa-download',       color: '#28a745' },
+			'Export':   { icon: 'fa-upload',          color: '#17a2b8' },
+			'Create':   { icon: 'fa-box-open',        color: '#6f42c1' },
+			'Delete':   { icon: 'fa-trash-alt',        color: '#dc3545' },
+			'Settings': { icon: 'fa-cog',              color: '#fd7e14' },
+			'Group':    { icon: 'fa-layer-group',      color: '#20c997' },
+			'Repair':   { icon: 'fa-tools',            color: '#e83e8c' },
+			'Rollback': { icon: 'fa-undo-alt',         color: '#6610f2' },
+			'Audit':    { icon: 'fa-file-signature',   color: '#795548' },
+			'System':   { icon: 'fa-desktop',          color: '#6c757d' }
+		};
+
+		/**
+		 * Append an entry to the global event history log.
+		 * The log is stored as a JSON array in USER_DATA_DIR/event_history.json.
+		 *
+		 * @param {string} eventType  - Machine-readable event key (e.g. 'library_imported')
+		 * @param {string} category   - One of EVENT_CATEGORIES values
+		 * @param {object} details    - Arbitrary event-specific key/value pairs
+		 */
+		function appendEventHistory(eventType, category, details) {
+			try {
+				var dir = (typeof USER_DATA_DIR !== 'undefined') ? USER_DATA_DIR : resolveUserDataPath();
+				var filePath = path.join(dir, 'event_history.json');
+				var history = [];
+				if (fs.existsSync(filePath)) {
+					try {
+						history = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+						if (!Array.isArray(history)) history = [];
+					} catch(_) {
+						history = [];
+					}
+				}
+				var entry = {
+					id:              crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex'),
+					event:           eventType,
+					category:        category || 'System',
+					label:           EVENT_TYPE_LABELS[eventType] || eventType,
+					timestamp:       new Date().toISOString(),
+					unix_time:       Math.floor(Date.now() / 1000),
+					username:        getWindowsUsername(),
+					hostname:        os.hostname(),
+					windows_version: getWindowsVersion(),
+					venus_version:   (typeof _cachedVENUSVersion !== 'undefined' && _cachedVENUSVersion) ? _cachedVENUSVersion : 'N/A',
+					details:         details || {}
+				};
+				history.push(entry);
+				fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf8');
+			} catch(e) {
+				console.warn('Could not write event history entry: ' + e.message);
+			}
+		}
+
+		/**
+		 * Load the full event history from disk.
+		 * Returns an array of event objects sorted newest-first.
+		 */
+		function loadEventHistory() {
+			try {
+				var dir = (typeof USER_DATA_DIR !== 'undefined') ? USER_DATA_DIR : resolveUserDataPath();
+				var filePath = path.join(dir, 'event_history.json');
+				if (!fs.existsSync(filePath)) return [];
+				var data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+				if (!Array.isArray(data)) return [];
+				// Sort newest first
+				data.sort(function(a, b) { return (b.unix_time || 0) - (a.unix_time || 0); });
+				return data;
+			} catch(e) {
+				console.warn('Could not load event history: ' + e.message);
+				return [];
+			}
+		}
+
+		/**
+		 * Export the event history to a CSV file.
+		 * @param {string} savePath - Destination file path
+		 */
+		function exportEventHistoryCSV(savePath) {
+			try {
+				var history = loadEventHistory();
+				var csvRows = ['"Timestamp (UTC)","Event","Category","User","Hostname","Details"'];
+				history.forEach(function(e) {
+					var detailStr = Object.keys(e.details || {}).map(function(k) {
+						return k + '=' + String(e.details[k]);
+					}).join('; ');
+					csvRows.push(
+						'"' + (e.timestamp || '') + '",' +
+						'"' + (e.label || e.event || '') + '",' +
+						'"' + (e.category || '') + '",' +
+						'"' + (e.username || '') + '",' +
+						'"' + (e.hostname || '') + '",' +
+						'"' + detailStr.replace(/"/g, '""') + '"'
+					);
+				});
+				fs.writeFileSync(savePath, csvRows.join('\r\n'), 'utf8');
+			} catch(e) {
+				alert('Error exporting history:\n' + e.message);
+			}
+		}
     
         // Diskdb init
 		var db = require('diskdb');
@@ -278,6 +631,33 @@
 		try {
 			var _sysLibRaw = fs.readFileSync(path.join('db', 'system_libraries.json'), 'utf8');
 			systemLibraries = JSON.parse(_sysLibRaw);
+
+			// Merge persisted install metadata from user data directory
+			try {
+				var _metaPath = path.join(USER_DATA_DIR, 'system_library_metadata.json');
+				if (fs.existsSync(_metaPath)) {
+					var _metaRaw = fs.readFileSync(_metaPath, 'utf8');
+					var _metaData = JSON.parse(_metaRaw);
+					for (var _mi = 0; _mi < systemLibraries.length; _mi++) {
+						var _sId = systemLibraries[_mi]._id || systemLibraries[_mi].canonical_name;
+						if (_metaData[_sId]) {
+							if (_metaData[_sId].installed_date) systemLibraries[_mi].installed_date = _metaData[_sId].installed_date;
+							if (_metaData[_sId].installed_by)   systemLibraries[_mi].installed_by   = _metaData[_sId].installed_by;
+							if (_metaData[_sId].venus_version)  systemLibraries[_mi].venus_version  = _metaData[_sId].venus_version;
+						}
+					}
+				}
+			} catch(_me) {
+				console.warn('Could not load system library metadata: ' + _me.message);
+			}
+
+			// Read cached VENUS version from the first system library that has it
+			for (var _vi = 0; _vi < systemLibraries.length; _vi++) {
+				if (systemLibraries[_vi].venus_version) {
+					_cachedVENUSVersion = systemLibraries[_vi].venus_version;
+					break;
+				}
+			}
 		} catch(e) {
 			console.warn('Could not load system_libraries.json: ' + e.message);
 		}
@@ -628,6 +1008,216 @@
 		}
 
 		/**
+		 * Generate integrity baselines for system libraries using Hamilton's
+		 * built-in $$valid$$/$$checksum$$ metadata footer.
+		 * Mirrors the CLI generate-syslib-hashes command but runs in-process.
+		 * Updates the in-memory systemLibraryBaseline and persists to disk.
+		 */
+		function generateSystemLibraryBaseline() {
+			var HSL_EXTS = ['.hsl', '.hs_', '.smt'];
+
+			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
+			var sourceDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
+
+			if (!fs.existsSync(sourceDir)) {
+				console.warn('Cannot generate syslib baseline — Library folder not found: ' + sourceDir);
+				return false;
+			}
+
+			var allSys = getAllSystemLibraries();
+			var baselineData = {
+				_meta: {
+					generated_at:   new Date().toISOString(),
+					source_dir:     sourceDir,
+					strategy:       'hamilton-footer',
+					hsl_extensions: HSL_EXTS.slice(),
+					description:    'Integrity baseline for Hamilton system libraries. '
+								  + 'Only HSL-type files (' + HSL_EXTS.join(', ') + ') with Hamilton\'s '
+								  + 'metadata footer are tracked. Binary files are not baselined.'
+				},
+				libraries: {}
+			};
+
+			var totalBaselined = 0;
+			allSys.forEach(function(lib) {
+				var libName = lib.canonical_name || lib.library_name;
+				var files = lib.discovered_files || [];
+				var libFiles = {};
+
+				files.forEach(function(relPath) {
+					var fname = relPath.replace(/^Library[\\\/]/i, '');
+					var ext = path.extname(fname).toLowerCase();
+					if (HSL_EXTS.indexOf(ext) === -1) return; // skip non-HSL files
+
+					var fullPath = path.join(sourceDir, fname);
+					if (!fs.existsSync(fullPath)) return;
+
+					var footer = parseHslMetadataFooter(fullPath);
+					if (footer) {
+						libFiles[fname] = {
+							valid:    footer.valid,
+							checksum: footer.checksum,
+							author:   footer.author,
+							time:     footer.time,
+							length:   footer.length
+						};
+						totalBaselined++;
+					}
+				});
+
+				if (Object.keys(libFiles).length > 0) {
+					baselineData.libraries[libName] = {
+						_id:   lib._id,
+						files: libFiles
+					};
+				}
+			});
+
+			// Persist to disk
+			try {
+				var outputPath = path.join('db', 'system_library_hashes.json');
+				fs.writeFileSync(outputPath, JSON.stringify(baselineData, null, 2), 'utf8');
+				// Update in-memory baseline
+				systemLibraryBaseline = baselineData.libraries || {};
+				console.log('System library integrity baseline generated: ' + totalBaselined + ' files baselined across ' + Object.keys(baselineData.libraries).length + ' libraries.');
+				return true;
+			} catch(e) {
+				console.warn('Failed to write system library baseline: ' + e.message);
+				return false;
+			}
+		}
+
+		/**
+		 * Startup system library integrity check — runs on EVERY application start.
+		 * 1) Generates integrity baselines if none exist yet.
+		 * 2) Ensures every system library has a backup package — creates missing ones.
+		 * 3) Verifies integrity against baselines and auto-repairs failures from cache.
+		 */
+		function startupSystemLibraryIntegrityCheck() {
+			console.log('Startup: running system library integrity check...');
+
+			// Step 1: Auto-generate integrity baseline if empty
+			var baselineKeys = Object.keys(systemLibraryBaseline);
+			if (baselineKeys.length === 0) {
+				console.log('Startup: no integrity baselines found — generating from current library files...');
+				generateSystemLibraryBaseline();
+			}
+
+			var allSys = getAllSystemLibraries();
+			var stats = { packagesCreated: 0, integrityErrors: 0, repaired: 0, repairFailed: 0 };
+
+			allSys.forEach(function(sLib) {
+				var libName = sLib.canonical_name || sLib.library_name;
+
+				// Step 2: Ensure backup package exists — create if missing
+				var cached = listCachedVersions(libName);
+				if (cached.length === 0) {
+					console.log('Startup: missing backup package for "' + libName + '" — creating...');
+					try {
+						var bkResult = backupSystemLibrary(sLib);
+						if (bkResult.success) {
+							stats.packagesCreated++;
+							console.log('Startup: created backup package for "' + libName + '"');
+						} else {
+							console.warn('Startup: failed to create backup for "' + libName + '": ' + bkResult.error);
+						}
+					} catch(e) {
+						console.warn('Startup: error creating backup for "' + libName + '": ' + e.message);
+					}
+				}
+
+				// Step 3: Verify integrity and auto-repair if issues found
+				try {
+					var integrityResult = verifySystemLibraryIntegrity(sLib);
+					if (!integrityResult.valid && integrityResult.errors.length > 0) {
+						stats.integrityErrors++;
+						console.warn('Startup: integrity errors for "' + libName + '": ' + integrityResult.errors.join('; '));
+
+						// Make sure we have a package to repair from (may have just created one above)
+						var repairCache = listCachedVersions(libName);
+						if (repairCache.length > 0) {
+							console.log('Startup: auto-repairing "' + libName + '" from cached package...');
+							var repairResult = repairSystemLibraryFromCache(libName, true);
+							if (repairResult.success) {
+								stats.repaired++;
+								console.log('Startup: successfully repaired "' + libName + '"');
+							} else {
+								stats.repairFailed++;
+								console.warn('Startup: repair failed for "' + libName + '": ' + repairResult.error);
+							}
+						} else {
+							stats.repairFailed++;
+							console.warn('Startup: cannot repair "' + libName + '" — no backup package available.');
+						}
+					}
+				} catch(e) {
+					console.warn('Startup: error verifying integrity of "' + libName + '": ' + e.message);
+				}
+			});
+
+			// Log summary
+			var summaryParts = [];
+			if (stats.packagesCreated > 0) summaryParts.push(stats.packagesCreated + ' backup(s) created');
+			if (stats.integrityErrors > 0) summaryParts.push(stats.integrityErrors + ' integrity issue(s) detected');
+			if (stats.repaired > 0) summaryParts.push(stats.repaired + ' auto-repaired');
+			if (stats.repairFailed > 0) summaryParts.push(stats.repairFailed + ' repair(s) failed');
+
+			if (summaryParts.length > 0) {
+				console.log('Startup: system library check complete — ' + summaryParts.join(', ') + '.');
+				try {
+					appendEventHistory('syslib_integrity_check', EVENT_CATEGORIES.SYSTEM, {
+						packages_created:  stats.packagesCreated,
+						integrity_errors:  stats.integrityErrors,
+						repaired:          stats.repaired,
+						repair_failed:     stats.repairFailed
+					});
+				} catch(_) {}
+			} else {
+				console.log('Startup: system library check complete — all libraries OK.');
+			}
+		}
+
+		// ---- In-memory repair event log (persisted only via audit trail + audit report) ----
+		var _repairEventLog = [];
+
+		/**
+		 * Record a repair event in the in-memory log and the persistent audit trail.
+		 * @param {string} libName
+		 * @param {boolean} isSystem
+		 * @param {boolean} success
+		 * @param {string} errorMsg - empty if success
+		 * @param {number} filesExtracted
+		 * @param {Array<string>} preRepairErrors - integrity errors that triggered the repair
+		 * @param {Array<string>} preRepairWarnings - integrity warnings present before repair
+		 */
+		function logRepairEvent(libName, isSystem, success, errorMsg, filesExtracted, preRepairErrors, preRepairWarnings) {
+			var entry = {
+				timestamp:          new Date().toISOString(),
+				library_name:       libName,
+				is_system:          isSystem,
+				success:            success,
+				error:              errorMsg || '',
+				files_extracted:    filesExtracted || 0,
+				pre_repair_errors:  preRepairErrors || [],
+				pre_repair_warnings: preRepairWarnings || []
+			};
+			_repairEventLog.push(entry);
+
+			// Persist to audit trail JSON
+			appendAuditTrailEntry(buildAuditTrailEntry('library_repaired', {
+				library_name:       libName,
+				is_system:          isSystem,
+				success:            success,
+				error:              errorMsg || '',
+				files_extracted:    filesExtracted || 0,
+				pre_repair_errors:  preRepairErrors || [],
+				pre_repair_warnings: preRepairWarnings || []
+			}));
+
+			try { appendEventHistory('library_repaired', EVENT_CATEGORIES.REPAIR, { library_name: libName, is_system: isSystem, success: success, error: errorMsg || '', files_extracted: filesExtracted || 0 }); } catch(_) {}
+		}
+
+		/**
 		 * Repair a system library by re-extracting files from its cached backup package.
 		 * @param {string} libName - canonical name of the system library
 		 * @param {boolean} [silent] - If true, suppress alerts (for batch repair)
@@ -635,6 +1225,18 @@
 		 */
 		function repairSystemLibraryFromCache(libName, silent) {
 			try {
+				// Capture pre-repair integrity state for audit logging
+				var preIntegrity = { errors: [], warnings: [] };
+				try {
+					var sysLibs = getAllSystemLibraries();
+					for (var pi = 0; pi < sysLibs.length; pi++) {
+						if ((sysLibs[pi].canonical_name || sysLibs[pi].library_name) === libName) {
+							preIntegrity = verifySystemLibraryIntegrity(sysLibs[pi]);
+							break;
+						}
+					}
+				} catch(_pe) {}
+
 				var cached = listCachedVersions(libName);
 				if (cached.length === 0) {
 					var msg = 'No backup package found for system library "' + libName + '".';
@@ -707,11 +1309,13 @@
 					impBuildLibraryCards();
 				}
 
+				logRepairEvent(libName, true, true, '', extractedCount, preIntegrity.errors, preIntegrity.warnings);
 				return { success: true, error: '' };
 
 			} catch(e) {
 				var errMsg = 'System library repair failed: ' + e.message;
 				if (!silent) alert(errMsg);
+				logRepairEvent(libName, true, false, errMsg, 0, preIntegrity ? preIntegrity.errors : [], preIntegrity ? preIntegrity.warnings : []);
 				return { success: false, error: errMsg };
 			}
 		}
@@ -753,6 +1357,13 @@
 
         //Window load
 		$(window).on('load', function () {
+			// Log application start
+			try {
+				appendEventHistory('application_started', EVENT_CATEGORIES.SYSTEM, {
+					app_version: (typeof nw !== 'undefined' && nw.App ? nw.App.manifest.version : 'N/A')
+				});
+			} catch(_) {}
+
 			// Restore maximized state from previous session
 			try {
 				if (getSettingValue('windowMaximized')) {
@@ -816,6 +1427,10 @@
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").removeClass("d-none");
 				$(".importer-container").addClass("d-none");
+				// Pre-fill VENUS compatibility with detected version if field is empty
+				if (!$("#pkg-venus-compat").val().trim() && _cachedVENUSVersion) {
+					$("#pkg-venus-compat").val(_cachedVENUSVersion);
+				}
 				fitExporterHeight();
 			} else if(group_id == "gAll"){
 				// All (home) shows installed library cards with header
@@ -882,7 +1497,7 @@
 		$(document).on("click", ".link-OpenHSL", function () {
 			var file_path = $(this).closest(".link-card-container").attr("data-filepath");
 			if(file_path && file_path !== ""){
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 			}
 		});
 
@@ -908,12 +1523,12 @@
 				 child.unref();
 			}
 			if(file_type=="folder"){
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 				// nw.Shell.showItemInFolder(file_path);
 
 			}
 			if(file_type=="file"){
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 			}
 		});
 
@@ -922,7 +1537,7 @@
 		$(document).on("click", ".link-attachment", function () {
 			var file_path = $(this).attr("data-filepath");	
 			if(file_path!=""){
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 			}	
 		});
 
@@ -930,10 +1545,9 @@
 		$(document).on("click", ".link-OpenMethEditor", function () {
 			
 			var file_path = $(this).closest(".link-card-container").attr("data-filepath");
-			// console.log("Open in Method Editor " + file_path)
 			if(file_path!=""){
 				file_path = file_path.substr(0, file_path.lastIndexOf(".")) + ".med";
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 			}	
 		});
 
@@ -941,9 +1555,8 @@
 		$(document).on("click", ".link-OpenMethLocation", function () {
 			
 			var file_path = path.dirname($(this).closest(".link-card-container").attr("data-filepath"));
-			// console.log("Open Location " + file_path);
 			if(file_path!=""){
-				nw.Shell.openItem(file_path);
+				safeOpenItem(file_path);
 			}	
 		});
 
@@ -1008,6 +1621,10 @@
 			$(".links-container").addClass("d-none");
 			$(".exporter-container").removeClass("d-none");
 			$(".importer-container").addClass("d-none");
+			// Pre-fill VENUS compatibility with detected version if field is empty
+			if (!$("#pkg-venus-compat").val().trim() && _cachedVENUSVersion) {
+				$("#pkg-venus-compat").val(_cachedVENUSVersion);
+			}
 			fitExporterHeight();
 			return false;
 		});
@@ -1017,16 +1634,226 @@
 			e.preventDefault();
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			// Activate the History nav item
-			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
-			$('.navbar-custom .nav-item[data-group-id="gHistory"]').addClass("active");
-			$('.group-container').addClass('d-none');
-			$(".links-container").removeClass("d-none");
-			$(".exporter-container").addClass("d-none");
-			$(".importer-container").addClass("d-none");
-			$('.group-container[data-group-id="gHistory"]').removeClass('d-none');
-			fitMainDivHeight();
+			renderEventHistoryModal();
+			$("#eventHistoryModal").modal("show");
 			return false;
+		});
+
+		// Also open history modal when clicking the History nav tab
+		$(document).on("click", ".group-navlink[data-group-id='gHistory']", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			renderEventHistoryModal();
+			$("#eventHistoryModal").modal("show");
+		});
+
+		/**
+		 * Populate and render the Event History modal with all logged events.
+		 * Supports live search, category filter, and user filter.
+		 */
+		function renderEventHistoryModal() {
+			var history = loadEventHistory();
+			var $list = $(".evt-history-list");
+			var $count = $(".evt-history-count");
+			var $footerInfo = $(".evt-history-footer-info");
+
+			// Populate user filter dropdown with unique usernames
+			var users = {};
+			history.forEach(function(e) { if (e.username) users[e.username] = true; });
+			var $userFilter = $(".evt-history-user-filter");
+			var currentUserVal = $userFilter.val();
+			$userFilter.find("option:not(:first)").remove();
+			Object.keys(users).sort().forEach(function(u) {
+				$userFilter.append('<option value="' + escapeHtml(u) + '">' + escapeHtml(u) + '</option>');
+			});
+			if (currentUserVal) $userFilter.val(currentUserVal);
+
+			// Reset filters
+			$(".evt-history-search").val('');
+			$(".evt-history-cat-filter").val('');
+
+			_eventHistoryFullData = history;
+			renderEventHistoryList(history);
+		}
+
+		var _eventHistoryFullData = [];
+
+		function renderEventHistoryList(events) {
+			var $list = $(".evt-history-list");
+			var $count = $(".evt-history-count");
+			var $footerInfo = $(".evt-history-footer-info");
+
+			if (events.length === 0) {
+				$list.html(
+					'<div class="evt-history-empty">' +
+					'<i class="fas fa-history"></i>' +
+					'No events found' +
+					'</div>'
+				);
+				$count.text('0 events');
+				$footerInfo.text('');
+				return;
+			}
+
+			$count.text(events.length + ' event' + (events.length !== 1 ? 's' : ''));
+
+			// Show date range
+			var oldest = events[events.length - 1];
+			var newest = events[0];
+			try {
+				var oldDate = new Date(oldest.timestamp).toLocaleDateString();
+				var newDate = new Date(newest.timestamp).toLocaleDateString();
+				$footerInfo.text(oldDate === newDate ? oldDate : oldDate + ' — ' + newDate);
+			} catch(_) { $footerInfo.text(''); }
+
+			var html = '';
+			events.forEach(function(evt) {
+				var catStyle = EVENT_CATEGORY_STYLE[evt.category] || EVENT_CATEGORY_STYLE['System'];
+				var icon = catStyle.icon || 'fa-circle';
+				var color = catStyle.color || '#6c757d';
+
+				// Format timestamp
+				var ts = '';
+				var tsDate = '';
+				try {
+					var d = new Date(evt.timestamp);
+					tsDate = d.toLocaleDateString();
+					ts = d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+				} catch(_) { ts = evt.timestamp || ''; }
+
+				// Build detail summary (main line under title)
+				var detailSummary = buildEventDetailSummary(evt);
+
+				// Build expandable details block
+				var detailBlock = '';
+				if (evt.details && Object.keys(evt.details).length > 0) {
+					var detailLines = [];
+					Object.keys(evt.details).forEach(function(k) {
+						var v = evt.details[k];
+						if (typeof v === 'object') v = JSON.stringify(v);
+						detailLines.push('<b>' + escapeHtml(k) + ':</b> ' + escapeHtml(String(v)));
+					});
+					detailBlock = '<div class="evt-history-detail-block" data-evt-id="' + escapeHtml(evt.id || '') + '">' + detailLines.join('<br>') + '</div>';
+				}
+
+				html += '<div class="evt-history-row" data-category="' + escapeHtml(evt.category || '') + '" data-user="' + escapeHtml(evt.username || '') + '">' +
+					'<div class="evt-history-icon" style="background:' + color + ';">' +
+						'<i class="fas ' + icon + '"></i>' +
+					'</div>' +
+					'<div class="evt-history-body">' +
+						'<div class="evt-history-title">' + escapeHtml(evt.label || evt.event || 'Unknown') +
+							' <span class="evt-history-badge" style="background:' + color + ';">' + escapeHtml(evt.category || '') + '</span>' +
+						'</div>' +
+						(detailSummary ? '<div class="evt-history-detail-text">' + detailSummary + '</div>' : '') +
+						(detailBlock ? '<a class="evt-history-details-toggle">Show details</a>' : '') +
+						detailBlock +
+					'</div>' +
+					'<div class="evt-history-meta">' +
+						'<div class="evt-history-time">' + escapeHtml(ts) + '</div>' +
+						'<div class="evt-history-user"><i class="fas fa-user mr-1"></i>' + escapeHtml(evt.username || 'Unknown') + '@' + escapeHtml(evt.hostname || '') + '</div>' +
+					'</div>' +
+				'</div>';
+			});
+
+			$list.html(html);
+		}
+
+		/**
+		 * Build a human-readable one-line summary from event details.
+		 */
+		function buildEventDetailSummary(evt) {
+			var d = evt.details || {};
+			switch (evt.event) {
+				case 'library_imported':
+					return escapeHtml((d.library_name || '') + ' v' + (d.version || '?') + ' by ' + (d.author || '?') + ' — ' + (d.files_extracted || 0) + ' files');
+				case 'library_exported':
+					return escapeHtml((d.library_name || '') + ' v' + (d.version || '?') + ' → ' + (d.output_file || ''));
+				case 'package_created':
+					return escapeHtml((d.library_name || '') + ' v' + (d.version || '?') + ' — ' + (d.library_files || 0) + ' lib files, ' + (d.demo_files || 0) + ' demo files');
+				case 'archive_exported':
+					return escapeHtml((d.library_count || 0) + ' libraries → ' + (d.output_file || ''));
+				case 'archive_imported':
+					return escapeHtml((d.archive_file || '') + ' — ' + (d.succeeded_count || 0) + ' succeeded, ' + (d.failed_count || 0) + ' failed');
+				case 'library_deleted':
+					return escapeHtml((d.library_name || '') + ' v' + (d.version || '?'));
+				case 'library_rollback':
+					return escapeHtml((d.library_name || '') + ' → v' + (d.version || '?') + ' — ' + (d.files_extracted || 0) + ' files');
+				case 'library_repaired':
+					return escapeHtml((d.library_name || '') + (d.success ? ' — repaired successfully' : ' — repair failed: ' + (d.error || '')));
+				case 'setting_changed':
+					return escapeHtml((d.setting || '') + ' = ' + String(d.value));
+				case 'data_path_changed':
+					return escapeHtml((d.old_path || '') + ' → ' + (d.new_path || ''));
+				case 'group_created':
+				case 'group_edited':
+				case 'group_deleted':
+					return escapeHtml(d.group_name || '');
+				case 'audit_log_generated':
+					return escapeHtml((d.output_file || '') + ' — ' + (d.total_entries || 0) + ' entries');
+				case 'audit_log_verified':
+					return escapeHtml((d.file || '') + ' — ' + (d.result || ''));
+				default:
+					return '';
+			}
+		}
+
+		// ---- Event history filter/search handlers ----
+		$(document).on("input", ".evt-history-search", function() {
+			applyEventHistoryFilters();
+		});
+
+		$(document).on("change", ".evt-history-cat-filter, .evt-history-user-filter", function() {
+			applyEventHistoryFilters();
+		});
+
+		function applyEventHistoryFilters() {
+			var searchText = ($(".evt-history-search").val() || '').toLowerCase().trim();
+			var catFilter = $(".evt-history-cat-filter").val();
+			var userFilter = $(".evt-history-user-filter").val();
+
+			var filtered = _eventHistoryFullData.filter(function(evt) {
+				if (catFilter && evt.category !== catFilter) return false;
+				if (userFilter && evt.username !== userFilter) return false;
+				if (searchText) {
+					var searchable = [
+						evt.label || '', evt.event || '', evt.category || '',
+						evt.username || '', evt.hostname || '', evt.timestamp || ''
+					];
+					// Include detail values in search
+					if (evt.details) {
+						Object.keys(evt.details).forEach(function(k) {
+							searchable.push(String(evt.details[k]));
+						});
+					}
+					var combined = searchable.join(' ').toLowerCase();
+					if (combined.indexOf(searchText) === -1) return false;
+				}
+				return true;
+			});
+
+			renderEventHistoryList(filtered);
+		}
+
+		// ---- Toggle detail block ----
+		$(document).on("click", ".evt-history-details-toggle", function(e) {
+			e.preventDefault();
+			var $block = $(this).next(".evt-history-detail-block");
+			$block.toggleClass("show");
+			$(this).text($block.hasClass("show") ? "Hide details" : "Show details");
+		});
+
+		// ---- Export history to CSV ----
+		$(document).on("click", ".evt-history-export", function() {
+			$("#evt-history-save-dialog").val('');
+			$("#evt-history-save-dialog").trigger("click");
+		});
+
+		$(document).on("change", "#evt-history-save-dialog", function() {
+			var savePath = $(this).val();
+			if (!savePath) return;
+			$(this).val('');
+			exportEventHistoryCSV(savePath);
+			alert("Event history exported to:\n" + savePath);
 		});
 
 		// ---- Library Search Bar ----
@@ -1213,7 +2040,7 @@
 			var comDlls = (lib.com_register_dlls || []).map(function(d) { return escapeHtml(d); });
 			var isDeleted = lib.deleted === true;
 
-			var integrity = verifyLibraryIntegrity(lib);
+			var integrity = _integrityCache[lib._id] || (_integrityCache[lib._id] = verifyLibraryIntegrity(lib));
 			var hasIntegrityError = !integrity.valid;
 			var hasIntegrityWarning = integrity.warnings.length > 0;
 
@@ -1252,7 +2079,7 @@
 				deletedBadge = '<span class="badge badge-secondary ml-2"><i class="fas fa-trash-alt mr-1"></i>Deleted</span>';
 			}
 
-			var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
+			var deps = _depCache[lib._id] || (_depCache[lib._id] = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || ''));
 			var depStatus = checkDependencyStatus(deps);
 			var hasMissingDeps = !depStatus.valid;
 
@@ -1293,13 +2120,19 @@
 
 		//Settings screen menu navigation
 		//Settings > Installation checkboxes
-		$(document).on("click", "#chk_confirmBeforeInstall, #chk_overwriteWithoutAsking, #chk_autoAddToGroup", function(){
-			saveSetting($(this).attr("id"), $(this).prop("checked"));
+		$(document).on("click", "#chk_confirmBeforeInstall, #chk_autoAddToGroup", function(){
+			var settingId = $(this).attr("id");
+			var settingVal = $(this).prop("checked");
+			saveSetting(settingId, settingVal);
+			try { appendEventHistory('setting_changed', EVENT_CATEGORIES.SETTINGS, { setting: settingId, value: settingVal }); } catch(_) {}
 		});
 
 		//Settings > Display checkboxes
 		$(document).on("click", "#chk_hideSystemLibraries", function(){
-			saveSetting($(this).attr("id"), $(this).prop("checked"));
+			var settingId = $(this).attr("id");
+			var settingVal = $(this).prop("checked");
+			saveSetting(settingId, settingVal);
+			try { appendEventHistory('setting_changed', EVENT_CATEGORIES.SETTINGS, { setting: settingId, value: settingVal }); } catch(_) {}
 			// Refresh front page cards if currently on All tab
 			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
 			if (activeGroup === 'gAll') {
@@ -1312,6 +2145,7 @@
 			var txt = $(this).text();
 			$("#dd-maxRecent").text(txt);
 			saveSetting("recent-max",txt);
+			try { appendEventHistory('setting_changed', EVENT_CATEGORIES.SETTINGS, { setting: 'recent-max', value: txt }); } catch(_) {}
 		});
 
 		// Settings > Data Location — browse and apply
@@ -1362,7 +2196,8 @@
 						}
 					});
 				}
-				alert("Data location updated. Please restart the application for changes to take full effect.");
+				try { appendEventHistory('data_path_changed', EVENT_CATEGORIES.SETTINGS, { old_path: USER_DATA_DIR, new_path: newPath }); } catch(_) {}
+			alert("Data location updated. Please restart the application for changes to take full effect.");
 			} catch(e) {
 				alert("Error setting up new data location: " + e.message);
 			}
@@ -1370,6 +2205,7 @@
 
 		$(document).on("click", ".btn-clearRecentList", function () {
 			clearRecentList();
+			try { appendEventHistory('recent_list_cleared', EVENT_CATEGORIES.SETTINGS, {}); } catch(_) {}
 			$(".txt-recentCleared").text("Recent list has been cleared!");
 			setTimeout(function(){ 
 				$(".txt-recentCleared").text("");
@@ -1378,7 +2214,7 @@
 
 		// Settings > Links > favorite icon click
 		$(document).on("click", ".favorite-icon", function (e) {
-			bool_favorite = false;
+			var bool_favorite = false;
 			if($(this).hasClass("favorite")){
 				//it´s already a favorite , deselect
 				$(this).removeClass("favorite");
@@ -1392,6 +2228,7 @@
 			}
 
 			//Update favorite state in database
+			var id;
 			if($(this).parent().attr("data-id")){
 				// method / link
 				id = $(this).parent().attr("data-id");
@@ -1802,12 +2639,6 @@
 			} // end else
 		}
 
-		//Generate a unique ID, used for methods and method groups.
-		function uniqueID() {
-			return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-		}
-
-		
 		//Create the method groups in the nav bar and the method cards in the main div
 		function createGroups() {
 			$(".navbarLeft>li").remove(); // delete all groups in left nav bar except the first 2 (All, Recent)
@@ -1850,19 +2681,19 @@
 
 					//add nav groups to nav bar (skip overflow menu items)
 					if(!skipNavItem){
-						var str = '<li class="nav-item' ;
-						if(!group_favorite){str+=' d-none';}
+						var navItemStr = '<li class="nav-item' ;
+						if(!group_favorite){navItemStr+=' d-none';}
 						
-						str +=  classCustomGroup + '" data-group-id="' + group_id + '">' +
+						navItemStr +=  classCustomGroup + '" data-group-id="' + group_id + '">' +
 										'<div class="navitem-content"><div><i class="far fa-1x ' + group_icon + '"></i></div>' +
 										'<div><span class="nav-item-text">' + group_name + '</span></div></div></li>';
 
-						(group_navbar==="left") ?  $(".navbarLeft").append(str) : $(".navbarRight").append(str);
+						(group_navbar==="left") ?  $(".navbarLeft").append(navItemStr) : $(".navbarRight").append(navItemStr);
 					}
 
 					//add nav groups to main div. This groups will be filled with the method cards
-					var str = '<div class="row no-gutters d-none group-container w-100 '+ classCustomGroup + '" data-group-id="' + group_id + '"></div>';
-					$(".links-container>.row").append(str);
+					var groupContainerStr = '<div class="row no-gutters d-none group-container w-100 '+ classCustomGroup + '" data-group-id="' + group_id + '"></div>';
+					$(".links-container>.row").append(groupContainerStr);
 
 
 
@@ -1873,28 +2704,28 @@
 
 					if (group_protected) {
 						// Protected group: show in accordion with read-only badge, no edit/delete
-						str = '<div class="card mb-2 settings-links-group cursor-pointer'+displayClass+'" data-group-id="'+ group_id +'">' +
+						var accordionStr = '<div class="card mb-2 settings-links-group cursor-pointer'+displayClass+'" data-group-id="'+ group_id +'">' +
 								'<div class="card-header collapsed" role="tab" id="heading_'+group_id +'" data-toggle="collapse" href="#collapse_'+ group_id+'" aria-expanded="true" aria-controls="collapse_'+ group_id+'">' +
 										'<span class="far fa-chevron-right mr-2 caret-right color-medium"></span>' +
 										'<span class="color-medium2"><i class="fas '+ group_icon +' fa-md ml-2 mr-2"></i><span class="group-name">'+ group_name +' </span></span>'+
 										'<span class="badge badge-warning ml-2" style="font-size:0.7rem;">Protected</span>';
 										if(group_favorite){
-											str+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon favorite tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
+											accordionStr+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon favorite tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
 												'<i class="fas fa-star fa-md"></i>'+
 											'</span>';
 										}else{
-											str+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
+											accordionStr+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
 												'<i class="far fa-star fa-md"></i>'+
 											'</span>';
 										}
-								str+='</div>'+  
+								accordionStr+='</div>'+  
 								'<div id="collapse_'+ group_id+'" class="collapse" role="tabpanel" aria-labelledby="heading_'+group_id +'">'+
 									'<div class="card-body ml-5 mr-5 pl-4 pr-4 pt-2 pb-2">'+
 									'</div>'+
 								'</div>'+
 							'</div>';
 					} else {
-						str = '<div class="card mb-2 settings-links-group cursor-pointer'+displayClass+'" data-group-id="'+ group_id +'">' +
+						accordionStr = '<div class="card mb-2 settings-links-group cursor-pointer'+displayClass+'" data-group-id="'+ group_id +'">' +
 								'<div class="card-header collapsed" role="tab" id="heading_'+group_id +'" data-toggle="collapse" href="#collapse_'+ group_id+'" aria-expanded="true" aria-controls="collapse_'+ group_id+'">' +
 										'<span class="far fa-chevron-right mr-2 caret-right color-medium"></span>' +
 										'<span class="color-medium2"><i class="fas '+ group_icon +' fa-md ml-2 mr-2"></i><span class="group-name">'+ group_name +' </span></span>'+
@@ -1906,15 +2737,15 @@
 											'</div>'+
 										'</span>';
 										if(group_favorite){
-											str+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon favorite tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
+											accordionStr+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon favorite tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
 												'<i class="fas fa-star fa-md"></i>'+
 											'</span>';
 										}else{
-											str+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
+											accordionStr+='<span class="cursor-pointer color-medium float-right pl-2 pr-2 favorite-icon tooltip-delay1000" data-toggle="tooltip" title="Show/hide in home screen"">'+
 												'<i class="far fa-star fa-md"></i>'+
 											'</span>';
 										}
-								str+='</div>'+  
+								accordionStr+='</div>'+  
 								'<div id="collapse_'+ group_id+'" class="collapse" role="tabpanel" aria-labelledby="heading_'+group_id +'">'+
 									'<div class="card-body ml-5 mr-5 pl-4 pr-4 pt-2 pb-2">'+
 
@@ -1922,7 +2753,7 @@
 								'</div>'+
 							'</div>';
 					} // end if group_protected else
-					$(".settings-links #accordion").append(str);
+					$(".settings-links #accordion").append(accordionStr);
 
 
 				    //Add installed libraries to this group's accordion body in Settings > Libraries
@@ -1944,14 +2775,14 @@
 								libIcon = '<img src="data:' + libMime + ';base64,' + lib.library_image_base64 + '" class="ml-2 mr-2 mb-2 align-top pt-2" style="max-width:20px; max-height:20px; border-radius:3px;">';
 							}
 
-							var str = '<div class="settings-links-method w-100 pt-2" data-id="'+lib._id+'">' +
+							var libItemStr = '<div class="settings-links-method w-100 pt-2" data-id="'+lib._id+'">' +
 								libIcon +
 								'<div class="d-inline-block pb-2 link-namepath">' +
 									'<div class="name">' + libName + libVersion + '</div>' +
 									'<div class="path">' + (libAuthor ? libAuthor : '') + '</div>' +
 								'</div>' +
 							'</div>';
-							$("#collapse_"+ group_id + " .card-body").append(str);
+							$("#collapse_"+ group_id + " .card-body").append(libItemStr);
 						}
 					}
 
@@ -2056,8 +2887,8 @@
 
 
 			// add bottom divs for the groups container, after the group divs. This creates the needed margin to properly stretch the cards
-			var str = '<div class="col-md-12 my-3"></div>';
-			$(".links-container>.row").append(str);
+			var spacerStr = '<div class="col-md-12 my-3"></div>';
+			$(".links-container>.row").append(spacerStr);
 
 
 			//add groups to dropdown menu in the Settings > Settings > Start up section 
@@ -2110,7 +2941,8 @@
 		function saveTree(){
 			console.log("save tree..");
 			try {
-			db_tree.tree.remove({"locked":false},true); //clean up tree.json
+			// Build new tree array first, then write atomically to avoid
+			// data loss if a crash occurs between remove() and save().
 			var tree =[];
 			var groups = $(".settings-links-group");
 			for (var i = 0; i < groups.length; ++i) {
@@ -2129,7 +2961,20 @@
 				obj["locked"] = false;  // added to be used as a filter with the diskdb remove function to clear the tree.json without deleting the file.
 				tree.unshift(obj); //pushes obj to the beginning of the array. This allows showing the groups in order when diskdb saves it.
 			}
-			db_tree.tree.save(tree);
+
+			// Preserve locked entries from the existing tree
+			var existingTree = db_tree.tree.find();
+			var lockedEntries = existingTree.filter(function(entry) { return entry.locked; });
+
+			// Write the combined data atomically via temp file
+			var treePath = path.join(USER_DATA_DIR, 'tree.json');
+			var combined = lockedEntries.concat(tree);
+			var tmpPath = treePath + '.tmp';
+			fs.writeFileSync(tmpPath, JSON.stringify(combined), 'utf8');
+			fs.renameSync(tmpPath, treePath);
+
+			// Reconnect diskdb so it picks up the new data
+			db_tree = db.connect(USER_DATA_DIR, ['tree']);
 			bool_treeChanged = true;
 			} catch(e) {
 				console.error('saveTree failed: ' + e.message);
@@ -2142,12 +2987,10 @@
 			var dataToBeUpdate = {"favorite": bool_favorite};
 			var options = {multi: false,upsert: false};
 			if(linkOrGroup=="link"){
-				var updated = db_links.links.update(query, dataToBeUpdate, options);
-				//console.log(updated); // { updated: 1, inserted: 0 }
+				db_links.links.update(query, dataToBeUpdate, options);
 			}
 			if(linkOrGroup=="group"){
-				var updated = db_groups.groups.update(query, dataToBeUpdate, options);
-				//console.log(updated); // { updated: 1, inserted: 0 }
+				db_groups.groups.update(query, dataToBeUpdate, options);
 			}
 		}
 
@@ -2280,7 +3123,7 @@
 		}     
 
 
-		function deleteData(id , linkOrGroup,callback){
+		function deleteData(id , linkOrGroup){
 				if(linkOrGroup == "link"){
 					var el = $(".settings-links-method[data-id='" +id+"']");
 				}
@@ -2299,8 +3142,11 @@
 					});
 					//remove from db
 					if(linkOrGroup == "group"){
+						 var _delGroupName = '';
+						 try { var _dg = getGroupById(id); if (_dg) _delGroupName = _dg.name || ''; } catch(_) {}
 						 db_groups.groups.remove({"_id": id });
 						// Libraries in this group become unassigned (not deleted from db)
+						 try { appendEventHistory('group_deleted', EVENT_CATEGORIES.GROUP, { group_id: id, group_name: _delGroupName }); } catch(_) {}
 					}
 				}
 				
@@ -2334,8 +3180,8 @@
 						multi: false,
 						upsert: false
 					};
-					var updated = db_groups.groups.update(query, dataToSave, options);
-					// console.log(updated); // { updated: 1, inserted: 0 }
+					db_groups.groups.update(query, dataToSave, options);
+					try { appendEventHistory('group_edited', EVENT_CATEGORIES.GROUP, { group_id: id, group_name: name }); } catch(_) {}
 				}
 				if(newOrEdit =="new"){
 					var saved = db_groups.groups.save(dataToSave);
@@ -2348,12 +3194,12 @@
 					$("#accordion").append(str);
 					
 					saveTree();
+					try { appendEventHistory('group_created', EVENT_CATEGORIES.GROUP, { group_id: group_id, group_name: name }); } catch(_) {}
 				}
 			}
 		
 			createGroups();
 			$("#editModal").modal('hide');
-			// console.log("group_id =" + group_id );
 			$("#collapse_"+group_id).collapse("show"); //expand the group 
 			
 
@@ -2424,14 +3270,11 @@
 					//check if the given icon_customImage exists, otherwise set placeholder icon
 					if(icon_customImage!="" && icon_customImage!="placeholder"){
 						try {
-							if(fs.existsSync(icon_customImage)) {
-								//console.log("The file exists.");
-							} else {
-								//console.log('The file does not exist.');
+							if(!fs.existsSync(icon_customImage)) {
 								icon_customImage = "placeholder";
 							}
 						} catch (err) {
-							//console.error(err);
+							icon_customImage = "placeholder";
 						}
 					}
 
@@ -2662,7 +3505,7 @@
 				multi: false,
 				upsert: false
 			};
-			var updated = db_links.links.update(query, dataToSave, options);
+			db_links.links.update(query, dataToSave, options);
 		}
 
         /** Navigate directly to the All (home) screen */
@@ -2690,7 +3533,6 @@
 					"_id": "0",
 					"recent-max": 20,
 					"chk_confirmBeforeInstall": true,
-					"chk_overwriteWithoutAsking": false,
 					"chk_autoAddToGroup": true,
 					"chk_hideSystemLibraries": false
 				};
@@ -2708,7 +3550,6 @@
 
 			//setting - Installation checkboxes
 			$("#chk_confirmBeforeInstall").prop("checked", settings["chk_confirmBeforeInstall"] !== false);
-			$("#chk_overwriteWithoutAsking").prop("checked", !!settings["chk_overwriteWithoutAsking"]);
 			$("#chk_autoAddToGroup").prop("checked", settings["chk_autoAddToGroup"] !== false);
 
 			//setting - Display: hide system libraries
@@ -2731,9 +3572,7 @@
 				multi: false,
 				upsert: false
 			};
-			var updated = db_settings.settings.update(query, dataToSave, options);
-			//  console.log(dataToSave);
-			//  console.log(updated);
+			db_settings.settings.update(query, dataToSave, options);
 		}
 
 		/** Read a single setting value from the settings DB */
@@ -2750,9 +3589,7 @@
 				multi: false,
 				upsert: false
 			};
-			var updated = db_links.links.update(query, dataToSave, options);
-			//  console.log(dataToSave);
-			//  console.log(updated);
+			db_links.links.update(query, dataToSave, options);
 		}
 
 		function clearRecentList(){
@@ -2769,9 +3606,9 @@
 				multi: false,
 				upsert: false
 			};
-			for(i=0; i< arrlaststarted.length ; i++){
+			for(var i=0; i< arrlaststarted.length ; i++){
 				var query ={"_id": arrlaststarted[i]["_id"]};
-				var updated = db_links.links.update(query, dataToSave, options);
+				db_links.links.update(query, dataToSave, options);
 			}
 							
 			// empty the Recent group
@@ -2807,7 +3644,6 @@
 				$(".cleanup-progress-bar").text("0%").css("width","0%").attr("aria-valuenow", 0);
 				$(".cleanup-progress-text").text("Cleaning up run logs");
 				$(".cleanup-progress").css("display","inline"); //force display after JQuery fadeout if a previous cleanup was run
-					// console.log(files.length);
 
 					files.forEach(function(file, index) {
 						var ext = path.extname(file);
@@ -2815,7 +3651,7 @@
 							var bool_processFile = false;
 							fs.stat(currentPath, function(err, stats) {
 										if (err) {
-												console.log( "error getting stat from file :" + currentPath);
+												console.warn('Error getting stat from file: ' + currentPath + ' — ' + (err.code || err.message));
 										}else{
 										  bool_processFile = true;
 										}
@@ -2826,7 +3662,6 @@
 											endtime.setDate(endtime.getDate() + days);
 
 										if (today > endtime) {
-											//   console.log(currentPath);
 											  if(cleanup_action=="delete"){
 												fs.unlink(currentPath, (err) => {
 													counter++;
@@ -2835,7 +3670,6 @@
 													console.log( "error deleting file :" + currentPath);
 												  }
 												  //file deleted OK
-												//   console.log(currentPath);
 												  });
 											  }
 											  if(cleanup_action=="archive"){
@@ -2912,11 +3746,25 @@
 			// Set working dir for the method file browse
 			$("#input-methodfile").attr("nwworkingdir", HxFolder_Methods);
 
+			// First-run: stamp system libraries with VENUS install metadata
+			try {
+				ensureSystemLibraryMetadata();
+			} catch(e) {
+				console.warn('Error during system library metadata stamping: ' + e.message);
+			}
+
 			// First-run: backup system libraries to package store for repair
 			try {
 				ensureSystemLibraryBackups();
 			} catch(e) {
 				console.warn('Error during system library backup: ' + e.message);
+			}
+
+			// Every startup: verify system library integrity, create missing packages, auto-repair
+			try {
+				startupSystemLibraryIntegrityCheck();
+			} catch(e) {
+				console.warn('Error during startup system library integrity check: ' + e.message);
 			}
 		}
 
@@ -3389,16 +4237,34 @@
 		$(document).on("click", "#pkg-create", function() {
 			// Validate required fields
 			var author = $("#pkg-author").val().trim();
+			var organization = $("#pkg-organization").val().trim();
 			var version = $("#pkg-version").val().trim();
+			var venusCompat = $("#pkg-venus-compat").val().trim();
+			var description = $("#pkg-description").val().trim();
 
 			if (!author) {
 				alert("Author Name is required.");
 				$("#pkg-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
 				return;
 			}
+			if (!organization) {
+				alert("Organization is required.");
+				$("#pkg-organization").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
 			if (!version) {
 				alert("Library Version Number is required.");
 				$("#pkg-version").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (!venusCompat) {
+				alert("VENUS Compatibility is required.");
+				$("#pkg-venus-compat").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (!description) {
+				alert("Description is required.");
+				$("#pkg-description").focus().css({"border": "1px solid red", "background": "#FFCECE"});
 				return;
 			}
 			if (pkg_libraryFiles.length === 0) {
@@ -3439,7 +4305,7 @@
 		});
 
 		// Clear red styling when user types in required fields
-		$(document).on("input", "#pkg-author, #pkg-version", function() {
+		$(document).on("input", "#pkg-author, #pkg-organization, #pkg-version, #pkg-venus-compat, #pkg-description", function() {
 			$(this).css({"border": "", "background": ""});
 		});
 
@@ -3665,6 +4531,22 @@
 
 				// Write the ZIP file
 				zip.writeZip(savePath);
+
+				// ---- Audit trail entry ----
+				try {
+					appendAuditTrailEntry(buildAuditTrailEntry('package_created', {
+						library_name:    libName,
+						version:         version || '',
+						author:          author || '',
+						organization:    organization || '',
+						output_file:     savePath,
+						library_files:   pkg_libraryFiles.length,
+						demo_files:      pkg_demoMethodFiles.length,
+						com_dlls:        (manifest.com_register_dlls || [])
+					}));
+				} catch(_) { /* non-critical */ }
+
+				try { appendEventHistory('package_created', EVENT_CATEGORIES.CREATE, { library_name: libName, version: version || '', author: author || '', organization: organization || '', output_file: savePath, library_files: pkg_libraryFiles.length, demo_files: pkg_demoMethodFiles.length }); } catch(_) {}
 
 				alert("Package created successfully!\n\n" +
 					savePath + "\n\n" +
@@ -4291,7 +5173,19 @@
 			var baselineEntry = systemLibraryBaseline[libName];
 
 			if (!baselineEntry || !baselineEntry.files || Object.keys(baselineEntry.files).length === 0) {
-				result.warnings.push('No integrity baseline stored for system library: ' + libName);
+				// Check if this library even has HSL-type files that could be baselined.
+				// Resource-only libraries (e.g. only .ico, .bmp) cannot have a baseline
+				// and should not trigger a warning.
+				var HSL_BASELINE_EXTS = ['.hsl', '.hs_', '.smt'];
+				var discoveredFiles = sLib.discovered_files || [];
+				var hasBaselinableFiles = discoveredFiles.some(function(f) {
+					var ext = path.extname(f).toLowerCase();
+					return HSL_BASELINE_EXTS.indexOf(ext) !== -1;
+				});
+				if (hasBaselinableFiles) {
+					result.warnings.push('No integrity baseline stored for system library: ' + libName);
+				}
+				// Resource-only libraries: no warning, they're inherently OK
 				return result;
 			}
 
@@ -4362,7 +5256,11 @@
 		// ---------------------------------------------------------------------------
 		// Package signing — HMAC-SHA256 integrity signatures for .hxlibpkg files
 		// ---------------------------------------------------------------------------
-
+		// NOTE: This key is embedded in the client-side source and provides tamper-
+		// *detection* only ("did the package change since it was built?"), NOT
+		// cryptographic authenticity.  Anyone with access to this source can
+		// forge a valid signature.  For stronger guarantees, move signing to a
+		// server-side service or use asymmetric (public/private) key signing.
 		var PKG_SIGNING_KEY = 'VenusLibMgr::PackageIntegrity::a7e3f9d1c6b2';
 
 		/**
@@ -4529,10 +5427,166 @@
 			importerDiv.height(height);
 		}
 
+		// ---- Integrity / dependency result caches ----
+		// These are cleared whenever libraries are installed, deleted, or reimported.
+		var _integrityCache = {};   // lib._id -> verifyLibraryIntegrity() result
+		var _depCache = {};         // lib._id -> extractRequiredDependencies() result
+		function invalidateLibCaches() { _integrityCache = {}; _depCache = {}; }
+
+		// ---- Issues banner: scan all libraries and show notifications at top ----
+		function updateIssuesBanner() {
+			var $badge = $("#imp-issues-badge");
+			var $banner = $("#imp-issues-banner");
+			var $list = $("#imp-issues-list");
+			$list.empty();
+
+			var issues = []; // { type: 'error'|'warning', lib: name, detail: string, libId: id, isSystem: bool, repairable: bool }
+
+			// --- User-installed libraries ---
+			var libs = db_installed_libs.installed_libs.find() || [];
+			libs = libs.filter(function(l) { return !l.deleted && !isSystemLibrary(l._id); });
+
+			libs.forEach(function(lib) {
+				var libName = lib.library_name || "Unknown";
+				var integrity = _integrityCache[lib._id] || (_integrityCache[lib._id] = verifyLibraryIntegrity(lib));
+				var deps = _depCache[lib._id] || (_depCache[lib._id] = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || ''));
+				var depStatus = checkDependencyStatus(deps);
+				var cached = listCachedVersions(libName);
+				var hasCached = cached.length > 0;
+
+				if (!integrity.valid) {
+					integrity.errors.forEach(function(e) {
+						issues.push({ type: 'error', lib: libName, detail: e, libId: lib._id, isSystem: false, repairable: hasCached });
+					});
+				}
+				if (integrity.warnings.length > 0) {
+					integrity.warnings.forEach(function(w) {
+						issues.push({ type: 'warning', lib: libName, detail: w, libId: lib._id, isSystem: false, repairable: false });
+					});
+				}
+				if (!depStatus.valid) {
+					var missingNames = depStatus.missing.map(function(d) { return d.libraryName || d.include; }).join(', ');
+					issues.push({ type: 'error', lib: libName, detail: 'Missing dependencies: ' + missingNames, libId: lib._id, isSystem: false, repairable: false });
+				}
+				if (lib.com_warning === true) {
+					var comDlls = (lib.com_register_dlls || []).join(', ');
+					issues.push({ type: 'warning', lib: libName, detail: 'COM registration failed: ' + comDlls, libId: lib._id, isSystem: false, repairable: false });
+				}
+			});
+
+			// --- System libraries ---
+			var sysLibs = getAllSystemLibraries();
+			sysLibs.forEach(function(sLib) {
+				var libName = sLib.canonical_name || sLib.library_name;
+				var integrity = verifySystemLibraryIntegrity(sLib);
+				var cached = listCachedVersions(libName);
+				var hasCached = cached.length > 0;
+
+				if (!integrity.valid) {
+					integrity.errors.forEach(function(e) {
+						issues.push({ type: 'error', lib: libName, detail: e, libId: sLib._id, isSystem: true, repairable: hasCached });
+					});
+				}
+				if (integrity.warnings.length > 0) {
+					integrity.warnings.forEach(function(w) {
+						issues.push({ type: 'warning', lib: libName, detail: w, libId: sLib._id, isSystem: true, repairable: false });
+					});
+				}
+			});
+
+			var errorCount = issues.filter(function(i) { return i.type === 'error'; }).length;
+			var warnCount = issues.filter(function(i) { return i.type === 'warning'; }).length;
+
+			// Update badge
+			if (errorCount === 0 && warnCount === 0) {
+				$badge.addClass("d-none");
+				$banner.addClass("d-none");
+				return;
+			}
+
+			$badge.removeClass("d-none");
+			if (errorCount > 0) {
+				$("#imp-issues-badge-errors").show().find(".imp-issues-err-count").text(errorCount);
+			} else {
+				$("#imp-issues-badge-errors").hide();
+			}
+			if (warnCount > 0) {
+				$("#imp-issues-badge-warnings").show().find(".imp-issues-warn-count").text(warnCount);
+			} else {
+				$("#imp-issues-badge-warnings").hide();
+			}
+
+			// Build issue rows
+			issues.forEach(function(issue) {
+				var iconClass = issue.type === 'error' ? 'fa-times-circle text-danger' : 'fa-exclamation-triangle text-warning';
+				var sysLabel = issue.isSystem ? '<span class="badge badge-secondary ml-1" style="font-size:0.6rem; vertical-align:middle;">System</span>' : '';
+
+				var actionHtml = '';
+				if (issue.type === 'error' && issue.repairable) {
+					actionHtml = '<button class="btn btn-sm btn-outline-success imp-issue-repair-btn" data-lib-name="' + (issue.lib || '').replace(/"/g, '&quot;') + '" data-is-system="' + issue.isSystem + '" title="Repair from cached backup"><i class="fas fa-wrench mr-1"></i>Repair</button>';
+				} else if (issue.type === 'error' && !issue.repairable) {
+					actionHtml = '<span class="text-muted text-sm" title="No backup available for automatic repair"><i class="fas fa-info-circle mr-1"></i>Manual fix needed</span>';
+				}
+
+				var row =
+					'<div class="imp-issues-item">' +
+						'<div class="imp-issues-item-icon"><i class="fas ' + iconClass + '"></i></div>' +
+						'<div class="imp-issues-item-text">' +
+							'<span class="issue-lib-name">' + escapeHtml(issue.lib) + '</span>' + sysLabel +
+							'<span class="issue-detail">' + escapeHtml(issue.detail) + '</span>' +
+						'</div>' +
+						'<div class="imp-issues-item-actions">' + actionHtml + '</div>' +
+					'</div>';
+				$list.append(row);
+			});
+		}
+
+		// Toggle expanded issues list when clicking the badge
+		$(document).on("click", "#imp-issues-badge", function() {
+			var $banner = $("#imp-issues-banner");
+			if ($banner.hasClass("d-none")) {
+				$banner.removeClass("d-none");
+			} else {
+				$banner.addClass("d-none");
+			}
+		});
+
+		// Close the expanded issues list
+		$(document).on("click", ".imp-issues-close", function(e) {
+			e.stopPropagation();
+			$("#imp-issues-banner").addClass("d-none");
+		});
+
+		// Open Verify & Repair modal from the issues banner
+		$(document).on("click", ".imp-issues-open-repair", function(e) {
+			e.preventDefault();
+			$("#imp-issues-banner").addClass("d-none");
+			repairPopulateModal();
+			$("#repairModal").modal("show");
+		});
+
+		// Repair a single library from the issues banner
+		$(document).on("click", ".imp-issue-repair-btn", function(e) {
+			e.stopPropagation();
+			var libName = $(this).attr("data-lib-name");
+			var isSys = $(this).attr("data-is-system") === "true";
+			if (!libName) return;
+
+			if (isSys) {
+				repairSystemLibraryFromCache(libName);
+			} else {
+				repairLibraryFromCache(libName);
+			}
+			// Refresh the cards and the issues banner
+			invalidateLibCaches();
+			impBuildLibraryCards();
+		});
+
 		// ---- Build installed library cards from DB ----
 		function impBuildLibraryCards(groupId, recentMode, systemMode) {
 			var $container = $("#imp-cards-container");
 			$container.empty();
+			invalidateLibCaches(); // refresh integrity/dependency caches for this rebuild
 
 			// ---- System-only mode: render only system library cards ----
 			if (systemMode) {
@@ -4587,9 +5641,9 @@
 				var sysLibsAll = getAllSystemLibraries();
 				for (var si = 0; si < sysLibsAll.length; si++) {
 					if (hideSystemLibs) {
-						// Still show system libraries that have warnings or errors
+						// Still show system libraries that have actual integrity errors
 						var sysIntegrity = verifySystemLibraryIntegrity(sysLibsAll[si]);
-						if (!sysIntegrity.valid || sysIntegrity.warnings.length > 0) {
+						if (!sysIntegrity.valid) {
 							visibleSysLibs.push(sysLibsAll[si]);
 						}
 					} else {
@@ -4669,9 +5723,6 @@
 					comWarningBadge = '<span class="badge badge-info ml-2" title="COM registered DLLs: ' + comDlls.join(', ') + '"><i class="fas fa-cog mr-1"></i>COM</span>';
 				}
 
-				// Help badge (optional, only if help file exists)
-				var helpBadge = "";
-
 				// Deleted badge
 				var deletedBadge = "";
 				if (isDeleted) {
@@ -4708,7 +5759,7 @@
 							'<div class="d-flex align-items-start">' +
 								'<div class="mr-3 mt-1 imp-lib-card-icon">' + iconHtml + '</div>' +
 								'<div class="flex-grow-1" style="min-width:0;">' +
-									'<h6 class="mb-0 imp-lib-card-name cursor-pointer" style="color:var(--medium2);">' + libName + comWarningBadge + helpBadge + deletedBadge + '</h6>' +
+									'<h6 class="mb-0 imp-lib-card-name cursor-pointer" style="color:var(--medium2);">' + libName + comWarningBadge + deletedBadge + '</h6>' +
 									(version ? '<span class="text-muted text-sm">v' + version + '</span>' : '') +
 									(author ? '<div class="text-muted text-sm">' + author + '</div>' : '') +
 								'</div>' +
@@ -4748,6 +5799,9 @@
 
 			// Bottom spacer
 			$container.append('<div class="col-md-12 my-3"></div>');
+
+			// Update the issues notification banner
+			updateIssuesBanner();
 		}
 
 		// ---- Resolve system library icon: .bmp or .ico, with tiled submethod fallback ----
@@ -4935,6 +5989,8 @@
 			$("#libDetailModal .lib-detail-organization").text(lib.organization || "\u2014");
 			$("#libDetailModal .lib-detail-venus").text(lib.venus_compatibility || "\u2014");
 			$("#libDetailModal .lib-detail-installed-date").text(lib.installed_date ? new Date(lib.installed_date).toLocaleString() : "\u2014");
+			$("#libDetailModal .lib-detail-created-date").text(lib.created_date ? new Date(lib.created_date).toLocaleString() : "\u2014");
+			$("#libDetailModal .lib-detail-installed-by").text(lib.installed_by || "\u2014");
 
 			// Description
 			if (lib.description) {
@@ -5205,7 +6261,7 @@
 		}
 
 		// ---- Rollback to a cached package version from detail modal ----
-		$(document).on("click", ".lib-detail-rollback-btn", function(e) {
+		$(document).on("click", ".lib-detail-rollback-btn", async function(e) {
 			e.preventDefault();
 			var fullPath = $(this).attr("data-fullpath");
 			var version  = $(this).attr("data-version");
@@ -5213,13 +6269,9 @@
 
 			if (!fullPath || !libName) return;
 
-			if (!confirm('Roll back "' + libName + '" to version ' + version + '?\n\nThis will replace the currently installed files with the selected version.')) {
-				return;
-			}
-
-			if (!confirm('Are you sure? This will overwrite all current library files for "' + libName + '".')) {
-				return;
-			}
+			// Show styled rollback confirmation modal (purple theme with name typing)
+			var rollbackConfirmed = await showRollbackConfirmModal(libName, version);
+			if (!rollbackConfirmed) return;
 
 			try {
 				var zipBuffer = fs.readFileSync(fullPath);
@@ -5314,6 +6366,7 @@
 					library_name: manifest.library_name || "",
 					author: manifest.author || "",
 					organization: manifest.organization || "",
+					installed_by: getWindowsUsername(),
 					version: manifest.version || "",
 					venus_compatibility: manifest.venus_compatibility || "",
 					description: manifest.description || "",
@@ -5364,6 +6417,20 @@
 
 				alert('Successfully rolled back "' + rLibName + '" to version ' + (manifest.version || '?') + '.\n\n' + extractedCount + ' files installed.');
 
+				// ---- Audit trail entry ----
+				try {
+					appendAuditTrailEntry(buildAuditTrailEntry('library_rollback', {
+						library_name:     rLibName,
+						version:          manifest.version || '',
+						author:           manifest.author || '',
+						source_file:      path.basename(fullPath),
+						lib_install_path: libDestDir,
+						files_extracted:  extractedCount
+					}));
+				} catch(_) { /* non-critical */ }
+
+				try { appendEventHistory('library_rollback', EVENT_CATEGORIES.ROLLBACK, { library_name: rLibName, version: manifest.version || '', author: manifest.author || '', files_extracted: extractedCount }); } catch(_) {}
+
 				if (comDlls.length > 0) {
 					alert('NOTE: This library has COM DLLs that may need re-registration:\n\n' + comDlls.join(', ') + '\n\nUse RegAsm.exe /codebase manually or re-import via the GUI for automatic COM registration.');
 				}
@@ -5384,11 +6451,14 @@
 
 			// Metadata
 			$("#libDetailModal .lib-detail-name").text(sLib.display_name || sLib.canonical_name || "Unknown");
-			$("#libDetailModal .lib-detail-version").text("System Library");
+			var sysVerText = sLib.venus_version ? "System Library (VENUS " + sLib.venus_version + ")" : "System Library";
+			$("#libDetailModal .lib-detail-version").text(sysVerText);
 			$("#libDetailModal .lib-detail-author").text(sLib.author || "Hamilton");
 			$("#libDetailModal .lib-detail-organization").text(sLib.organization || "Hamilton");
-			$("#libDetailModal .lib-detail-venus").text("\u2014");
-			$("#libDetailModal .lib-detail-installed-date").text("Included with VENUS");
+			$("#libDetailModal .lib-detail-venus").text(sLib.venus_version || "\u2014");
+			$("#libDetailModal .lib-detail-installed-date").text(sLib.installed_date ? new Date(sLib.installed_date).toLocaleString() : "Included with VENUS");
+			$("#libDetailModal .lib-detail-installed-by").text(sLib.installed_by || "System");
+			$("#libDetailModal .lib-detail-created-date").text("N/A");
 
 			// Description
 			var resTypes = (sLib.resource_types || []).join(', ');
@@ -5509,10 +6579,10 @@
 						'<div class="dep-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
 							'<div style="display:flex; align-items:center;">' +
 								'<i class="fas ' + statusIcon + '" style="color:' + statusColor + '; font-size:0.8rem; margin-right:6px; min-width:14px;"></i>' +
-								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + (dep.libraryName || dep.include) + '</span>' +
+								'<span style="font-family:Consolas,monospace; font-size:0.82rem; font-weight:600;">' + escapeHtml(dep.libraryName || dep.include) + '</span>' +
 								typeBadge +
 							'</div>' +
-							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + dep.include + '</div>' +
+							'<div class="text-muted" style="font-family:Consolas,monospace; font-size:0.7rem; margin-left:20px; word-break:break-all;">' + escapeHtml(dep.include) + '</div>' +
 						'</div>'
 					);
 				});
@@ -5544,13 +6614,13 @@
 				$fnSection.removeClass("d-none");
 				sysPubFns.forEach(function(fn) {
 					var paramStr = (fn.params || []).map(function(p) {
-						return '<span class="fn-param-type">' + (p.type || 'variable') + '</span>' +
+						return '<span class="fn-param-type">' + escapeHtml(p.type || 'variable') + '</span>' +
 							(p.byRef ? '<span class="fn-param-ref">&amp;</span> ' : ' ') +
-							'<span class="fn-param-name">' + p.name + '</span>' +
+							'<span class="fn-param-name">' + escapeHtml(p.name) + '</span>' +
 							(p.array ? '<span class="fn-param-array">[]</span>' : '');
 					}).join(', ');
 					var retBadge = fn.returnType && fn.returnType !== 'void'
-						? '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle;">' + fn.returnType + '</span>'
+						? '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle;">' + escapeHtml(fn.returnType) + '</span>'
 						: '<span class="badge badge-light ml-1" style="font-size:0.65rem; vertical-align:middle; opacity:0.5;">void</span>';
 					var docHtml = fn.doc
 						? '<div class="fn-doc text-muted text-sm" style="margin-left:22px; font-size:0.75rem; white-space:pre-wrap;">' + $("<span>").text(fn.doc.split('\n')[0]).html() + '</div>'
@@ -5558,7 +6628,7 @@
 					$fnList.append(
 						'<div class="fn-item" style="padding:3px 0; border-bottom:1px solid rgba(128,128,128,0.1);">' +
 							'<div><i class="fas fa-cube fn-icon" style="color:var(--medium); font-size:0.7rem; margin-right:5px;"></i>' +
-							'<span class="fn-name" style="font-family:Consolas,monospace; font-weight:600; font-size:0.82rem;">' + fn.qualifiedName + '</span>' +
+							'<span class="fn-name" style="font-family:Consolas,monospace; font-weight:600; font-size:0.82rem;">' + escapeHtml(fn.qualifiedName) + '</span>' +
 							'<span style="font-family:Consolas,monospace; font-size:0.78rem; color:#888;">(' + paramStr + ')</span>' +
 							retBadge + '</div>' +
 							docHtml +
@@ -5762,6 +6832,15 @@
 
 				// Write ZIP
 				zip.writeZip(savePath);
+
+				// ---- Audit trail + event history ----
+				try {
+					appendAuditTrailEntry(buildAuditTrailEntry('library_exported', {
+						library_name: libName, version: lib.version || '', author: lib.author || '',
+						output_file: savePath, library_files: libraryFiles.length, help_files: helpFiles.length, demo_files: demoFiles.length
+					}));
+				} catch(_) {}
+				try { appendEventHistory('library_exported', EVENT_CATEGORIES.EXPORT, { library_name: libName, version: lib.version || '', author: lib.author || '', output_file: savePath, library_files: libraryFiles.length, demo_files: demoFiles.length }); } catch(_) {}
 
 				alert("Library exported successfully!\n\n" +
 					savePath + "\n\n" +
@@ -6078,6 +7157,15 @@
 
 				alert(summary);
 
+				// ---- Audit trail + event history ----
+				try {
+					appendAuditTrailEntry(buildAuditTrailEntry('archive_exported', {
+						output_file: savePath, library_count: exportedLibs.length,
+						libraries: exportedLibs.map(function(l) { return l.name; })
+					}));
+				} catch(_) {}
+				try { appendEventHistory('archive_exported', EVENT_CATEGORIES.EXPORT, { output_file: savePath, library_count: exportedLibs.length, libraries: exportedLibs.map(function(l) { return l.name; }).join(', ') }); } catch(_) {}
+
 			} catch(e) {
 				alert("Error creating archive:\n" + e.message);
 			}
@@ -6238,6 +7326,7 @@
 							library_name: manifest.library_name || "",
 							author: manifest.author || "",
 							organization: manifest.organization || "",
+							installed_by: getWindowsUsername(),
 							version: manifest.version || "",
 							venus_compatibility: manifest.venus_compatibility || "",
 							description: manifest.description || "",
@@ -6250,7 +7339,7 @@
 							demo_method_files: manifest.demo_method_files || [],
 							help_files: helpFiles,
 							com_register_dlls: comDlls,
-							com_warning: false,
+							com_warning: comDlls.length > 0,  // mark as warning; cleared below if registration succeeds
 							lib_install_path: libDestDir,
 							demo_install_path: demoDestDir,
 							installed_date: new Date().toISOString(),
@@ -6260,6 +7349,26 @@
 							required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
 						};
 						var saved = db_installed_libs.installed_libs.save(dbRecord);
+
+						// Attempt COM registration for DLLs (best-effort, non-blocking)
+						if (comDlls.length > 0) {
+							var dllPaths = comDlls.map(function(d) { return path.join(libDestDir, d); });
+							comRegisterMultipleDlls(dllPaths, true).then(function(comResult) {
+								if (comResult.allSuccess) {
+									// Clear the warning flag
+									db_installed_libs.installed_libs.update(
+										{"_id": saved._id},
+										{"com_warning": false},
+										{multi: false, upsert: false}
+									);
+								} else {
+									console.warn('COM registration failed for ' + libName + ' (archive import): ' +
+										comResult.results.filter(function(r) { return !r.success; }).map(function(r) { return r.error; }).join('; '));
+								}
+							}).catch(function(err) {
+								console.warn('COM registration error for ' + libName + ': ' + err.message);
+							});
+						}
 
 						// Auto-add to group if setting enabled
 						var settings = db_settings.settings.findOne({"_id":"0"});
@@ -6319,6 +7428,18 @@
 
 				alert(resultMsg);
 
+				// ---- Audit trail entry ----
+				try {
+					appendAuditTrailEntry(buildAuditTrailEntry('archive_imported', {
+						archive_file:    archivePath,
+						packages_total:  pkgEntries.length,
+						succeeded:       results.success,
+						failed:          results.failed
+					}));
+				} catch(_) { /* non-critical */ }
+
+				try { appendEventHistory('archive_imported', EVENT_CATEGORIES.IMPORT, { archive_file: path.basename(archivePath), packages_total: pkgEntries.length, succeeded_count: results.success.length, failed_count: results.failed.length }); } catch(_) {}
+
 				// Refresh the library cards
 				impBuildLibraryCards();
 				fitImporterHeight();
@@ -6340,11 +7461,7 @@
 			e.preventDefault();
 			var filePath = $(this).attr("data-filepath");
 			if (filePath) {
-				if (fs.existsSync(filePath)) {
-					nw.Shell.openItem(filePath);
-				} else {
-					alert("File not found:\n" + filePath);
-				}
+				safeOpenItem(filePath);
 			}
 		});
 
@@ -6391,6 +7508,92 @@
 
 				// Cancel / dismiss handler
 				$modal.off("hidden.bs.modal.deleteConfirm").on("hidden.bs.modal.deleteConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						resolve(false);
+					}
+				});
+
+				$modal.modal("show");
+			});
+		}
+
+		// ---- Show upgrade confirmation modal (green theme) ----
+		function showUpgradeConfirmModal(libName, oldVersion, newVersion) {
+			return new Promise(function(resolve) {
+				var $modal = $("#upgradeLibConfirmModal");
+				var expectedText = libName;
+				var resolved = false;
+
+				$modal.find(".upgrade-confirm-libname-header").text(libName);
+				$modal.find(".upgrade-confirm-expected-text").text(expectedText);
+				$modal.find(".upgrade-confirm-input").val("");
+				$modal.find(".upgrade-confirm-btn").prop("disabled", true);
+
+				var versionInfo = '';
+				if (oldVersion && newVersion) {
+					versionInfo = ' from v' + oldVersion + ' to v' + newVersion;
+				} else if (newVersion) {
+					versionInfo = ' to v' + newVersion;
+				}
+				$modal.find(".upgrade-confirm-consequences").text(
+					'This will upgrade "' + libName + '"' + versionInfo + '. Existing files will be overwritten.'
+				);
+
+				$modal.find(".upgrade-confirm-input").off("input.upgradeConfirm").on("input.upgradeConfirm", function() {
+					var typed = $(this).val().trim();
+					$modal.find(".upgrade-confirm-btn").prop("disabled", typed !== expectedText);
+				});
+
+				$modal.find(".upgrade-confirm-btn").off("click.upgradeConfirm").on("click.upgradeConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						$modal.modal("hide");
+						resolve(true);
+					}
+				});
+
+				$modal.off("hidden.bs.modal.upgradeConfirm").on("hidden.bs.modal.upgradeConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						resolve(false);
+					}
+				});
+
+				$modal.modal("show");
+			});
+		}
+
+		// ---- Show rollback confirmation modal (purple theme) ----
+		function showRollbackConfirmModal(libName, version) {
+			return new Promise(function(resolve) {
+				var $modal = $("#rollbackLibConfirmModal");
+				var expectedText = libName;
+				var resolved = false;
+
+				$modal.find(".rollback-confirm-libname-header").text(libName);
+				$modal.find(".rollback-confirm-expected-text").text(expectedText);
+				$modal.find(".rollback-confirm-input").val("");
+				$modal.find(".rollback-confirm-btn").prop("disabled", true);
+
+				$modal.find(".rollback-confirm-consequences").text(
+					'This will roll back "' + libName + '" to version ' + version + '. All current library files will be overwritten.'
+				);
+
+				$modal.find(".rollback-confirm-input").off("input.rollbackConfirm").on("input.rollbackConfirm", function() {
+					var typed = $(this).val().trim();
+					$modal.find(".rollback-confirm-btn").prop("disabled", typed !== expectedText);
+				});
+
+				$modal.find(".rollback-confirm-btn").off("click.rollbackConfirm").on("click.rollbackConfirm", function() {
+					if (!resolved) {
+						resolved = true;
+						$modal.modal("hide");
+						resolve(true);
+					}
+				});
+
+				$modal.off("hidden.bs.modal.rollbackConfirm").on("hidden.bs.modal.rollbackConfirm", function() {
 					if (!resolved) {
 						resolved = true;
 						resolve(false);
@@ -6525,6 +7728,18 @@
 				deleted: true,
 				deleted_date: new Date().toISOString()
 			}, {multi: false, upsert: false});
+
+			// ---- Audit trail entry ----
+			try {
+				appendAuditTrailEntry(buildAuditTrailEntry('library_deleted', {
+					library_name: lib.library_name || '',
+					version:      lib.version || '',
+					author:       lib.author || '',
+					delete_type:  'soft'
+				}));
+			} catch(_) { /* non-critical */ }
+
+			try { appendEventHistory('library_deleted', EVENT_CATEGORIES.DELETE, { library_name: lib.library_name || '', version: lib.version || '', author: lib.author || '' }); } catch(_) {}
 
 			// --- Remove from tree ---
 			var navtree = db_tree.tree.find();
@@ -6788,6 +8003,7 @@
 				$modal.data("imp-filePath", filePath);
 				$modal.data("imp-helpFiles", helpFiles);
 				$modal.data("imp-filteredLibFiles", libFiles);
+				$modal.data("imp-sigResult", sigResult);
 
 				$modal.modal("show");
 
@@ -6800,6 +8016,9 @@
 
 		// ---- Confirm install from preview modal ----
 		$(document).on("click", "#imp-preview-confirm", async function() {
+			if (_isImporting) return; // prevent double-click triggering duplicate installs
+			_isImporting = true;
+
 			var $modal = $("#importPreviewModal");
 			var zip = $modal.data("imp-zip");
 			var manifest = $modal.data("imp-manifest");
@@ -6807,7 +8026,7 @@
 			var demoDestDir = $modal.data("imp-demoDestDir");
 			var filePath = $modal.data("imp-filePath");
 
-			if (!zip || !manifest) return;
+			if (!zip || !manifest) { _isImporting = false; return; }
 
 			var libName = manifest.library_name || "Unknown";
 			var helpFiles = $modal.data("imp-helpFiles") || [];
@@ -6815,6 +8034,19 @@
 			var demoFiles = manifest.demo_method_files || [];
 			var comDlls = manifest.com_register_dlls || [];
 			var comWarning = false;  // tracks if COM registration failed but user chose to proceed
+
+			// ---- UPGRADE CONFIRMATION (if library already exists) ----
+			var existingLib = db_installed_libs.installed_libs.findOne({"library_name": libName});
+			if (existingLib) {
+				$modal.modal("hide");
+				var oldVersion = existingLib.version || "?";
+				var newVersion = manifest.version || "?";
+				var upgradeConfirmed = await showUpgradeConfirmModal(libName, oldVersion, newVersion);
+				if (!upgradeConfirmed) {
+					_isImporting = false;
+					return;
+				}
+			}
 
 			// ---- COM REGISTRATION FIRST (before extracting files) ----
 			if (comDlls.length > 0) {
@@ -6960,6 +8192,7 @@
 					library_name: manifest.library_name || "",
 					author: manifest.author || "",
 					organization: manifest.organization || "",
+					installed_by: getWindowsUsername(),
 					version: manifest.version || "",
 					venus_compatibility: manifest.venus_compatibility || "",
 					description: manifest.description || "",
@@ -7101,14 +8334,39 @@
 
 				$sm.modal("show");
 
+				// ---- Audit trail entry ----
+				try {
+					var sigStatus = 'unsigned';
+					var sigData = $modal.data("imp-sigResult");
+					if (sigData && sigData.signed) sigStatus = sigData.valid ? 'valid' : 'failed';
+					appendAuditTrailEntry(buildAuditTrailEntry('library_imported', {
+						library_name:     libName,
+						version:          manifest.version || '',
+						author:           manifest.author || '',
+						organization:     manifest.organization || '',
+						source_file:      filePath,
+						lib_install_path: libDestDir,
+						demo_install_path: demoDestDir,
+						files_extracted:  extractedCount,
+						signature_status: sigStatus,
+						com_warning:      comWarning
+					}));
+				} catch(_) { /* non-critical */ }
+
+				try { appendEventHistory('library_imported', EVENT_CATEGORIES.IMPORT, { library_name: libName, version: manifest.version || '', author: manifest.author || '', organization: manifest.organization || '', source_file: filePath, files_extracted: extractedCount, signature_status: sigStatus || 'unknown' }); } catch(_) {}
+
 			} catch(e) {
 				alert("Error installing package:\n" + e.message);
+			} finally {
+				_isImporting = false;
 			}
 		});
 
 		//**************************************************************************************
 		//****** AUDIT LOG CONSTANTS ***********************************************************
 		//**************************************************************************************
+		// NOTE: This key is embedded in the client-side source and provides tamper-
+		// *detection* only, NOT cryptographic authenticity.  See PKG_SIGNING_KEY note.
 		var AUDIT_SIGNING_KEY = 'VenusLibMgr::AuditIntegrity::b9f4e7c2a1d8';
 		var AUDIT_SIG_PREFIX  = '$$INTEGRITY_SIGNATURE$$ ';
 
@@ -7181,6 +8439,9 @@
 				lines.push("Installed libraries (deleted):  " + deletedLibs.length);
 				lines.push("System libraries:               " + sysLibs.length);
 				lines.push("Total libraries audited:        " + (installedLibs.length + sysLibs.length));
+				if (_repairEventLog.length > 0) {
+					lines.push("Repair events (this session):   " + _repairEventLog.length);
+				}
 				lines.push("");
 				lines.push("");
 
@@ -7211,6 +8472,7 @@
 						lines.push("Status:           " + (lib.deleted ? "DELETED" : "Active"));
 						lines.push("Created Date:     " + (lib.created_date || "N/A"));
 						lines.push("Installed Date:   " + (lib.installed_date || "N/A"));
+						lines.push("Installed By:     " + (lib.installed_by || "N/A"));
 						if (lib.deleted && lib.deleted_date) {
 							lines.push("Deleted Date:     " + lib.deleted_date);
 						}
@@ -7301,6 +8563,10 @@
 						lines.push("Author:           " + (sLib.author || "Hamilton"));
 						lines.push("Organization:     " + (sLib.organization || "Hamilton"));
 						lines.push("Type:             System (Read-Only)");
+						lines.push("VENUS Version:    " + (sLib.venus_version || "N/A"));
+						lines.push("Package Date:     N/A");
+						lines.push("Installed Date:   " + (sLib.installed_date || "N/A"));
+						lines.push("Installed By:     " + (sLib.installed_by || "N/A"));
 						lines.push("First Seen:       " + (sLib.first_seen_at || "N/A"));
 						lines.push("Last Seen:        " + (sLib.last_seen_at || "N/A"));
 						lines.push("Source Root:      " + (sLib.source_root || "Library"));
@@ -7362,12 +8628,53 @@
 					}
 				}
 
+				// ---- Repair Events (in-memory log from this session) ----
+				if (_repairEventLog.length > 0) {
+					lines.push("");
+					lines.push(separator);
+					lines.push("  REPAIR EVENTS (This Session)");
+					lines.push(separator);
+					lines.push("");
+					lines.push("Total repair events: " + _repairEventLog.length);
+					lines.push("");
+
+					for (var ri = 0; ri < _repairEventLog.length; ri++) {
+						var rEvt = _repairEventLog[ri];
+						lines.push(subSeparator);
+						lines.push("Timestamp:        " + rEvt.timestamp);
+						lines.push("Library:          " + rEvt.library_name);
+						lines.push("Type:             " + (rEvt.is_system ? "System" : "User-Installed"));
+						lines.push("Result:           " + (rEvt.success ? "SUCCESS" : "FAILED"));
+						if (!rEvt.success && rEvt.error) {
+							lines.push("Error:            " + rEvt.error);
+						}
+						lines.push("Files Extracted:  " + rEvt.files_extracted);
+
+						if (rEvt.pre_repair_errors && rEvt.pre_repair_errors.length > 0) {
+							lines.push("Pre-Repair Errors:");
+							rEvt.pre_repair_errors.forEach(function(e) {
+								lines.push("  [ERROR]  " + e);
+							});
+						}
+						if (rEvt.pre_repair_warnings && rEvt.pre_repair_warnings.length > 0) {
+							lines.push("Pre-Repair Warnings:");
+							rEvt.pre_repair_warnings.forEach(function(w) {
+								lines.push("  [WARN]   " + w);
+							});
+						}
+						lines.push("");
+					}
+				}
+
 				// ---- Footer ----
 				lines.push("");
 				lines.push(separator);
 				lines.push("  END OF AUDIT LOG");
 				lines.push(separator);
 				lines.push("Total entries: " + (installedLibs.length + sysLibs.length));
+				if (_repairEventLog.length > 0) {
+					lines.push("Repair events logged: " + _repairEventLog.length);
+				}
 				lines.push("Audit completed at: " + new Date().toISOString());
 				lines.push("");
 
@@ -7385,6 +8692,8 @@
 				var $am = $("#auditSuccessModal");
 				$am.find(".audit-success-path").text(savePath);
 				$am.modal("show");
+
+				try { appendEventHistory('audit_log_generated', EVENT_CATEGORIES.AUDIT, { output_file: savePath, total_entries: (installedLibs.length + sysLibs.length), repair_events: _repairEventLog.length }); } catch(_) {}
 
 			} catch(e) {
 				alert("Error generating audit log:\n" + e.message);
@@ -7445,9 +8754,11 @@
 				if (computedSig === storedSig) {
 					showAuditVerifyResult($vm, true, path.basename(filePath),
 						'The audit log integrity signature is valid.\nThis file has not been modified since it was generated.');
+					try { appendEventHistory('audit_log_verified', EVENT_CATEGORIES.AUDIT, { file: path.basename(filePath), result: 'passed' }); } catch(_) {}
 				} else {
 					showAuditVerifyResult($vm, false, path.basename(filePath),
 						'Signature mismatch — the file contents have been altered.\n\nStored:    ' + storedSig + '\nComputed: ' + computedSig);
+					try { appendEventHistory('audit_log_verified', EVENT_CATEGORIES.AUDIT, { file: path.basename(filePath), result: 'failed' }); } catch(_) {}
 				}
 			} catch(e) {
 				showAuditVerifyResult($vm, false, path.basename(filePath),
@@ -7545,8 +8856,14 @@
 				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + w + '</span>'); });
 
 				var repairBtnHtml = '';
+				var checkboxHtml = '';
+				var isRepairable = (!integrity.valid || integrity.warnings.length > 0) && hasCached;
 				if (!integrity.valid && hasCached) {
+					checkboxHtml = '<div class="mr-2 mt-1"><input type="checkbox" class="repair-item-checkbox" checked></div>';
 					repairBtnHtml = '<button class="btn btn-sm btn-outline-success repair-single-btn ml-2" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="true" title="Restore from backup package"><i class="fas fa-wrench mr-1"></i>Repair</button>';
+				} else if (integrity.warnings.length > 0 && hasCached) {
+					checkboxHtml = '<div class="mr-2 mt-1"><input type="checkbox" class="repair-item-checkbox"></div>';
+					repairBtnHtml = '<button class="btn btn-sm btn-outline-warning repair-single-btn ml-2" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="true" title="Restore from backup package"><i class="fas fa-wrench mr-1"></i>Repair</button>';
 				} else if (!integrity.valid && !hasCached) {
 					repairBtnHtml = '<span class="text-muted text-sm ml-2" title="No backup package available. Run first-run backup to create one."><i class="fas fa-ban mr-1"></i>No backup</span>';
 				}
@@ -7556,7 +8873,8 @@
 					: '';
 
 				var html =
-					'<div class="repair-lib-item d-flex align-items-start py-2 px-1" style="border-bottom:1px solid var(--bg-divider);" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="true">' +
+					'<div class="repair-lib-item d-flex align-items-start py-2 px-1" style="border-bottom:1px solid var(--bg-divider);" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="true" data-repairable="' + isRepairable + '">' +
+						checkboxHtml +
 						'<div class="mr-3 mt-1"><i class="fas ' + statusIcon + ' ' + statusClass + '"></i></div>' +
 						'<div class="flex-grow-1" style="min-width:0;">' +
 							'<div class="d-flex align-items-center flex-wrap">' +
@@ -7607,8 +8925,14 @@
 				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + w + '</span>'); });
 
 				var repairBtnHtml = '';
+				var checkboxHtml = '';
+				var isRepairable = (!integrity.valid || integrity.warnings.length > 0) && hasCached;
 				if (!integrity.valid && hasCached) {
+					checkboxHtml = '<div class="mr-2 mt-1"><input type="checkbox" class="repair-item-checkbox" checked></div>';
 					repairBtnHtml = '<button class="btn btn-sm btn-outline-success repair-single-btn ml-2" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="false" title="Re-install from cached package"><i class="fas fa-wrench mr-1"></i>Repair</button>';
+				} else if (integrity.warnings.length > 0 && hasCached) {
+					checkboxHtml = '<div class="mr-2 mt-1"><input type="checkbox" class="repair-item-checkbox"></div>';
+					repairBtnHtml = '<button class="btn btn-sm btn-outline-warning repair-single-btn ml-2" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="false" title="Re-install from cached package"><i class="fas fa-wrench mr-1"></i>Repair</button>';
 				} else if (!integrity.valid && !hasCached) {
 					repairBtnHtml = '<span class="text-muted text-sm ml-2" title="No cached package available for repair"><i class="fas fa-ban mr-1"></i>No cached pkg</span>';
 				}
@@ -7618,7 +8942,8 @@
 					: '';
 
 				var html =
-					'<div class="repair-lib-item d-flex align-items-start py-2 px-1" style="border-bottom:1px solid var(--bg-divider);" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="false">' +
+					'<div class="repair-lib-item d-flex align-items-start py-2 px-1" style="border-bottom:1px solid var(--bg-divider);" data-lib-name="' + libName.replace(/"/g, '&quot;') + '" data-is-system="false" data-repairable="' + isRepairable + '">' +
+						checkboxHtml +
 						'<div class="mr-3 mt-1"><i class="fas ' + statusIcon + ' ' + statusClass + '"></i></div>' +
 						'<div class="flex-grow-1" style="min-width:0;">' +
 							'<div class="d-flex align-items-center flex-wrap">' +
@@ -7641,8 +8966,44 @@
 			if (warnCount > 0) statusParts.push(warnCount + ' warning' + (warnCount !== 1 ? 's' : ''));
 			if (failCount === 0 && warnCount === 0) statusParts.push('all OK');
 			$(".repair-status-text").text(statusParts.join(' \u2022 '));
-			$(".repair-all-btn").prop("disabled", failCount === 0);
+
+			// Show/hide the select-all toggle and update selected count
+			var repairableCount = $(".repair-item-checkbox").length;
+			if (repairableCount > 0) {
+				$(".repair-toggle-all").show();
+			} else {
+				$(".repair-toggle-all").hide();
+			}
+			updateRepairSelectedCount();
 		}
+
+		// Update the "Repair Selected (N)" button count and disabled state
+		function updateRepairSelectedCount() {
+			var checked = $(".repair-item-checkbox:checked").length;
+			$(".repair-selected-count").text(checked);
+			$(".repair-all-btn").prop("disabled", checked === 0);
+
+			// Update select-all link text
+			var total = $(".repair-item-checkbox").length;
+			if (total > 0) {
+				$(".repair-toggle-all").text(checked === total ? 'Deselect All' : 'Select All');
+			}
+		}
+
+		// Checkbox change updates button count
+		$(document).on("change", ".repair-item-checkbox", function() {
+			updateRepairSelectedCount();
+		});
+
+		// Select All / Deselect All toggle
+		$(document).on("click", ".repair-toggle-all", function(e) {
+			e.preventDefault();
+			var total = $(".repair-item-checkbox").length;
+			var checked = $(".repair-item-checkbox:checked").length;
+			var newState = checked < total; // if not all checked, select all; otherwise deselect all
+			$(".repair-item-checkbox").prop("checked", newState);
+			updateRepairSelectedCount();
+		});
 
 		// Repair a single library from its cached package
 		$(document).on("click", ".repair-single-btn", function(e) {
@@ -7658,13 +9019,13 @@
 			}
 		});
 
-		// Repair all failed libraries
+		// Repair all selected (checked) libraries
 		$(document).on("click", ".repair-all-btn", function() {
-			var failedItems = $(".repair-lib-item").filter(function() {
-				return $(this).find(".fa-times-circle").length > 0;
+			var selectedItems = $(".repair-lib-item").filter(function() {
+				return $(this).find(".repair-item-checkbox:checked").length > 0;
 			});
 			var names = [];
-			failedItems.each(function() {
+			selectedItems.each(function() {
 				var name = $(this).attr("data-lib-name");
 				var isSys = $(this).attr("data-is-system") === "true";
 				if (name) names.push({ name: name, isSystem: isSys });
@@ -7699,6 +9060,13 @@
 		 */
 		function repairLibraryFromCache(libName, silent) {
 			try {
+				// Capture pre-repair integrity state for audit logging
+				var preIntegrity = { errors: [], warnings: [] };
+				try {
+					var preLib = db_installed_libs.installed_libs.findOne({ library_name: libName });
+					if (preLib) preIntegrity = verifyLibraryIntegrity(preLib);
+				} catch(_pe) {}
+
 				var cached = listCachedVersions(libName);
 				if (cached.length === 0) {
 					var msg = 'No cached packages found for "' + libName + '".';
@@ -7813,11 +9181,13 @@
 					impBuildLibraryCards();
 				}
 
+				logRepairEvent(libName, false, true, '', extractedCount, preIntegrity.errors, preIntegrity.warnings);
 				return { success: true, error: '' };
 
 			} catch(e) {
 				var errMsg = 'Repair failed: ' + e.message;
 				if (!silent) alert(errMsg);
+				logRepairEvent(libName, false, false, errMsg, 0, preIntegrity ? preIntegrity.errors : [], preIntegrity ? preIntegrity.warnings : []);
 				return { success: false, error: errMsg };
 			}
 		}

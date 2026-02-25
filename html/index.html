@@ -125,7 +125,7 @@
 									<div class="form-group row mb-2">
 										<label class="col-sm-4 col-form-label col-form-label-sm">Organization</label>
 										<div class="col-sm-8">
-											<input type="text" class="form-control form-control-sm" id="pkg-organization" placeholder="Company or organization">
+											<input type="text" class="form-control form-control-sm" id="pkg-organization" placeholder="Company or organization (required)">
 										</div>
 									</div>
 									<div class="form-group row mb-2">
@@ -135,15 +135,15 @@
 										</div>
 									</div>
 									<div class="form-group row mb-2">
-										<label class="col-sm-4 col-form-label col-form-label-sm">VENUS Compatibility</label>
+										<label class="col-sm-4 col-form-label col-form-label-sm">VENUS Compatibility <span class="text-danger">*</span></label>
 										<div class="col-sm-8">
-											<input type="text" class="form-control form-control-sm" id="pkg-venus-compat" placeholder="e.g. 4.7+">
+											<input type="text" class="form-control form-control-sm" id="pkg-venus-compat" placeholder="e.g. 4.7+ (required)" required>
 										</div>
 									</div>
 									<div class="form-group row mb-2">
-										<label class="col-sm-4 col-form-label col-form-label-sm">Description</label>
+										<label class="col-sm-4 col-form-label col-form-label-sm">Description <span class="text-danger">*</span></label>
 										<div class="col-sm-8">
-											<textarea class="form-control form-control-sm" id="pkg-description" rows="3" placeholder="Library description"></textarea>
+											<textarea class="form-control form-control-sm" id="pkg-description" rows="3" placeholder="Library description (required)" required></textarea>
 										</div>
 									</div>
 									<div class="form-group row mb-0">
@@ -235,13 +235,31 @@
 			<div class="importer-container d-none">
 				<div class="importer-inner p-4">
 					<!-- Header row with title and Import button (only shown on All tab) -->
-					<div class="d-flex align-items-center mb-4" id="imp-header">
+					<div class="d-flex align-items-center mb-2" id="imp-header">
 						<div>
 							<h4 class="mb-0"><i class="fas fa-book mr-2 color-medium"></i>Installed Libraries</h4>
+						</div>
+						<!-- Issues badge (populated dynamically) -->
+						<div id="imp-issues-badge" class="ml-3 d-none" style="cursor:pointer;" title="Click to view issues">
+							<span class="badge badge-danger imp-issues-badge-pill" id="imp-issues-badge-errors" style="display:none;"><i class="fas fa-exclamation-circle mr-1"></i><span class="imp-issues-err-count"></span> Error(s)</span>
+							<span class="badge badge-warning imp-issues-badge-pill" id="imp-issues-badge-warnings" style="display:none;"><i class="fas fa-exclamation-triangle mr-1"></i><span class="imp-issues-warn-count"></span> Warning(s)</span>
 						</div>
 						<div class="ml-auto">
 							<button class="btn solid-button" id="imp-browse"><i class="fas fa-file-import mr-2"></i>Import</button>
 							<input type="file" class="d-none" id="imp-input-file" accept=".hxlibpkg,.hxlibarch">
+						</div>
+					</div>
+					<!-- Issues banner (expanded list, hidden by default) -->
+					<div id="imp-issues-banner" class="d-none mb-3">
+						<div class="imp-issues-banner-inner">
+							<div class="d-flex align-items-center justify-content-between imp-issues-banner-header">
+								<span class="font-weight-bold" style="color:#842029;"><i class="fas fa-shield-alt mr-2"></i>Library Issues</span>
+								<button class="btn btn-sm btn-link imp-issues-close" title="Dismiss" style="color:#842029;"><i class="fas fa-times"></i></button>
+							</div>
+							<div class="imp-issues-list" id="imp-issues-list"></div>
+							<div class="d-flex justify-content-end px-3 py-2" style="border-top:1px solid rgba(220,53,69,0.12); background:rgba(220,53,69,0.03);">
+								<a href="#" class="text-sm imp-issues-open-repair" style="color:var(--medium2);"><i class="fas fa-tools mr-1"></i>Open Verify &amp; Repair</a>
+							</div>
 						</div>
 					</div>
 					<!-- Installed library cards grid -->
@@ -254,8 +272,6 @@
 				</div>
 			</div>
 		</div>
-
-		<!----Settings page removed – replaced by groupsModal and settingsModal --->
 	</div>
 
 	
@@ -689,19 +705,6 @@
 											<div class="select-icon"><i class="fas fa-1x fa-lightbulb"></i></div>
 											<div class="select-icon"><i class="fas fa-1x fa-gamepad"></i></div>
 											<div class="clearfix"></div>
-											<h6 class="clearfix mt-3 d-none">Bonus</h6>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-toilet-paper"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-poo"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-poop"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-bong"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-joint"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-beer"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-glass-martini-alt"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-hat-wizard"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-fist-raised"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-ring"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-book-dead"></i></div>
-											<div class="select-icon d-none"><i class="fas fa-1x fa-bomb"></i></div>
 
 										</div><!-- end div icons list -->
 									</div><!-- end div icon selection -->
@@ -856,6 +859,12 @@
 								<p class="lib-detail-created-date text-muted"></p>
 							</div>
 						</div>
+						<div class="col-md-6">
+							<div class="detail-section">
+								<h6 class="detail-section-label">Installed By</h6>
+								<p class="lib-detail-installed-by text-muted"></p>
+							</div>
+						</div>
 					</div>
 					<div class="detail-section lib-detail-tags-section">
 						<h6 class="detail-section-label">Tags</h6>
@@ -970,6 +979,84 @@
 	</div>
 	<!---- Modal Delete Library Confirmation end --->
 
+	<!---- Modal Upgrade Library Confirmation start --->
+	<div class="modal" tabindex="-1" role="dialog" id="upgradeLibConfirmModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:480px;">
+			<div class="modal-content upgrade-confirm-content">
+				<div class="modal-header upgrade-confirm-header">
+					<div class="d-flex align-items-center">
+						<div class="upgrade-confirm-icon mr-3">
+							<i class="fas fa-arrow-circle-up fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Upgrade Library</h5>
+							<span class="upgrade-confirm-libname-header"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body upgrade-confirm-body">
+					<div class="upgrade-confirm-warning-box">
+						<p class="mb-2"><strong>This may be a destructive action.</strong> Upgrading will overwrite existing library and demo files on disk with the new version.</p>
+						<p class="upgrade-confirm-consequences mb-0"></p>
+					</div>
+					<div class="upgrade-confirm-input-section mt-3">
+						<label class="upgrade-confirm-label">To confirm, type "<strong class="upgrade-confirm-expected-text"></strong>" in the box below</label>
+						<input type="text" class="form-control upgrade-confirm-input" autocomplete="off" spellcheck="false">
+					</div>
+				</div>
+				<div class="modal-footer upgrade-confirm-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn upgrade-confirm-btn" disabled>
+						<i class="fas fa-arrow-circle-up mr-1"></i>I understand, upgrade this library
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Upgrade Library Confirmation end --->
+
+	<!---- Modal Rollback Library Confirmation start --->
+	<div class="modal" tabindex="-1" role="dialog" id="rollbackLibConfirmModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:480px;">
+			<div class="modal-content rollback-confirm-content">
+				<div class="modal-header rollback-confirm-header">
+					<div class="d-flex align-items-center">
+						<div class="rollback-confirm-icon mr-3">
+							<i class="fas fa-undo-alt fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Rollback Library</h5>
+							<span class="rollback-confirm-libname-header"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body rollback-confirm-body">
+					<div class="rollback-confirm-warning-box">
+						<p class="mb-2"><strong>This may be a destructive action.</strong> Rolling back will overwrite all current library files with the selected earlier version.</p>
+						<p class="rollback-confirm-consequences mb-0"></p>
+					</div>
+					<div class="rollback-confirm-input-section mt-3">
+						<label class="rollback-confirm-label">To confirm, type "<strong class="rollback-confirm-expected-text"></strong>" in the box below</label>
+						<input type="text" class="form-control rollback-confirm-input" autocomplete="off" spellcheck="false">
+					</div>
+				</div>
+				<div class="modal-footer rollback-confirm-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn rollback-confirm-btn" disabled>
+						<i class="fas fa-undo-alt mr-1"></i>I understand, rollback this library
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Rollback Library Confirmation end --->
+
 	<!---- Modal Export Archive start --->
 	<div class="modal" tabindex="-1" role="dialog" id="exportArchiveModal">
 		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -1070,10 +1157,6 @@
 							<div class="custom-control custom-checkbox">
 								<input type="checkbox" class="custom-control-input" id="chk_confirmBeforeInstall" checked>
 								<label class="custom-control-label" for="chk_confirmBeforeInstall">Show preview and confirmation before installing a library</label>
-							</div>
-							<div class="custom-control custom-checkbox mt-2">
-								<input type="checkbox" class="custom-control-input" id="chk_overwriteWithoutAsking">
-								<label class="custom-control-label" for="chk_overwriteWithoutAsking">Overwrite existing library files without asking</label>
 							</div>
 							<div class="custom-control custom-checkbox mt-2">
 								<input type="checkbox" class="custom-control-input" id="chk_autoAddToGroup" checked>
@@ -1347,6 +1430,70 @@
 	</div>
 	<!---- Modal Audit Verify Result end --->
 
+	<!---- Modal Event History start --->
+	<div class="modal" tabindex="-1" role="dialog" id="eventHistoryModal">
+		<div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width:960px;">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3">
+							<i class="fas fa-history fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Event History</h5>
+							<span class="text-muted text-sm" style="color:rgba(255,255,255,0.6)!important;">Complete GxP activity log &mdash; all actions with user, timestamp, and details</span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body" style="padding:0; background:var(--method-background);">
+					<!-- Toolbar: search + filters -->
+					<div class="d-flex align-items-center flex-wrap px-3 pt-3 pb-2" style="gap:8px; border-bottom:1px solid #e9ecef;">
+						<div class="input-group input-group-sm" style="max-width:260px;">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="fas fa-search"></i></span>
+							</div>
+							<input type="text" class="form-control evt-history-search" placeholder="Search events..." autocomplete="off">
+						</div>
+						<select class="custom-select custom-select-sm evt-history-cat-filter" style="max-width:160px;">
+							<option value="">All Categories</option>
+							<option value="Import">Import</option>
+							<option value="Export">Export</option>
+							<option value="Create">Create</option>
+							<option value="Delete">Delete</option>
+							<option value="Settings">Settings</option>
+							<option value="Group">Group</option>
+							<option value="Repair">Repair</option>
+							<option value="Rollback">Rollback</option>
+							<option value="Audit">Audit</option>
+							<option value="System">System</option>
+						</select>
+						<select class="custom-select custom-select-sm evt-history-user-filter" style="max-width:160px;">
+							<option value="">All Users</option>
+						</select>
+						<div class="ml-auto d-flex align-items-center" style="gap:14px; padding-right:4px;">
+							<span class="text-muted text-sm evt-history-count"></span>
+							<button class="btn btn-sm btn-outlined evt-history-export" title="Export to CSV"><i class="fas fa-file-csv mr-1"></i>Export</button>
+						</div>
+					</div>
+					<!-- Event list -->
+					<div class="evt-history-list" style="max-height:60vh; overflow-y:auto; padding:10px 18px;">
+						<div class="text-center text-muted py-5">Loading...</div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
+					<span class="text-muted text-sm evt-history-footer-info"></span>
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Hidden save dialog for history CSV export -->
+	<input type="file" class="d-none" id="evt-history-save-dialog" nwsaveas="event_history.csv" accept=".csv">
+	<!---- Modal Event History end --->
+
 	<!---- Modal Verify & Repair start --->
 	<div class="modal" tabindex="-1" role="dialog" id="repairModal">
 		<div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width:700px;">
@@ -1359,10 +1506,13 @@
 					<div class="repair-lib-list" style="padding:8px 16px;"></div>
 				</div>
 				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
-					<span class="repair-status-text text-muted text-sm"></span>
+					<div class="d-flex align-items-center">
+						<span class="repair-status-text text-muted text-sm"></span>
+						<a href="#" class="text-sm ml-3 repair-toggle-all" style="color:var(--medium); display:none;">Select All</a>
+					</div>
 					<div>
-						<button type="button" class="btn outline-button mr-2" data-dismiss="modal">Close</button>
-						<button type="button" class="btn solid-button repair-all-btn" disabled><i class="fas fa-wrench mr-1"></i>Repair Selected</button>
+						<button type="button" class="btn btn-outlined mr-2" data-dismiss="modal">Close</button>
+						<button type="button" class="btn solid-button repair-all-btn" disabled><i class="fas fa-wrench mr-1"></i>Repair Selected (<span class="repair-selected-count">0</span>)</button>
 					</div>
 				</div>
 			</div>

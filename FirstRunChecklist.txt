@@ -9,7 +9,30 @@ not yet set in db/settings.json):
    - Hardcoded VENUS paths are written to the links database.
    - Method editor / run-control paths are resolved.
 
-2. ensureSystemLibraryBackups()   [NEW — System Library Repair Backup]
+2. ensureSystemLibraryMetadata()   [System Library Install Metadata]
+   - Reads the 'sysLibMetadataComplete' flag from settings.
+   - If false / missing, queries the Windows registry (Uninstall keys)
+     for the Hamilton VENUS install date and software version.
+     Registry paths checked (32-bit and 64-bit):
+       HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+       HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+   - Looks for the entry whose DisplayName matches "Hamilton VENUS <digit>"
+     and reads DisplayVersion (e.g. "6.2.2.4006") and InstallDate
+     (YYYYMMDD format, converted to ISO 8601 UTC).
+   - If the registry InstallDate is missing, falls back to the creation
+     time of C:\Program Files (x86)\HAMILTON as a proxy.
+   - Stamps every system library in the in-memory array with:
+       installed_date  — VENUS install date (UTC ISO 8601)
+       installed_by    — "System"
+       venus_version   — e.g. "6.2.2.4006"
+   - Writes system_library_metadata.json to the user data directory
+     (NOT the program directory) so metadata persists across restarts
+     without modifying app-bundled files.
+   - On subsequent launches, the metadata file is read from the user data
+     directory and merged into the in-memory system libraries array.
+   - Sets 'sysLibMetadataComplete' to true so this does not run again.
+
+3. ensureSystemLibraryBackups()   [System Library Repair Backup]
    - Reads the 'sysLibBackupComplete' flag from settings.
    - If false / missing, iterates through ALL system libraries defined in
      db/system_libraries.json.
@@ -29,13 +52,13 @@ not yet set in db/settings.json):
    - Console log output summarises how many libraries were backed up,
      how many were skipped (already cached), and any errors.
 
-3. createGroups()
+4. createGroups()
    - Navigation groups are built from the tree database.
 
-4. historyCleanup()
+5. historyCleanup()
    - Old run logs are cleaned up asynchronously.
 
-5. navigateHome()
+6. navigateHome()
    - The UI navigates to the "All" (home) tab.
 
 -----------------------------------------------------------------------

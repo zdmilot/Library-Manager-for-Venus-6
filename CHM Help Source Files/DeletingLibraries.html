@@ -69,6 +69,9 @@
   <li>A cached version exists in the <a href="VersionRollback.html">package store</a> from a previous import</li>
   <li>A <code>.hxlibarch</code> backup archive contains the library</li>
 </ul>
+
+<h2>Audit Trail</h2>
+<p>Every deletion (both GUI and CLI) is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username, Windows OS version, VENUS version, hostname, library name, version, and delete type (soft or hard). See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
 <p>Venus Library Manager Help</p>

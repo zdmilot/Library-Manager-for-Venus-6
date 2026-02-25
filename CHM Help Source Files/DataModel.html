@@ -246,8 +246,12 @@
 
 <h2>User Data Directory</h2>
 <p>The application database in the <code>db/</code> folder serves as the <b>default template</b>. On first run or when importing, the user's working database is stored at the configured <code>userDataPath</code>:</p>
-<div class="code"><pre>C:\Program Files (x86)\Hamilton\Library\.VenusLibraryManager\</pre></div>
-<p>This directory mirrors the <code>db/</code> structure and contains the live, mutable copy of the database that reflects the current installation state.</p>
+<div class="code"><pre>C:\Program Files (x86)\Hamilton\Library\VenusLibraryManager\</pre></div>
+<p>This directory mirrors the <code>db/</code> structure and contains the live, mutable copy of the database that reflects the current installation state. It also contains:</p>
+<ul>
+  <li><code>audit_trail.json</code> — A persistent audit trail recording all library lifecycle events (package creation, import, delete, rollback) with environmental context such as the Windows username, Windows OS version, VENUS version, and hostname. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</li>
+  <li><code>system_library_metadata.json</code> — VENUS install metadata for system libraries (populated on first launch)</li>
+</ul>
 
 <h2>Related</h2>
 <ul>

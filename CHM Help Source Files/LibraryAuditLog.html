@@ -108,7 +108,54 @@
   <li>Use <b>Check Audit File</b> whenever you retrieve a historical audit log to confirm it has not been altered</li>
   <li>Do not open or edit audit log files in a text editor before verification — even invisible changes (encoding, line endings) will invalidate the signature</li>
   <li>Audit logs are stored alongside VENUS run logs in <code>C:\Program Files (x86)\Hamilton\Logfiles\Library Audit Logs\</code> for centralized log management</li>
+  <li>Review the <b>Audit Trail</b> (see below) to trace the full history of who packaged, imported, deleted, or rolled back libraries and from which machine</li>
 </ul>
+
+<h2>Audit Trail</h2>
+<p>In addition to the on-demand point-in-time audit log, Venus Library Manager maintains a <b>persistent audit trail</b> that automatically records every lifecycle event as it occurs. This trail provides a chronological record of all library operations across the lifetime of the installation.</p>
+
+<h3>When Events Are Recorded</h3>
+<p>An audit trail entry is appended automatically whenever any of the following operations completes (in both the GUI and the CLI):</p>
+<ul>
+  <li><b>Package Created</b> &mdash; A new <code>.hxlibpkg</code> package is built</li>
+  <li><b>Library Imported</b> &mdash; A single <code>.hxlibpkg</code> is installed</li>
+  <li><b>Archive Imported</b> &mdash; A <code>.hxlibarch</code> (multi-library archive) is installed</li>
+  <li><b>Library Deleted</b> &mdash; An installed library is removed</li>
+  <li><b>Library Rollback</b> &mdash; A library is rolled back to a previously cached version</li>
+</ul>
+
+<h3>What Each Entry Contains</h3>
+<p>Every audit trail entry records the following environmental and contextual data:</p>
+<table>
+<thead><tr><th>Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>event</b></td><td>The event type (e.g. <code>package_created</code>, <code>library_imported</code>, <code>archive_imported</code>, <code>library_deleted</code>, <code>library_rollback</code>)</td></tr>
+<tr><td><b>timestamp</b></td><td>ISO 8601 date and time when the event occurred</td></tr>
+<tr><td><b>username</b></td><td>The Windows username of the user who performed the action</td></tr>
+<tr><td><b>windows_version</b></td><td>The Windows OS version string (e.g. <code>Windows_NT 10.0.19045 (x64)</code>)</td></tr>
+<tr><td><b>venus_version</b></td><td>The installed Hamilton VENUS software version (e.g. <code>6.2.2.4006</code>) as detected from the Windows registry, or <code>N/A</code> if not found</td></tr>
+<tr><td><b>hostname</b></td><td>The computer name where the action was performed</td></tr>
+<tr><td><b>details</b></td><td>Event-specific details such as the library name, version, author, source file path, install path, and other relevant metadata</td></tr>
+</tbody>
+</table>
+
+<h3>Storage Location</h3>
+<p>The audit trail is saved as <code>audit_trail.json</code> in the <b>user data directory</b>:</p>
+<pre>&lt;User Data Directory&gt;\audit_trail.json</pre>
+<p>By default, this is:</p>
+<pre>C:\Program Files (x86)\Hamilton\Library\VenusLibraryManager\audit_trail.json</pre>
+<p>The audit trail file is stored with other user data (installed library records, groups, etc.) and is <b>never</b> written to the application's own directory. This ensures the application remains portable and that all user-specific data is kept in the configured user data location.</p>
+
+<h3>Traceability</h3>
+<p>The audit trail enables full traceability across distributed workflows. For example, when a library is packaged on one workstation and imported on another:</p>
+<ul>
+  <li>The <b>packaging</b> event records the packager's Windows username, Windows version, VENUS version, and hostname</li>
+  <li>The <b>import</b> event on the receiving workstation records the importer's Windows username, Windows version, VENUS version, and hostname</li>
+</ul>
+<p>Together, these entries provide a complete chain of custody showing who created the package, on what system, and who installed it, on what system.</p>
+
+<h3>Visibility</h3>
+<p>The audit trail is <b>not</b> displayed in the library detail view or any GUI panel. It is intended as a background record for compliance, troubleshooting, and forensic review. To inspect the trail, open <code>audit_trail.json</code> directly in a text editor or JSON viewer.</p>
 
 <h2>Related Topics</h2>
 <ul>

@@ -185,11 +185,6 @@ body {
 	overflow-y: hidden;
 	height: 100%;
 	-webkit-user-select: none;
-	/* cursor: url(normal.cur) ,default; */
-}
-
-.setttings-container{
-	overflow-y: auto;
 }
 
 .links-container {
@@ -325,31 +320,6 @@ body {
 	cursor: pointer;
 }
 
-.tooltip-wide .tooltip.bottom, .tooltip-inner {
-	max-width: none;
-}
-
-.h-menu>li {
-	display: inline;
-	list-style-type: none;
-	margin-right: 34px;
-}
-
-.h-menu {
-	font-size: 24px;
-	padding-left: 0px;
-}
-
-.h-menu>li>a {
-	text-decoration: none;
-	color: var(--medium);
-	padding: 10px 10px 10px 10px;
-}
-
-.h-menu>li>a:hover, .h-menu>li>a.active {
-	border-bottom: 1px solid var(--dark1);
-	color: var(--dark1);
-}
 .settings-section{
 	background-color: var(--method-background);
 	color: var(--dark1);
@@ -363,11 +333,6 @@ body {
 .custom-control-input:checked~.custom-control-label::before {
     color: var(--solid-button-font);
     background-color: var(--solid-button-background);
-}
-
-.dd-settings-startup{
-	background-color: var(--solid-button-background) !important;
-	font-size: 0.9em !important;
 }
 
 .custom-radio input, .custom-radio label, .custom-checkbox input, .custom-checkbox label{
@@ -528,19 +493,6 @@ body {
 			.icons-list div.icon-active,.icons-list div:not(.clearfix):hover {
 				background-color: #495057;
 				color:white;
-			}
-
-			.link-card-groupTitle{
-				font-size: 0.9em;
-				color:rgb(179, 177, 177);
-			}
-
-			.custom-badge{
-				font-size: 0.8em;
-				color: #ABA9A9;
-				background: #F3F3F3;
-				border-radius: 8px;
-				margin-top: 7px;
 			}
 
 /* ---- Detail Modal ---- */
@@ -798,6 +750,248 @@ body {
 .delete-confirm-btn:not(:disabled):hover {
 	background: #b22a37;
 	border-color: #b22a37;
+}
+
+/* ---- Upgrade Library Confirmation Modal (Green theme) ---- */
+.upgrade-confirm-content {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.upgrade-confirm-header {
+	background: #14532d;
+	color: #d1fae5;
+	border-bottom: 3px solid #22c55e;
+	padding: 20px 24px;
+}
+
+.upgrade-confirm-header .close {
+	color: #d1fae5;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.upgrade-confirm-header .close:hover {
+	opacity: 1;
+}
+
+.upgrade-confirm-icon i {
+	color: #22c55e;
+}
+
+.upgrade-confirm-libname-header {
+	color: #86efac;
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+.upgrade-confirm-body {
+	padding: 24px;
+	background: var(--method-background);
+}
+
+.upgrade-confirm-warning-box {
+	background: #f0fdf4;
+	border: 1px solid #22c55e;
+	border-radius: 8px;
+	padding: 16px;
+	color: #14532d;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.upgrade-confirm-warning-box strong {
+	color: #15803d;
+}
+
+.upgrade-confirm-consequences {
+	color: #166534;
+	font-size: 0.85rem;
+}
+
+.upgrade-confirm-input-section {
+	margin-top: 16px;
+}
+
+.upgrade-confirm-label {
+	font-size: 0.85rem;
+	color: #555;
+	margin-bottom: 6px;
+	display: block;
+}
+
+.upgrade-confirm-input {
+	border: 2px solid var(--body-background);
+	border-radius: 6px;
+	font-size: 0.95rem;
+	padding: 8px 12px;
+	transition: border-color 0.2s;
+}
+
+.upgrade-confirm-input:focus {
+	border-color: #22c55e;
+	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+	outline: none;
+}
+
+.upgrade-confirm-input.is-valid {
+	border-color: #22c55e;
+	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.upgrade-confirm-footer {
+	background: var(--method-background);
+	border-top: 1px solid var(--body-background);
+	padding: 12px 24px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.upgrade-confirm-btn {
+	background: #16a34a;
+	border-color: #16a34a;
+	color: #ffffff;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+	transition: opacity 0.2s, background-color 0.2s;
+}
+
+.upgrade-confirm-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background: #16a34a;
+	border-color: #16a34a;
+	color: #ffffff;
+}
+
+.upgrade-confirm-btn:not(:disabled):hover {
+	background: #15803d;
+	border-color: #15803d;
+	color: #ffffff;
+}
+
+/* ---- Rollback Library Confirmation Modal (Purple theme) ---- */
+.rollback-confirm-content {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.rollback-confirm-header {
+	background: #3b1564;
+	color: #e9d5ff;
+	border-bottom: 3px solid #a855f7;
+	padding: 20px 24px;
+}
+
+.rollback-confirm-header .close {
+	color: #e9d5ff;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.rollback-confirm-header .close:hover {
+	opacity: 1;
+}
+
+.rollback-confirm-icon i {
+	color: #a855f7;
+}
+
+.rollback-confirm-libname-header {
+	color: #d8b4fe;
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+.rollback-confirm-body {
+	padding: 24px;
+	background: var(--method-background);
+}
+
+.rollback-confirm-warning-box {
+	background: #faf5ff;
+	border: 1px solid #a855f7;
+	border-radius: 8px;
+	padding: 16px;
+	color: #3b1564;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.rollback-confirm-warning-box strong {
+	color: #7e22ce;
+}
+
+.rollback-confirm-consequences {
+	color: #581c87;
+	font-size: 0.85rem;
+}
+
+.rollback-confirm-input-section {
+	margin-top: 16px;
+}
+
+.rollback-confirm-label {
+	font-size: 0.85rem;
+	color: #555;
+	margin-bottom: 6px;
+	display: block;
+}
+
+.rollback-confirm-input {
+	border: 2px solid var(--body-background);
+	border-radius: 6px;
+	font-size: 0.95rem;
+	padding: 8px 12px;
+	transition: border-color 0.2s;
+}
+
+.rollback-confirm-input:focus {
+	border-color: #a855f7;
+	box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+	outline: none;
+}
+
+.rollback-confirm-input.is-valid {
+	border-color: #a855f7;
+	box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.rollback-confirm-footer {
+	background: var(--method-background);
+	border-top: 1px solid var(--body-background);
+	padding: 12px 24px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.rollback-confirm-btn {
+	background: #9333ea;
+	border-color: #9333ea;
+	color: #ffffff;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+	transition: opacity 0.2s, background-color 0.2s;
+}
+
+.rollback-confirm-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	background: #9333ea;
+	border-color: #9333ea;
+	color: #ffffff;
+}
+
+.rollback-confirm-btn:not(:disabled):hover {
+	background: #7e22ce;
+	border-color: #7e22ce;
+	color: #ffffff;
 }
 
 /* ---- Import Success Modal ---- */
@@ -1083,6 +1277,96 @@ body {
 
 .imp-lib-card-warning:hover {
 	box-shadow: 0 2px 12px rgba(240, 173, 78, 0.25);
+}
+
+/* ---- Issues banner at top of library list ---- */
+.imp-issues-banner-inner {
+	background: #fff3cd;
+	border: 1px solid #ffc107;
+	border-left: 4px solid #dc3545;
+	border-radius: 6px;
+	padding: 0;
+	overflow: hidden;
+}
+
+.imp-issues-banner-header {
+	background: rgba(220, 53, 69, 0.08);
+	padding: 8px 14px;
+	border-bottom: 1px solid rgba(220, 53, 69, 0.12);
+}
+
+.imp-issues-list {
+	max-height: 260px;
+	overflow-y: auto;
+	padding: 4px 0;
+}
+
+.imp-issues-item {
+	display: flex;
+	align-items: center;
+	padding: 6px 14px;
+	font-size: 0.85rem;
+	border-bottom: 1px solid rgba(0,0,0,0.05);
+	transition: background-color 0.15s;
+}
+
+.imp-issues-item:last-child {
+	border-bottom: none;
+}
+
+.imp-issues-item:hover {
+	background-color: rgba(220, 53, 69, 0.04);
+}
+
+.imp-issues-item-icon {
+	width: 22px;
+	text-align: center;
+	margin-right: 10px;
+	flex-shrink: 0;
+}
+
+.imp-issues-item-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.imp-issues-item-text .issue-lib-name {
+	font-weight: 600;
+	color: var(--medium2);
+}
+
+.imp-issues-item-text .issue-detail {
+	color: #6c757d;
+	margin-left: 6px;
+}
+
+.imp-issues-item-actions {
+	margin-left: 10px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.imp-issues-badge-pill {
+	font-size: 0.78rem;
+	padding: 4px 10px;
+	border-radius: 20px;
+	cursor: pointer;
+}
+
+/* ---- Repair modal checkbox ---- */
+.repair-item-checkbox {
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+	accent-color: var(--medium);
+}
+
+.repair-toggle-all {
+	white-space: nowrap;
+	font-weight: 500;
 }
 
 /* ---- Integrity error card background (red) ---- */
@@ -1413,4 +1697,123 @@ body {
 
 .imp-search-no-results {
 	user-select: none;
+}
+
+/* ---- Event History Modal ---- */
+.evt-history-row {
+	display: flex;
+	align-items: flex-start;
+	padding: 14px 16px;
+	border-bottom: 1px solid #eee;
+	transition: background 0.15s;
+	gap: 48px;
+}
+
+.evt-history-row:hover {
+	background: rgba(0,0,0,0.025);
+}
+
+.evt-history-row:last-child {
+	border-bottom: none;
+}
+
+.evt-history-icon {
+	flex-shrink: 0;
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-size: 0.9rem;
+}
+
+.evt-history-body {
+	flex: 1;
+	min-width: 0;
+	margin-left: 8px;
+}
+
+.evt-history-title {
+	font-weight: 600;
+	font-size: 0.93rem;
+	color: #212529;
+	margin-bottom: 3px;
+}
+
+.evt-history-detail-text {
+	font-size: 0.84rem;
+	color: #6c757d;
+	word-break: break-word;
+	line-height: 1.45;
+}
+
+.evt-history-meta {
+	flex-shrink: 0;
+	text-align: right;
+	min-width: 155px;
+}
+
+.evt-history-time {
+	font-size: 0.8rem;
+	color: #6c757d;
+	white-space: nowrap;
+	margin-bottom: 2px;
+}
+
+.evt-history-user {
+	font-size: 0.75rem;
+	color: #999;
+	white-space: nowrap;
+}
+
+.evt-history-badge {
+	display: inline-block;
+	font-size: 0.65rem;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 10px;
+	color: white;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.evt-history-details-toggle {
+	font-size: 0.78rem;
+	color: var(--medium);
+	cursor: pointer;
+	user-select: none;
+}
+
+.evt-history-details-toggle:hover {
+	color: var(--medium2);
+	text-decoration: underline;
+}
+
+.evt-history-detail-block {
+	margin-top: 6px;
+	padding: 8px 10px;
+	background: var(--body-background);
+	border-radius: 6px;
+	font-size: 0.8rem;
+	font-family: 'Consolas', 'Courier New', monospace;
+	color: #495057;
+	display: none;
+}
+
+.evt-history-detail-block.show {
+	display: block;
+}
+
+.evt-history-empty {
+	text-align: center;
+	padding: 40px 20px;
+	color: #adb5bd;
+}
+
+.evt-history-empty i {
+	font-size: 3rem;
+	display: block;
+	margin-bottom: 12px;
 }

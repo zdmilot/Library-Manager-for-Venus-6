@@ -33,7 +33,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_f70b8f7aa8f3e2ecd2ca7731bd44b832",
@@ -80,7 +83,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_90effa63b46d5296d5272d9f31fb60d2",
@@ -120,7 +126,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_ec4842279476d65283f845660229cf02",
@@ -153,7 +162,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_4535fd84b925fa96cfd9ee2e932b9def",
@@ -186,7 +198,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_e664651bd9b039b91a392cfb1c82a91e",
@@ -219,7 +234,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_6d5bc72f0c75f3c997aa293542fe9aa7",
@@ -255,7 +273,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_827dce70793daf1c48a22672fc59e6c5",
@@ -282,7 +303,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_40324e5fc3ce72adb415a599925e46b0",
@@ -383,7 +407,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_5fcba46ea88ce9c26ec5ef3dc7091737",
@@ -420,7 +447,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_5d21ffc5bf27a12f27c1229bdce93374",
@@ -479,7 +509,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_a16fccd55645e5cee03d10b67e9d35e1",
@@ -517,7 +550,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_44ddf16645604a8d698075fa9acc615c",
@@ -569,7 +605,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_6ecc80703f41d902362732230ae8c287",
@@ -606,7 +645,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_981d9b28ba745c5fbb5c0ec0ae98977c",
@@ -637,7 +679,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_14cacab222e9384def66e17c06600513",
@@ -664,7 +709,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_5c0e1fd04d4f8933b1485c03a41fde79",
@@ -763,7 +811,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_04dde97a3ac71ee826cf0cabe7ec830e",
@@ -790,7 +841,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_2ba688be80a469e8061a89c187c5810d",
@@ -818,7 +872,10 @@
     ],
     "has_primary_definition": false,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_bb8a156f0ba2aec3ef7d2612fdf9bc3e",
@@ -851,7 +908,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_4e07d34a1b2e7ec61759a6c22a4f363c",
@@ -878,7 +938,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_13dfc399bd1fa123ab4e28d71664931f",
@@ -914,7 +977,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_a96c676c3ea21aaf0416675a0742e454",
@@ -950,7 +1016,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_160dd098560926cd979322e88b081145",
@@ -987,7 +1056,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_2e2349e9542f43b14027027f7eca5d17",
@@ -1025,7 +1097,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_f70229e31616b2399e60d33db6325003",
@@ -1070,7 +1145,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_0c4a3b0997273e0c542237147b1dd6b8",
@@ -1101,7 +1179,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_8511e3977efbb5664730e51c332fce55",
@@ -1139,7 +1220,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_b9861f4a22f81b0e54eba0009de76a78",
@@ -1175,7 +1259,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_4788fc499151cca0775d1c86cde8a39d",
@@ -1202,7 +1289,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_b98fa460fe051935cebfe24dc3b616ed",
@@ -1229,7 +1319,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_49474a85926db022213c4a3a72393395",
@@ -1258,7 +1351,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_ba2ba9438449a3930b07d56bda5a7f3f",
@@ -1285,7 +1381,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_1f4b5ddcedae07590676571d3111239e",
@@ -1312,7 +1411,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_ad37e8b646f3f4b4d6c7940373a06988",
@@ -1339,7 +1441,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_70e67b6b531a060ed05c740ad82cd0fc",
@@ -1366,7 +1471,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_cc5c30227ae3be1670c88705f1e37a42",
@@ -1397,7 +1505,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_e8ac1d566cbae3943639df2681101e63",
@@ -1426,7 +1537,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_81ed2adcf4efb5bd9d69cbe5181c5813",
@@ -1462,7 +1576,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_11396c558bac5e541900a9b7a01215d5",
@@ -1489,7 +1606,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_a5152640973f534eec385660ce562abd",
@@ -1536,7 +1656,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_5bb47fdfddc4e33ca05f2b8198e232a7",
@@ -1574,7 +1697,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_b95a77f83db0d86b7f4c55fe9c256502",
@@ -1610,7 +1736,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_bf70e9b2d29f9f3acf68a519cfff5329",
@@ -1643,7 +1772,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_837273e5ba4b344e554b5131167d8bf2",
@@ -1676,7 +1808,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_59b04afddaa37cb9dffa23118f5219d5",
@@ -1726,7 +1861,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_2640b28b996868d6a865ef5f624fdc07",
@@ -1764,7 +1902,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_7410e1a5fb6cad36e8d8c5882694e14c",
@@ -1857,7 +1998,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_6029fc65d1b528373927633c4014a467",
@@ -1886,7 +2030,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_a7983e1d08ec39d80ad179a487c6a7a8",
@@ -1915,7 +2062,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_17b9df571cf9054d6f1ba6818f707d9f",
@@ -1942,7 +2092,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_68dd8e5028f5a6887c232513b0919ac1",
@@ -1980,7 +2133,10 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   },
   {
     "_id": "sys_15e1432479baae5be00be80ec13e8518",
@@ -2018,6 +2174,9 @@
     ],
     "has_primary_definition": true,
     "first_seen_at": "2026-02-24T00:48:40.048Z",
-    "last_seen_at": "2026-02-24T00:48:40.048Z"
+    "last_seen_at": "2026-02-24T00:48:40.048Z",
+    "installed_date": "2026-01-25T04:03:28.686Z",
+    "installed_by": "System",
+    "venus_version": "6.2.2.4006"
   }
 ]

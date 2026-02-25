@@ -77,6 +77,9 @@
   <li><b>Recovery:</b> Restore a library that was accidentally modified or corrupted on disk</li>
   <li><b>Audit:</b> Verify that a specific historical version of a library produces expected results</li>
 </ul>
+
+<h2>Audit Trail</h2>
+<p>Every rollback operation is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username, Windows OS version, VENUS version, hostname, library name, and the version rolled back to. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
 <p>Venus Library Manager Help</p>
