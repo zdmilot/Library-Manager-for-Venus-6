@@ -1376,7 +1376,9 @@
 			// resize triggered by win.maximize() cannot cancel this init.
 			setTimeout(function () {
 				try {
+					$('#splash-screen .splash-status').text('Loading library data...');
 					initVENUSData();
+					$('#splash-screen .splash-status').text('Building groups...');
 					createGroups();
 					setTimeout(function(){historyCleanup()},100);
 				} catch(e) {
@@ -1384,7 +1386,16 @@
 					try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
 				}
 				// Ensure we always navigate to home screen after startup
+				$('#splash-screen .splash-status').text('Ready');
 				try { navigateHome(); } catch(e3) { console.log("Error navigating home: " + e3); }
+
+				// Dismiss splash screen
+				setTimeout(function() {
+					$('#splash-screen').addClass('splash-fade-out');
+					setTimeout(function() {
+						$('#splash-screen').remove();
+					}, 700);
+				}, 400);
 			}, 150);
         });
 
