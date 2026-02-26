@@ -48,6 +48,13 @@
       "examples": ["Provides high-level pipetting helpers for the ML600 syringe pump."]
     },
 
+    "github_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the library's GitHub repository. Optional.",
+      "examples": ["https://github.com/user/venus-library"]
+    },
+
     "tags": {
       "type": "array",
       "description": "Searchable keyword tags for the library. Optional.",

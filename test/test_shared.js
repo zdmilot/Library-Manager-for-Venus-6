@@ -674,6 +674,338 @@ test('HMAC corruption in header is detected', function () {
 });
 
 // -----------------------------------------------------------------------
+console.log('\n=== validateGitHubRepoUrl ===');
+// -----------------------------------------------------------------------
+
+// --- accept valid URLs ---
+
+test('accepts basic https://github.com/owner/repo', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts http scheme', function () {
+    var r = shared.validateGitHubRepoUrl('http://github.com/octocat/hello-world');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with trailing slash', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with .git suffix', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world.git');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with .git and trailing slash', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world.git/');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with repo-scoped route (issues)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/issues');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with repo-scoped route (tree)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/tree/main');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with repo-scoped route (blob)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/blob/main/README.md');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with repo-scoped route (pull)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/pull/42');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with repo-scoped route (releases)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat/hello-world/releases');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with non-github hostname', function () {
+    var r = shared.validateGitHubRepoUrl('https://gitlab.com/owner/repo');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with query string', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/repo?tab=readme');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts URL with fragment', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/repo#readme');
+    assert.strictEqual(r.valid, true);
+});
+
+test('accepts owner with hyphens and digits', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/my-org-123/my-repo');
+    assert.strictEqual(r.valid, true);
+});
+
+// --- reject empty / non-URL ---
+
+test('rejects empty string', function () {
+    var r = shared.validateGitHubRepoUrl('');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects null', function () {
+    var r = shared.validateGitHubRepoUrl(null);
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects undefined', function () {
+    var r = shared.validateGitHubRepoUrl(undefined);
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects non-URL string', function () {
+    var r = shared.validateGitHubRepoUrl('not a url');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject wrong scheme ---
+
+test('rejects ftp scheme', function () {
+    var r = shared.validateGitHubRepoUrl('ftp://github.com/owner/repo');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/scheme/i.test(r.reason));
+});
+
+test('rejects ssh scheme', function () {
+    var r = shared.validateGitHubRepoUrl('ssh://git@github.com/owner/repo');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject missing segments ---
+
+test('rejects domain only (no path segments)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects single path segment (owner only)', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/octocat');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/owner.*repo/i.test(r.reason));
+});
+
+// --- reject reserved top-level routes as owner ---
+
+test('rejects /settings as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/settings/something');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/reserved/i.test(r.reason));
+});
+
+test('rejects /Settings (case-insensitive) as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/Settings/something');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /organizations as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/organizations/myorg');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /login as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/login/oauth');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /explore as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/explore/topics');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /marketplace as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/marketplace/actions');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /pricing as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/pricing/team');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /copilot as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/copilot/plans');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /gist as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/gist/something');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /actions as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/actions/checkout');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /new as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/new/import');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /enterprise as owner', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/enterprise/contact');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject reserved repo name (second segment) ---
+
+test('rejects reserved word as repo name', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/validowner/settings');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/reserved/i.test(r.reason));
+});
+
+test('rejects "login" as repo name', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/login');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects "marketplace" as repo name', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/marketplace');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject non-repo prefix patterns ---
+
+test('rejects /settings/ prefix path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/settings/profile/edit');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /users/ prefix path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/users/someone/repos');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /orgs/ prefix path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/orgs/myorg/repos');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject third-segment non-repo context ---
+
+test('rejects third segment /organizations after owner/repo', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/repo/organizations');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects third segment /search after owner/repo', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/repo/search');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject owner dot rules ---
+
+test('rejects owner starting with dot', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/.hidden/repo');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/dot/i.test(r.reason));
+});
+
+test('rejects owner ending with dot', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner./repo');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects owner with consecutive dots', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/ow..ner/repo');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/consecutive/i.test(r.reason));
+});
+
+// --- reject @ in segments ---
+
+test('rejects @ in owner segment', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/user@host/repo');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/@/.test(r.reason));
+});
+
+test('rejects @ in repo segment', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/re@po');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject spaces / control characters ---
+
+test('rejects space in owner segment', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/my%20owner/repo');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects control char in repo segment', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/re%00po');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject empty repo after .git stripping ---
+
+test('rejects repo that is only .git', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/.git');
+    assert.strictEqual(r.valid, false);
+    assert.ok(/empty/i.test(r.reason));
+});
+
+// --- reject query-only with no real path ---
+
+test('rejects query-only URL without path segments', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/?q=test');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- reject exact /settings or /organizations path ---
+
+test('rejects exact /settings path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/settings');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /settings/ with segments', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/settings/profile');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects exact /organizations path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/organizations');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /organizations/ with segments', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/organizations/myorg/settings');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /users with segments', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/users/someone');
+    assert.strictEqual(r.valid, false);
+});
+
+test('rejects /search path', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/search/advanced');
+    assert.strictEqual(r.valid, false);
+});
+
+// --- accept deep-linked repo URLs with unknown third segment ---
+
+test('accepts unknown third segment under owner/repo', function () {
+    var r = shared.validateGitHubRepoUrl('https://github.com/owner/repo/some-random-path');
+    assert.strictEqual(r.valid, true);
+});
+
+// -----------------------------------------------------------------------
 // Summary
 // -----------------------------------------------------------------------
 console.log('\n' + (passed + failed) + ' tests: ' + passed + ' passed, ' + failed + ' failed\n');

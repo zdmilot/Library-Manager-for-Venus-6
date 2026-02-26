@@ -187,6 +187,12 @@
 											<textarea class="form-control form-control-sm" id="pkg-description" rows="3" placeholder="Library description (required)" required></textarea>
 										</div>
 									</div>
+									<div class="form-group row mb-2">
+										<label class="col-sm-4 col-form-label col-form-label-sm">GitHub Repository</label>
+										<div class="col-sm-8">
+											<input type="url" class="form-control form-control-sm" id="pkg-github-url" placeholder="https://github.com/owner/repo (optional)">
+										</div>
+									</div>
 									<div class="form-group row mb-0">
 										<label class="col-sm-4 col-form-label col-form-label-sm">Default Tags</label>
 										<div class="col-sm-8">
@@ -893,6 +899,10 @@
 						<h6 class="detail-section-label">Description</h6>
 						<p class="lib-detail-description text-muted"></p>
 					</div>
+					<div class="detail-section lib-detail-github-section d-none">
+						<h6 class="detail-section-label">GitHub</h6>
+						<p class="lib-detail-github text-muted"><a href="#" target="_blank" class="lib-detail-github-link"></a></p>
+					</div>
 					<div class="row mb-2">
 						<div class="col-md-6">
 							<div class="detail-section">
@@ -1443,6 +1453,12 @@
 									<textarea class="form-control form-control-sm" id="ulib-description" rows="2" placeholder="Library description"></textarea>
 								</div>
 							</div>
+							<div class="form-group row mb-2">
+								<label class="col-sm-4 col-form-label col-form-label-sm">GitHub Repository</label>
+								<div class="col-sm-8">
+									<input type="url" class="form-control form-control-sm" id="ulib-github-url" placeholder="https://github.com/owner/repo (optional)">
+								</div>
+							</div>
 							<div class="form-group row mb-0">
 								<label class="col-sm-4 col-form-label col-form-label-sm">Default Tags</label>
 								<div class="col-sm-8">
@@ -1569,6 +1585,11 @@
 					<div class="detail-section imp-preview-desc-section">
 						<h6 class="detail-section-label">Description</h6>
 						<p class="imp-preview-description text-muted"></p>
+					</div>
+					<!-- GitHub URL -->
+					<div class="detail-section imp-preview-github-section d-none">
+						<h6 class="detail-section-label">GitHub</h6>
+						<p class="text-muted"><a href="#" target="_blank" class="imp-preview-github-link"></a></p>
 					</div>
 					<!-- VENUS Compatibility / Created Date -->
 					<div class="row mb-2">

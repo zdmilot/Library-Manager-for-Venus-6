@@ -5634,6 +5634,18 @@
 				$("#pkg-description").focus().css({"border": "1px solid red", "background": "#FFCECE"});
 				return;
 			}
+
+			// Validate GitHub Repository URL (optional, but must be valid if provided)
+			var githubUrl = $("#pkg-github-url").val().trim();
+			if (githubUrl) {
+				var ghResult = shared.validateGitHubRepoUrl(githubUrl);
+				if (!ghResult.valid) {
+					alert("Invalid GitHub Repository URL:\n" + ghResult.reason);
+					$("#pkg-github-url").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+					return;
+				}
+			}
+
 			if (pkg_libraryFiles.length === 0) {
 				alert("Please add at least one library file.");
 				return;
@@ -5672,7 +5684,7 @@
 		});
 
 		// Clear red styling when user types in required fields
-		$(document).on("input", "#pkg-author, #pkg-organization, #pkg-version, #pkg-venus-compat, #pkg-description", function() {
+		$(document).on("input", "#pkg-author, #pkg-organization, #pkg-version, #pkg-venus-compat, #pkg-description, #pkg-github-url", function() {
 			$(this).css({"border": "", "background": ""});
 		});
 
@@ -5785,6 +5797,7 @@
 				var version = $("#pkg-version").val().trim();
 				var venusCompat = $("#pkg-venus-compat").val().trim();
 				var description = $("#pkg-description").val().trim();
+				var githubUrl = $("#pkg-github-url").val().trim();
 				var tagsRaw = $("#pkg-tags").val().trim();
 
 				// Parse and sanitize tags (lowercase, no spaces)
@@ -5883,6 +5896,7 @@
 					demo_method_files: pkg_demoMethodFiles.map(function(f) { return path.basename(f); }),
 					com_register_dlls: pkg_comRegisterDlls.slice()
 				};
+				if (githubUrl) manifest.github_url = githubUrl;
 
 				// Create ZIP package using adm-zip
 				var zip = new AdmZip();
@@ -7137,6 +7151,14 @@
 				$("#libDetailModal .lib-detail-desc-section").addClass("d-none");
 			}
 
+			// GitHub URL
+			if (lib.github_url) {
+				$("#libDetailModal .lib-detail-github-link").attr("href", lib.github_url).text(lib.github_url);
+				$("#libDetailModal .lib-detail-github-section").removeClass("d-none");
+			} else {
+				$("#libDetailModal .lib-detail-github-section").addClass("d-none");
+			}
+
 			// Tags
 			var tags = lib.tags || [];
 			if (tags.length > 0) {
@@ -7520,6 +7542,7 @@
 					version: manifest.version || "",
 					venus_compatibility: manifest.venus_compatibility || "",
 					description: manifest.description || "",
+					github_url: manifest.github_url || "",
 					tags: manifest.tags || [],
 					created_date: manifest.created_date || "",
 					library_image: manifest.library_image || null,
@@ -8773,6 +8796,7 @@
 							version: manifest.version || "",
 							venus_compatibility: manifest.venus_compatibility || "",
 							description: manifest.description || "",
+							github_url: manifest.github_url || "",
 							tags: manifest.tags || [],
 							created_date: manifest.created_date || "",
 							library_image: manifest.library_image || null,
@@ -9337,6 +9361,14 @@
 					$modal.find(".imp-preview-desc-section").addClass("d-none");
 				}
 
+				// GitHub URL
+				if (manifest.github_url) {
+					$modal.find(".imp-preview-github-link").attr("href", manifest.github_url).text(manifest.github_url);
+					$modal.find(".imp-preview-github-section").removeClass("d-none");
+				} else {
+					$modal.find(".imp-preview-github-section").addClass("d-none");
+				}
+
 				// Tags
 				var tags = manifest.tags || [];
 				var $tagsContainer = $modal.find(".imp-preview-tags");
@@ -9636,6 +9668,7 @@
 					version: manifest.version || "",
 					venus_compatibility: manifest.venus_compatibility || "",
 					description: manifest.description || "",
+					github_url: manifest.github_url || "",
 					tags: manifest.tags || [],
 					created_date: manifest.created_date || "",
 					library_image: manifest.library_image || null,
@@ -11024,6 +11057,7 @@
 			$("#ulib-version").val(uLib.version || "");
 			$("#ulib-venus-compat").val(uLib.venus_compatibility || "");
 			$("#ulib-description").val(uLib.description || "");
+			$("#ulib-github-url").val(uLib.github_url || "");
 			$("#ulib-tags").val((uLib.tags || []).join(", "));
 
 			// Initialize module-level state arrays from DB record
@@ -11265,6 +11299,11 @@
 			e.stopPropagation();
 		});
 
+		// ---- Unsigned lib: clear red styling on GitHub URL input ----
+		$(document).on("input", "#ulib-github-url", function() {
+			$(this).css({"border": "", "background": ""});
+		});
+
 		// ---- Unsigned lib: Hamilton author/organization restriction ----
 		var ulib_hamiltonAuthorized = false;
 
@@ -11321,6 +11360,17 @@
 			}
 			$("#ulib-tags").val(tags.join(", "));
 
+			// Validate GitHub Repository URL (optional, but must be valid if provided)
+			var githubUrl = $("#ulib-github-url").val().trim();
+			if (githubUrl) {
+				var ghResult = shared.validateGitHubRepoUrl(githubUrl);
+				if (!ghResult.valid) {
+					alert("Invalid GitHub Repository URL:\n" + ghResult.reason);
+					$("#ulib-github-url").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+					return;
+				}
+			}
+
 			// Separate discovered files (relative to lib_base_path) from additional user-added files
 			var uLib = db_unsigned_libs.unsigned_libs.findOne({"_id": ulibId});
 			var libDir = uLib ? (uLib.lib_base_path || '') : '';
@@ -11339,6 +11389,7 @@
 				version: $("#ulib-version").val().trim(),
 				venus_compatibility: $("#ulib-venus-compat").val().trim(),
 				description: $("#ulib-description").val().trim(),
+				github_url: $("#ulib-github-url").val().trim(),
 				tags: tags,
 				additional_library_files: additionalLibFiles,
 				demo_method_files: ulib_demoMethodFiles.slice(),
@@ -11500,6 +11551,7 @@
 					version: uLib.version || "",
 					venus_compatibility: uLib.venus_compatibility || "",
 					description: uLib.description || "",
+					github_url: uLib.github_url || "",
 					tags: uLib.tags || [],
 					created_date: uLib.scanned_date || new Date().toISOString(),
 					library_image: uLib.library_image || null,
@@ -11704,6 +11756,7 @@
 					version: uLib.version || "",
 					venus_compatibility: uLib.venus_compatibility || "",
 					description: uLib.description || "",
+					github_url: uLib.github_url || "",
 					tags: uLib.tags || [],
 					created_date: new Date().toISOString(),
 					library_image: uLib.library_image || null,
