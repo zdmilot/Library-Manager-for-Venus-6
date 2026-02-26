@@ -1999,8 +1999,8 @@ body {
 	flex-wrap: nowrap;
 	flex: 0 0 auto;
 	min-width: 0;
-	gap: 6px;
-	padding: 0 1px;
+	gap: 0;
+	padding: 0;
 	max-width: none;
 	overflow: visible;
 	background: transparent;
@@ -2025,6 +2025,37 @@ body {
 	white-space: pre;
 	font-size: 0.82rem;
 	color: white;
+	cursor: text;
+	display: inline;
+}
+
+.imp-search-text-label {
+	cursor: text;
+}
+
+.imp-search-text-input {
+	display: none;
+	width: 4ch;
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	color: white;
+	font-size: 0.82rem;
+	line-height: 1.2;
+	padding: 0;
+	margin: 0;
+	outline: none;
+	white-space: pre;
+	min-width: 0;
+	box-sizing: content-box;
+}
+
+.imp-search-inline-text.editing .imp-search-text-label {
+	display: none;
+}
+
+.imp-search-inline-text.editing .imp-search-text-input {
+	display: inline;
 }
 
 .imp-search-chip-remove {
@@ -2071,6 +2102,16 @@ body {
 
 .imp-search-chip.editing .imp-search-chip-input {
 	display: inline-block;
+}
+
+.imp-search-chip-author .imp-search-chip-input {
+	width: 120px;
+}
+
+.imp-search-chip.imp-search-chip-pending-delete {
+	background: rgba(255, 80, 80, 0.25);
+	border-radius: 3px;
+	outline: 1px solid rgba(255, 80, 80, 0.5);
 }
 
 .imp-search-clear {

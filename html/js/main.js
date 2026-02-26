@@ -615,6 +615,7 @@
 			// Seed empty collections if they don't exist
 			var seedFiles = {
 				'installed_libs.json': '[]',
+				'publisher_registry.json': '{"publishers":[],"tags":[],"maxPublisherSpaces":0}',
 				'groups.json': '[]',
 				'tree.json': '[{"group-id":"gAll","method-ids":[],"locked":false},{"group-id":"gRecent","method-ids":[],"locked":false},{"group-id":"gFolders","method-ids":[],"locked":false},{"group-id":"gEditors","method-ids":[],"locked":false},{"group-id":"gHistory","method-ids":[],"locked":false},{"group-id":"gHamilton","method-ids":[],"locked":true}]',
 				'links.json': '[{"_id":"method-editor","name":"Method Editor","description":"","icon-customImage":"HxMet.png","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxMetEd.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"lc-editor","name":"Liquid Class Editor","description":"","icon-customImage":"HxLiq.png","icon-class":"fa-dna","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxCoreLiquidEditor.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"lbw-editor","name":"Labware Editor","description":"","icon-customImage":"HxLbw.png","icon-class":"fa-dna","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxLabwrEd.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"hsl-editor","name":"HSL Editor","description":"","icon-customImage":"HxHSL.png","icon-class":"fa-dna","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxHSLMetEd.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"sysCfg-editor","name":"System Configuration Editor","description":"","icon-customImage":"HxCfg.png","icon-class":"fa-dna","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\Hamilton.HxConfigEditor.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"run-control","group-id":"gEditors","name":"Run Control","description":"","icon-customImage":"HxRun.png","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxRun.exe","type":"file","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"ham-version","group-id":"gEditors","name":"Hamilton Version","description":"","icon-customImage":"HxVer.png","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin\\\\HxVersion.exe","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"bin-folder","name":"Bin","description":"VENUS software executables and dlls","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Bin","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"cfg-folder","name":"Config","description":"VENUS software configuration files","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Config","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"lbw-folder","name":"Labware","description":"VENUS software labware definitions for carriers, racks, tubes and consumables","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Labware","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"lib-folder","name":"Library","description":"VENUS software library files","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Library","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"log-folder","name":"LogFiles","description":"Run traces and STAR communication logs","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Logfiles","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0},{"_id":"met-folder","name":"Methods","description":"Method files","icon-customImage":"","icon-class":"fa-folder","icon-color":"color-blue","path":"C:\\\\Program Files (x86)\\\\Hamilton\\\\Methods","type":"folder","default":true,"favorite":true,"last-started":"","last-startedUTC":0}]'
@@ -716,7 +717,154 @@
 		console.log('App settings: db/');
 		console.log('User data:    ' + USER_DATA_DIR);
 
-		// ---- Migration: strip hardcoded default groups from external groups.json ----
+		// ---- Publisher & Tag Registry ----
+		// Stored in USER_DATA_DIR/publisher_registry.json.
+		// Tracks all known publisher/author names and tags for autocomplete
+		// and for the @author search-chip space-limit heuristic.
+		// Schema: { publishers: [{name, maxSpaces}], tags: [string], maxPublisherSpaces: number }
+		var _publisherRegistryPath = path.join(USER_DATA_DIR, 'publisher_registry.json');
+		var _publisherRegistry = { publishers: [], tags: [], maxPublisherSpaces: 0 };
+
+		function loadPublisherRegistry() {
+			try {
+				if (fs.existsSync(_publisherRegistryPath)) {
+					var raw = fs.readFileSync(_publisherRegistryPath, 'utf8');
+					var data = JSON.parse(raw);
+					_publisherRegistry = {
+						publishers: Array.isArray(data.publishers) ? data.publishers : [],
+						tags: Array.isArray(data.tags) ? data.tags : [],
+						maxPublisherSpaces: (typeof data.maxPublisherSpaces === 'number') ? data.maxPublisherSpaces : 0
+					};
+				}
+			} catch(e) {
+				console.warn('Could not load publisher registry: ' + e.message);
+			}
+		}
+
+		function savePublisherRegistry() {
+			try {
+				fs.writeFileSync(_publisherRegistryPath, JSON.stringify(_publisherRegistry, null, 2), 'utf8');
+			} catch(e) {
+				console.warn('Could not save publisher registry: ' + e.message);
+			}
+		}
+
+		/**
+		 * Register a publisher/author name in the registry.
+		 * @param {string} name — author or organization name (can contain spaces)
+		 */
+		function registerPublisher(name) {
+			if (!name || typeof name !== 'string') return;
+			var trimmed = name.trim();
+			if (!trimmed) return;
+			var lower = trimmed.toLowerCase();
+			var exists = _publisherRegistry.publishers.some(function(p) {
+				return (p.name || '').toLowerCase() === lower;
+			});
+			if (!exists) {
+				var spaces = (trimmed.match(/ /g) || []).length;
+				_publisherRegistry.publishers.push({ name: trimmed, maxSpaces: spaces });
+				_recalcMaxPublisherSpaces();
+				savePublisherRegistry();
+			}
+		}
+
+		/**
+		 * Register tags in the registry (deduplicates, lowercased).
+		 * @param {string[]} tags
+		 */
+		function registerTags(tags) {
+			if (!Array.isArray(tags)) return;
+			var changed = false;
+			tags.forEach(function(t) {
+				var sanitized = shared.sanitizeTag(t || '');
+				if (!sanitized) return;
+				if (_publisherRegistry.tags.indexOf(sanitized) === -1) {
+					_publisherRegistry.tags.push(sanitized);
+					changed = true;
+				}
+			});
+			if (changed) savePublisherRegistry();
+		}
+
+		function _recalcMaxPublisherSpaces() {
+			var max = 0;
+			_publisherRegistry.publishers.forEach(function(p) {
+				if (p.maxSpaces > max) max = p.maxSpaces;
+			});
+			_publisherRegistry.maxPublisherSpaces = max;
+		}
+
+		/**
+		 * Get the maximum number of spaces any known publisher has.
+		 * Used by the @author chip to know when to auto-close an unescaped author token.
+		 */
+		function getMaxPublisherSpaces() {
+			return _publisherRegistry.maxPublisherSpaces || 0;
+		}
+
+		/**
+		 * Get all known publisher names (for future autocomplete).
+		 */
+		function getKnownPublishers() {
+			return _publisherRegistry.publishers.map(function(p) { return p.name; });
+		}
+
+		/**
+		 * Get all known tags (for future autocomplete).
+		 */
+		function getKnownTags() {
+			return _publisherRegistry.tags.slice();
+		}
+
+		/**
+		 * Rebuild the publisher registry by scanning all installed + system libraries.
+		 * Called once at startup and after any import/registration.
+		 */
+		function rebuildPublisherRegistry() {
+			var seenPublishers = {};
+			var seenTags = {};
+
+			// Scan installed libraries
+			var installedLibs = db_installed_libs.installed_libs.find() || [];
+			installedLibs.forEach(function(lib) {
+				if (lib.deleted) return;
+				var author = (lib.author || '').trim();
+				if (author) seenPublishers[author.toLowerCase()] = author;
+				var org = (lib.organization || '').trim();
+				if (org && org.toLowerCase() !== author.toLowerCase()) seenPublishers[org.toLowerCase()] = org;
+				(lib.tags || []).forEach(function(t) {
+					var s = shared.sanitizeTag(t);
+					if (s) seenTags[s] = true;
+				});
+			});
+
+			// Scan system libraries
+			var sysLibs = getAllSystemLibraries();
+			sysLibs.forEach(function(sLib) {
+				var author = (sLib.author || '').trim();
+				if (author) seenPublishers[author.toLowerCase()] = author;
+				var org = (sLib.organization || '').trim();
+				if (org && org.toLowerCase() !== author.toLowerCase()) seenPublishers[org.toLowerCase()] = org;
+			});
+
+			// Build new registry
+			_publisherRegistry.publishers = [];
+			Object.keys(seenPublishers).forEach(function(key) {
+				var name = seenPublishers[key];
+				var spaces = (name.match(/ /g) || []).length;
+				_publisherRegistry.publishers.push({ name: name, maxSpaces: spaces });
+			});
+			_recalcMaxPublisherSpaces();
+
+			_publisherRegistry.tags = Object.keys(seenTags);
+
+			savePublisherRegistry();
+		}
+
+		loadPublisherRegistry();
+
+
 		// Default groups are now defined in DEFAULT_GROUPS and should not live in the JSON.
 		(function migrateDefaultGroups() {
 			try {
@@ -933,6 +1081,9 @@
 		function getAllSystemLibraries() {
 			return systemLibraries.slice();
 		}
+
+		// Rebuild publisher registry at startup (after system libs are loaded)
+		rebuildPublisherRegistry();
 
 		// ---- Package Store — cache .hxlibpkg files for repair & version rollback ----
 		function getPackageStoreDir() {
@@ -1697,6 +1848,14 @@
 		var _searchActive = false;
 		var _preSearchGroupId = null; // remembers which tab was active before search
 		var _searchInlineTokens = [];
+		var _pendingDeleteChipIdx = -1;
+
+		function clearPendingDeleteChip() {
+			if (_pendingDeleteChipIdx >= 0) {
+				$(".imp-search-chip.imp-search-chip-pending-delete").removeClass("imp-search-chip-pending-delete");
+				_pendingDeleteChipIdx = -1;
+			}
+		}
 
 		// Lazily-built cache: maps system library _id → space-separated public function names
 		var _sysLibFnCache = null;
@@ -1746,10 +1905,21 @@
 				if (!token || !token.type) return;
 				if (token.type === 'text') {
 					if (!token.value) return;
-					html += '<span class="imp-search-inline-text" data-idx="' + idx + '">' + escapeHtml(token.value) + '</span>';
+					html += '<span class="imp-search-inline-text" data-idx="' + idx + '">' +
+						'<span class="imp-search-text-label">' + escapeHtml(token.value) + '</span>' +
+						'<input type="text" class="imp-search-text-input" value="' + escapeHtml(token.value) + '" aria-label="Edit text">' +
+					'</span>';
 					return;
 				}
-				html += '<span class="imp-search-chip" data-idx="' + idx + '" data-tag="' + escapeHtml(token.value || '') + '">' +
+				if (token.type === 'author') {
+					html += '<span class="imp-search-chip imp-search-chip-author" data-idx="' + idx + '" data-tag="' + escapeHtml(token.value || '') + '" data-chip-type="author">' +
+						'<span class="imp-search-chip-label">@' + escapeHtml(token.value || '') + '</span>' +
+						'<input type="text" class="imp-search-chip-input" value="' + escapeHtml(token.value || '') + '" aria-label="Edit author">' +
+						'<button type="button" class="imp-search-chip-remove" aria-label="Remove author" title="Remove author"><i class="fas fa-times"></i></button>' +
+					'</span>';
+					return;
+				}
+				html += '<span class="imp-search-chip" data-idx="' + idx + '" data-tag="' + escapeHtml(token.value || '') + '" data-chip-type="tag">' +
 					'<span class="imp-search-chip-label">#' + escapeHtml(token.value || '') + '</span>' +
 					'<input type="text" class="imp-search-chip-input" value="' + escapeHtml(token.value || '') + '" aria-label="Edit tag">' +
 					'<button type="button" class="imp-search-chip-remove" aria-label="Remove tag" title="Remove tag"><i class="fas fa-times"></i></button>' +
@@ -1800,6 +1970,12 @@
 					}
 					return;
 				}
+				if (token.type === 'author') {
+					var authorVal = (token.value || '').trim();
+					if (!authorVal) return;
+					normalized.push({ type: 'author', value: authorVal });
+					return;
+				}
 				var sanitized = shared.sanitizeTag(token.value || '');
 				if (!sanitized) return;
 				normalized.push({ type: 'tag', value: sanitized });
@@ -1820,11 +1996,34 @@
 			return true;
 		}
 
+		function insertSearchAuthorToken(rawAuthor, options) {
+			options = options || {};
+			var trimmed = (rawAuthor || '').trim();
+			if (!trimmed) return false;
+			_searchInlineTokens.push({ type: 'author', value: trimmed });
+			if (options.trailingSpace === true) {
+				_searchInlineTokens.push({ type: 'text', value: ' ' });
+			}
+			normalizeSearchInlineTokens();
+			renderSearchInlineTokens();
+			return true;
+		}
+
 		function updateSearchTagChipByIndex(idx, rawNewTag) {
 			if (idx < 0 || idx >= _searchInlineTokens.length) return false;
 			var token = _searchInlineTokens[idx];
-			if (!token || token.type !== 'tag') return false;
+			if (!token) return false;
 
+			if (token.type === 'author') {
+				var trimmed = (rawNewTag || '').trim();
+				if (!trimmed) return false;
+				_searchInlineTokens[idx].value = trimmed;
+				normalizeSearchInlineTokens();
+				renderSearchInlineTokens();
+				return true;
+			}
+
+			if (token.type !== 'tag') return false;
 			var sanitized = shared.sanitizeTag(rawNewTag || '');
 			if (!sanitized) return false;
 			_searchInlineTokens[idx].value = sanitized;
@@ -1901,24 +2100,110 @@
 			return true;
 		}
 
+		/**
+		 * Commit a trailing @author from the input.
+		 * Author tokens can contain spaces, so only Tab/Enter commit them.
+		 */
+		function commitTrailingSearchAuthor(options) {
+			options = options || {};
+			var $input = $("#imp-search-input");
+			var raw = $input.val() || '';
+			// Match @authorname (may contain spaces) at end of input
+			var match = raw.match(/(^|.*\s)@([^\s@].*)$/);
+			if (!match) return false;
+
+			var candidate = (match[2] || '').trim();
+			if (!candidate) return false;
+
+			var marker = '@' + match[2];
+			var markerIndex = raw.lastIndexOf('@' + match[2].trimStart());
+			if (markerIndex === -1) return false;
+
+			var prefixText = raw.slice(0, markerIndex);
+			if (prefixText) {
+				_searchInlineTokens.push({ type: 'text', value: prefixText });
+			}
+
+			if (!insertSearchAuthorToken(candidate, { trailingSpace: options.appendSpace === true })) return false;
+
+			$input.val('');
+			normalizeSearchInlineTokens();
+			renderSearchInlineTokens();
+			updateSearchInputWidth();
+			scrollSearchFlowToEnd();
+			return true;
+		}
+
+		/**
+		 * Auto-close an @author token if the user has typed more spaces than any
+		 * known publisher has. This prevents the author chip from eating unlimited text.
+		 * Called on every input event.
+		 */
+		function autoCloseAuthorTokenBySpaceLimit() {
+			var $input = $("#imp-search-input");
+			var raw = $input.val() || '';
+			var match = raw.match(/(^|.*\s)@([^\s@].*)$/);
+			if (!match) return;
+
+			var afterAt = match[2] || '';
+			var spaceCount = (afterAt.match(/ /g) || []).length;
+			var maxSpaces = getMaxPublisherSpaces();
+
+			// If typed more spaces than any known publisher, auto-commit
+			if (spaceCount > maxSpaces) {
+				// Find the last space — everything before it is the author, after is leftover
+				var lastSpaceIdx = afterAt.lastIndexOf(' ');
+				var authorPart = afterAt.slice(0, lastSpaceIdx).trim();
+				var leftover = afterAt.slice(lastSpaceIdx + 1);
+
+				if (authorPart) {
+					var markerIndex = raw.lastIndexOf('@' + match[2].trimStart());
+					if (markerIndex === -1) return;
+
+					var prefixText = raw.slice(0, markerIndex);
+					if (prefixText) {
+						_searchInlineTokens.push({ type: 'text', value: prefixText });
+					}
+
+					if (insertSearchAuthorToken(authorPart, { trailingSpace: true })) {
+						$input.val(leftover);
+						normalizeSearchInlineTokens();
+						renderSearchInlineTokens();
+						updateSearchInputWidth();
+						scrollSearchFlowToEnd();
+					}
+				}
+			}
+		}
+
 		function getSearchInlineRawText() {
 			var tokenText = (_searchInlineTokens || []).map(function(token) {
 				if (!token) return '';
 				if (token.type === 'tag') return '#' + (token.value || '');
+				if (token.type === 'author') return '@' + (token.value || '');
 				return token.value || '';
 			}).join('');
 			return tokenText + ($("#imp-search-input").val() || '');
 		}
 
 		function getSearchStateFromInput() {
-			var rawInput = getSearchInlineRawText().trim().toLowerCase();
+			var rawInput = ($("#imp-search-input").val() || '').trim().toLowerCase();
 			var tagFilters = [];
+			var authorFilters = [];
 			var textTokens = [];
 
 			(_searchInlineTokens || []).forEach(function(token) {
 				if (token && token.type === 'tag') {
 					var tag = shared.sanitizeTag(token.value || '');
 					if (tag) tagFilters.push(tag);
+				}
+				if (token && token.type === 'author') {
+					var author = (token.value || '').trim().toLowerCase();
+					if (author && authorFilters.indexOf(author) === -1) authorFilters.push(author);
+				}
+				if (token && token.type === 'text') {
+					var txt = (token.value || '').trim();
+					if (txt) textTokens.push(txt);
 				}
 			});
 
@@ -1932,6 +2217,11 @@
 						} else if (!tag) {
 							textTokens.push(token);
 						}
+					} else if (token.charAt(0) === '@' && token.length > 1) {
+						var author = token.substring(1).trim().toLowerCase();
+						if (author && authorFilters.indexOf(author) === -1) {
+							authorFilters.push(author);
+						}
 					} else {
 						textTokens.push(token);
 					}
@@ -1941,23 +2231,67 @@
 			var textQuery = textTokens.join(' ').trim();
 			var displayBits = [];
 			var displayHtmlBits = [];
-			tagFilters.forEach(function(t) {
-				displayBits.push('#' + t);
-				displayHtmlBits.push('<b>#' + escapeHtml(t) + '</b>');
+
+			// Build display in token order to match search bar layout
+			(_searchInlineTokens || []).forEach(function(token) {
+				if (!token) return;
+				if (token.type === 'author') {
+					var a = (token.value || '').trim().toLowerCase();
+					if (a) {
+						displayBits.push('@' + a);
+						displayHtmlBits.push('<b>@' + escapeHtml(a) + '</b>');
+					}
+				} else if (token.type === 'tag') {
+					var t = shared.sanitizeTag(token.value || '');
+					if (t) {
+						displayBits.push('#' + t);
+						displayHtmlBits.push('<b>#' + escapeHtml(t) + '</b>');
+					}
+				} else if (token.type === 'text') {
+					var txt = (token.value || '').trim();
+					if (txt) {
+						displayBits.push(txt);
+						displayHtmlBits.push(escapeHtml(txt));
+					}
+				}
 			});
-			if (textQuery) {
-				displayBits.push(textQuery);
-				displayHtmlBits.push(escapeHtml(textQuery));
+
+			// Append any trailing input (uncommitted text, tags, authors)
+			if (rawInput) {
+				rawInput.split(/\s+/).forEach(function(ri) {
+					if (!ri) return;
+					if (ri.charAt(0) === '#' && ri.length > 1) {
+						var rt = shared.sanitizeTag(ri.substring(1));
+						if (rt) {
+							displayBits.push('#' + rt);
+							displayHtmlBits.push('<b>#' + escapeHtml(rt) + '</b>');
+						} else {
+							displayBits.push(ri);
+							displayHtmlBits.push(escapeHtml(ri));
+						}
+					} else if (ri.charAt(0) === '@' && ri.length > 1) {
+						var ra = ri.substring(1).trim().toLowerCase();
+						if (ra) {
+							displayBits.push('@' + ra);
+							displayHtmlBits.push('<b>@' + escapeHtml(ra) + '</b>');
+						}
+					} else {
+						displayBits.push(ri);
+						displayHtmlBits.push(escapeHtml(ri));
+					}
+				});
 			}
+
 			var displayQuery = displayBits.join(' ').trim();
 			var displayQueryHtml = displayHtmlBits.join(' ');
 
 			return {
 				tagFilters: tagFilters,
+				authorFilters: authorFilters,
 				textQuery: textQuery,
 				displayQuery: displayQuery,
 				displayQueryHtml: displayQueryHtml,
-				hasSearch: tagFilters.length > 0 || textQuery.length > 0
+				hasSearch: tagFilters.length > 0 || authorFilters.length > 0 || textQuery.length > 0
 			};
 		}
 
@@ -1971,6 +2305,7 @@
 					if (state.hasSearch) {
 					impEnterSearchMode(state.displayQuery, {
 						tagFilters: state.tagFilters,
+						authorFilters: state.authorFilters,
 						textQuery: state.textQuery,
 						displayQueryHtml: state.displayQueryHtml
 					});
@@ -1981,17 +2316,18 @@
 		}
 
 		$(document).on("input", "#imp-search-input", function() {
-			// Prevent space immediately after a bare # (no tag text yet).
-			// Only strip "# " when the # has no adjacent tag characters,
-			// so "#mytag " still commits the tag via consumeCompletedTagTokens.
+			clearPendingDeleteChip();
+			// Prevent space immediately after a bare # or @ (no tag/author text yet).
 			var $inp = $(this);
 			var v = $inp.val() || '';
-			var fixed = v.replace(/(^|[\s])# /g, '$1#');
+			var fixed = v.replace(/(^|[\s])# /g, '$1#').replace(/(^|[\s])@ /g, '$1@');
 			if (fixed !== v) {
 				var pos = this.selectionStart - (v.length - fixed.length);
 				$inp.val(fixed);
 				this.selectionStart = this.selectionEnd = Math.max(pos, 0);
 			}
+			// Auto-close @author if user typed more spaces than any known publisher
+			autoCloseAuthorTokenBySpaceLimit();
 			updateSearchInputWidth();
 			scrollSearchFlowToEnd();
 			refreshLibrarySearchFromInput();
@@ -2004,6 +2340,128 @@
 			renderSearchInlineTokens();
 			$("#imp-search-input").val("").trigger("input");
 			updateSearchInputWidth();
+		});
+
+		$(document).on("click", ".imp-search-inline-text", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			clearPendingDeleteChip();
+			var $span = $(this);
+			if ($span.hasClass('editing')) return;
+			$span.addClass('editing');
+			var $editor = $span.find('.imp-search-text-input');
+			var val = $editor.val() || '';
+			$editor.css('width', Math.max(val.length + 1, 2) + 'ch');
+			$editor.focus();
+
+			// Place caret near click position
+			try {
+				var spanRect = $span[0].getBoundingClientRect();
+				var clickX = e.clientX - spanRect.left;
+				var charWidth = spanRect.width / Math.max(val.length, 1);
+				var caretPos = Math.round(clickX / charWidth);
+				caretPos = Math.max(0, Math.min(caretPos, val.length));
+				$editor[0].selectionStart = $editor[0].selectionEnd = caretPos;
+			} catch(ex) {
+				$editor[0].selectionStart = $editor[0].selectionEnd = val.length;
+			}
+		});
+
+		$(document).on("input", ".imp-search-text-input", function() {
+			var val = $(this).val() || '';
+			$(this).css('width', Math.max(val.length + 1, 2) + 'ch');
+		});
+
+		$(document).on("keydown", ".imp-search-text-input", function(e) {
+			if (e.key === 'Enter' || e.key === 'Tab') {
+				e.preventDefault();
+				$(this).data('focus-main-input', true);
+				$(this).blur();
+				return;
+			}
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				$(this).data('cancel-edit', true);
+				$(this).blur();
+				return;
+			}
+			if (e.key === 'Delete') {
+				var val = $(this).val() || '';
+				var cursorAtEnd = this.selectionStart === val.length && this.selectionEnd === val.length;
+				if (!cursorAtEnd) {
+					clearPendingDeleteChip();
+					return;
+				}
+				var idx = parseInt($(this).closest('.imp-search-inline-text').attr('data-idx'), 10);
+				if (isNaN(idx)) return;
+				// Find the next chip token after this text token
+				var nextIdx = idx + 1;
+				while (nextIdx < _searchInlineTokens.length && _searchInlineTokens[nextIdx].type === 'text' && !_searchInlineTokens[nextIdx].value.trim()) {
+					nextIdx++;
+				}
+				if (nextIdx >= _searchInlineTokens.length) return;
+				var nextToken = _searchInlineTokens[nextIdx];
+				if (nextToken.type !== 'tag' && nextToken.type !== 'author') {
+					clearPendingDeleteChip();
+					return;
+				}
+				e.preventDefault();
+				if (_pendingDeleteChipIdx === nextIdx) {
+					// Second delete — remove the chip (and any whitespace between)
+					_searchInlineTokens.splice(idx + 1, nextIdx - idx);
+					_pendingDeleteChipIdx = -1;
+					normalizeSearchInlineTokens();
+					// Commit current text edit and re-render
+					var $span = $(this).closest('.imp-search-inline-text');
+					var currentIdx = parseInt($span.attr('data-idx'), 10);
+					if (!isNaN(currentIdx) && currentIdx >= 0 && currentIdx < _searchInlineTokens.length) {
+						_searchInlineTokens[currentIdx].value = $(this).val() || '';
+					}
+					normalizeSearchInlineTokens();
+					renderSearchInlineTokens();
+					refreshLibrarySearchFromInput();
+					$("#imp-search-input").focus();
+					scrollSearchFlowToEnd();
+				} else {
+					// First delete — highlight the chip
+					clearPendingDeleteChip();
+					_pendingDeleteChipIdx = nextIdx;
+					$(".imp-search-chip[data-idx='" + nextIdx + "']").addClass("imp-search-chip-pending-delete");
+				}
+				return;
+			}
+			// Any other key clears pending delete highlight
+			if (_pendingDeleteChipIdx >= 0) {
+				clearPendingDeleteChip();
+			}
+		});
+
+		$(document).on("blur", ".imp-search-text-input", function() {
+			var $editor = $(this);
+			var $span = $editor.closest('.imp-search-inline-text');
+			if (!$span.length) return;
+			var idx = parseInt($span.attr('data-idx'), 10);
+			var cancelEdit = $editor.data('cancel-edit') === true;
+			var focusMainInput = $editor.data('focus-main-input') === true;
+			$editor.removeData('cancel-edit');
+			$editor.removeData('focus-main-input');
+
+			if (!cancelEdit && !isNaN(idx) && idx >= 0 && idx < _searchInlineTokens.length) {
+				var newVal = $editor.val() || '';
+				if (newVal.trim()) {
+					_searchInlineTokens[idx].value = newVal;
+				} else {
+					_searchInlineTokens.splice(idx, 1);
+				}
+				normalizeSearchInlineTokens();
+			}
+
+			renderSearchInlineTokens();
+			refreshLibrarySearchFromInput();
+			if (focusMainInput || !cancelEdit) {
+				$("#imp-search-input").focus();
+				scrollSearchFlowToEnd();
+			}
 		});
 
 		$(document).on("click", ".imp-search-chip-remove", function(e) {
@@ -2033,7 +2491,8 @@
 		});
 
 		$(document).on("keydown", ".imp-search-chip-input", function(e) {
-			if (e.key === 'Enter' || e.key === 'Tab' || e.key === ' ') {
+			var isAuthorChip = $(this).closest('.imp-search-chip').attr('data-chip-type') === 'author';
+			if (e.key === 'Enter' || e.key === 'Tab' || (!isAuthorChip && e.key === ' ')) {
 				e.preventDefault();
 				$(this).data('focus-main-input', true);
 				$(this).blur();
@@ -2071,6 +2530,11 @@
 
 		$(document).on("keydown", "#imp-search-input", function(e) {
 			if (e.key === 'Enter') {
+				if (commitTrailingSearchAuthor({ appendSpace: true })) {
+					e.preventDefault();
+					refreshLibrarySearchFromInput();
+					return;
+				}
 				if (commitTrailingSearchTag({ appendSpace: true })) {
 					e.preventDefault();
 					refreshLibrarySearchFromInput();
@@ -2079,29 +2543,78 @@
 			}
 
 			if (e.key === 'Tab') {
+				if (commitTrailingSearchAuthor({ appendSpace: true })) {
+					refreshLibrarySearchFromInput();
+					return;
+				}
 				if (commitTrailingSearchTag({ appendSpace: true })) {
 					refreshLibrarySearchFromInput();
 				}
 				return;
 			}
 
-			if (e.key === 'Backspace' && !$(this).val() && _searchInlineTokens.length > 0) {
+			if (e.key === 'ArrowLeft' && this.selectionStart === 0 && this.selectionEnd === 0 && _searchInlineTokens.length > 0) {
 				e.preventDefault();
+				clearPendingDeleteChip();
 				var token = _searchInlineTokens.pop();
-				while (token && token.type === 'text' && !token.value.trim() && _searchInlineTokens.length > 0) {
-					token = _searchInlineTokens.pop();
-				}
-				if (token) {
-					if (token.type === 'tag') {
-						$(this).val('#' + token.value).trigger('input');
-					} else {
-						$(this).val(token.value).trigger('input');
-					}
-				}
+				var tokenRaw = '';
+				if (token.type === 'tag') tokenRaw = '#' + (token.value || '');
+				else if (token.type === 'author') tokenRaw = '@' + (token.value || '');
+				else tokenRaw = (token.value || '');
+
+				var currentVal = $(this).val() || '';
+				$(this).val(tokenRaw + currentVal);
 				normalizeSearchInlineTokens();
 				renderSearchInlineTokens();
 				updateSearchInputWidth();
-				scrollSearchFlowToEnd();
+				this.selectionStart = this.selectionEnd = 0;
+
+				var flow = $(".imp-search-flow")[0];
+				if (flow) flow.scrollLeft = this.offsetLeft - 10;
+				return;
+			}
+
+			if (e.key === 'Backspace' && !$(this).val() && _searchInlineTokens.length > 0) {
+				e.preventDefault();
+
+				// Find the last meaningful token (skip trailing whitespace-only text)
+				var lastIdx = _searchInlineTokens.length - 1;
+				while (lastIdx >= 0 && _searchInlineTokens[lastIdx].type === 'text' && !_searchInlineTokens[lastIdx].value.trim()) {
+					lastIdx--;
+				}
+				if (lastIdx < 0) return;
+
+				var lastToken = _searchInlineTokens[lastIdx];
+
+				if (lastToken.type === 'tag' || lastToken.type === 'author') {
+					// Chip: highlight on first backspace, delete on second
+					if (_pendingDeleteChipIdx === lastIdx) {
+						// Already highlighted — delete the chip and trailing whitespace
+						_searchInlineTokens.splice(lastIdx);
+						_pendingDeleteChipIdx = -1;
+						normalizeSearchInlineTokens();
+						renderSearchInlineTokens();
+						updateSearchInputWidth();
+						scrollSearchFlowToEnd();
+						refreshLibrarySearchFromInput();
+					} else {
+						// First backspace — highlight the chip for pending deletion
+						clearPendingDeleteChip();
+						_pendingDeleteChipIdx = lastIdx;
+						$(".imp-search-chip[data-idx='" + lastIdx + "']").addClass("imp-search-chip-pending-delete");
+					}
+				} else {
+					// Text token: pull it back into the input
+					clearPendingDeleteChip();
+					var textVal = lastToken.value || '';
+					_searchInlineTokens.splice(lastIdx);
+					$(this).val(textVal);
+					normalizeSearchInlineTokens();
+					renderSearchInlineTokens();
+					updateSearchInputWidth();
+					scrollSearchFlowToEnd();
+					refreshLibrarySearchFromInput();
+				}
 			}
 		});
 
@@ -2147,21 +2660,30 @@
 				if (sanitized && tagFilters.indexOf(sanitized) === -1) tagFilters.push(sanitized);
 			});
 
+			var authorFilters = [];
+			(options.authorFilters || []).forEach(function(rawAuthor) {
+				var a = (rawAuthor || '').trim().toLowerCase();
+				if (a && authorFilters.indexOf(a) === -1) authorFilters.push(a);
+			});
+
 			var textQuery = ((options.textQuery || '') + '').toLowerCase().trim();
 
 			// Backward compatibility for legacy single-string callers.
-			if (!tagFilters.length && !textQuery && typeof query === 'string') {
+			if (!tagFilters.length && !authorFilters.length && !textQuery && typeof query === 'string') {
 				var legacyQuery = query.trim().toLowerCase();
 				if (legacyQuery.charAt(0) === '#' && legacyQuery.length > 1) {
 					var legacyTag = shared.sanitizeTag(legacyQuery.substring(1));
 					if (legacyTag) tagFilters.push(legacyTag);
 					else textQuery = legacyQuery;
+				} else if (legacyQuery.charAt(0) === '@' && legacyQuery.length > 1) {
+					authorFilters.push(legacyQuery.substring(1));
 				} else {
 					textQuery = legacyQuery;
 				}
 			}
 
 			var hasTagFilters = tagFilters.length > 0;
+			var hasAuthorFilters = authorFilters.length > 0;
 			var hasTextQuery = textQuery.length > 0;
 
 			// Build combined search results: all user libs + all system libs
@@ -2186,9 +2708,19 @@
 				});
 			}
 
+			function matchesAuthorFilters(author, organization) {
+				if (!hasAuthorFilters) return true;
+				var a = (author || '').toLowerCase();
+				var o = (organization || '').toLowerCase();
+				return authorFilters.every(function(filter) {
+					return a.indexOf(filter) !== -1 || o.indexOf(filter) !== -1;
+				});
+			}
+
 			// User library cards
 			userLibs.forEach(function(lib) {
 				if (!matchesTagFilters(lib.tags || [])) return;
+				if (!matchesAuthorFilters(lib.author, lib.organization)) return;
 				if (hasTextQuery) {
 					var fnNames = (lib.public_functions || []).map(function(fn) { return fn.qualifiedName || fn.name || ''; }).join(' ');
 					var searchText = ((lib.library_name || '') + ' ' + (lib.author || '') + ' ' + (lib.description || '') + ' ' + (lib.tags || []).join(' ') + ' ' + fnNames).toLowerCase();
@@ -2202,6 +2734,7 @@
 			var fnCache = hasTextQuery ? _buildSysLibFnCache() : null;
 			sysLibs.forEach(function(sLib) {
 				if (!matchesTagFilters(['system'])) return;
+				if (!matchesAuthorFilters(sLib.author, sLib.organization)) return;
 				if (hasTextQuery) {
 					var fnNames = fnCache[sLib._id] || '';
 					var searchText = ((sLib.display_name || sLib.canonical_name || '') + ' ' + (sLib.author || '') + ' ' + (sLib.resource_types || []).join(' ') + ' ' + fnNames).toLowerCase();
@@ -2220,7 +2753,7 @@
 				);
 			} else {
 				// Search results header
-				var headerIcon = (hasTagFilters && !hasTextQuery) ? '<i class="fas fa-tag mr-1"></i>' : '<i class="fas fa-search mr-1"></i>';
+				var headerIcon = ((hasTagFilters || hasAuthorFilters) && !hasTextQuery) ? (hasAuthorFilters && !hasTagFilters ? '<i class="fas fa-user mr-1"></i>' : '<i class="fas fa-tag mr-1"></i>') : '<i class="fas fa-search mr-1"></i>';
 				var headerDisplay = displayQueryHtml || ('<b>' + escapeHtml(displayQuery) + '</b>');
 				$container.append(
 					'<div class="col-md-12 mb-2">' +
@@ -6771,6 +7304,11 @@
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
 
+				// Update publisher registry
+				registerPublisher(manifest.author || '');
+				registerPublisher(manifest.organization || '');
+				registerTags(manifest.tags || []);
+
 				// Re-add to group tree if needed
 				var navtree = db_tree.tree.find();
 				var inGroup = false;
@@ -8015,6 +8553,11 @@
 						};
 						var saved = db_installed_libs.installed_libs.save(dbRecord);
 
+						// Update publisher registry
+						registerPublisher(manifest.author || '');
+						registerPublisher(manifest.organization || '');
+						registerTags(manifest.tags || []);
+
 						// Attempt COM registration for DLLs (best-effort, non-blocking)
 						if (comDlls.length > 0) {
 							var dllPaths = comDlls.map(function(d) { return path.join(libDestDir, d); });
@@ -8871,6 +9414,11 @@
 					required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
+
+				// Update publisher registry
+				registerPublisher(manifest.author || '');
+				registerPublisher(manifest.organization || '');
+				registerTags(manifest.tags || []);
 
 				// Add the new library to the appropriate group in the tree
 				var navtree = db_tree.tree.find();
@@ -10730,6 +11278,11 @@
 					required_dependencies: extractRequiredDependencies(libFileBasenames, libDestDir)
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
+
+				// Update publisher registry
+				registerPublisher(uLib.author || '');
+				registerPublisher(uLib.organization || '');
+				registerTags(uLib.tags || []);
 
 				// Add the new library to the appropriate group in the nav tree
 				var navtree = db_tree.tree.find();
