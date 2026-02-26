@@ -37,7 +37,7 @@
 		const sizeOf = require('image-size');
 		const os = require("os");
 		const crypto = require('crypto');
-		const shared = require('../../lib/shared');
+		const shared = require('../lib/shared');
 
 		/** Shared MIME type lookup for image file extensions */
 		var IMAGE_MIME_MAP = {
@@ -1267,60 +1267,76 @@
 			}, 150, "window-resize");
 		});
 
-        //Window load
-		$(window).on('load', function () {
-			// Track when splash animation and init are both done
-			var _splashAnimDone = false;
-			var _splashInitDone = false;
-			var _splashStartTime = Date.now();
-			var SPLASH_ANIM_MS = 2300; // match SVG animation duration (~2273ms) + small buffer
+        //Window load — race-safe: handles case where native load event fires
+		//before jQuery can bind its handler (script parse time > resource load time)
+		(function _windowLoadInit() {
+			function _onWindowLoad() {
+				// Track when splash animation and init are both done
+				var _splashAnimDone = false;
+				var _splashInitDone = false;
+				var _splashStartTime = Date.now();
+				var SPLASH_ANIM_MS = 2300; // match SVG animation duration (~2273ms) + small buffer
 
-			function dismissSplashIfReady() {
-				if (!_splashAnimDone || !_splashInitDone) return;
-				var splashEl = document.getElementById('splash-screen');
-				if (splashEl) {
-					splashEl.classList.add('splash-fade-out');
-					splashEl.addEventListener('transitionend', function() {
-						splashEl.parentNode.removeChild(splashEl);
-					});
+				function dismissSplashIfReady() {
+					if (!_splashAnimDone || !_splashInitDone) return;
+					var splashEl = document.getElementById('splash-screen');
+					if (splashEl) {
+						splashEl.classList.add('splash-fade-out');
+						splashEl.addEventListener('transitionend', function handler() {
+							splashEl.removeEventListener('transitionend', handler);
+							if (splashEl.parentNode) splashEl.parentNode.removeChild(splashEl);
+						});
+						// Safety: if transitionend doesn't fire within 2s, force remove
+						setTimeout(function() {
+							var el = document.getElementById('splash-screen');
+							if (el && el.parentNode) el.parentNode.removeChild(el);
+						}, 2000);
+					}
 				}
+
+				// Fire when animation time has elapsed
+				var elapsed = Date.now() - _splashStartTime;
+				var remaining = Math.max(0, SPLASH_ANIM_MS - elapsed);
+				setTimeout(function() {
+					_splashAnimDone = true;
+					dismissSplashIfReady();
+				}, remaining);
+
+				// Restore maximized state from previous session
+				try {
+					if (getSettingValue('windowMaximized')) {
+						win.maximize();
+						_windowIsMaximized = true;
+					}
+				} catch(e) { console.log('Could not restore window state: ' + e); }
+
+				// Use setTimeout instead of waitForFinalEvent so that an async
+				// resize triggered by win.maximize() cannot cancel this init.
+				setTimeout(function () {
+					try {
+						initVENUSData();
+						createGroups();
+						setTimeout(function(){historyCleanup()},100);
+					} catch(e) {
+						console.log("Error in startup chain: " + e);
+						try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
+					}
+					// Ensure we always navigate to home screen after startup
+					try { navigateHome(); } catch(e3) { console.log("Error navigating home: " + e3); }
+
+					// Mark init complete, dismiss splash if animation also done
+					_splashInitDone = true;
+					dismissSplashIfReady();
+				}, 150);
 			}
 
-			// Fire when animation time has elapsed
-			var elapsed = Date.now() - _splashStartTime;
-			var remaining = Math.max(0, SPLASH_ANIM_MS - elapsed);
-			setTimeout(function() {
-				_splashAnimDone = true;
-				dismissSplashIfReady();
-			}, remaining);
-
-			// Restore maximized state from previous session
-			try {
-				if (getSettingValue('windowMaximized')) {
-					win.maximize();
-					_windowIsMaximized = true;
-				}
-			} catch(e) { console.log('Could not restore window state: ' + e); }
-
-			// Use setTimeout instead of waitForFinalEvent so that an async
-			// resize triggered by win.maximize() cannot cancel this init.
-			setTimeout(function () {
-				try {
-					initVENUSData();
-					createGroups();
-					setTimeout(function(){historyCleanup()},100);
-				} catch(e) {
-					console.log("Error in startup chain: " + e);
-					try { createGroups(); } catch(e2) { console.log("Error in createGroups: " + e2); }
-				}
-				// Ensure we always navigate to home screen after startup
-				try { navigateHome(); } catch(e3) { console.log("Error navigating home: " + e3); }
-
-				// Mark init complete, dismiss splash if animation also done
-				_splashInitDone = true;
-				dismissSplashIfReady();
-			}, 150);
-        });
+			// If load already fired, run immediately; otherwise wait for it
+			if (document.readyState === 'complete') {
+				_onWindowLoad();
+			} else {
+				window.addEventListener('load', _onWindowLoad);
+			}
+		})();
 
         //Click Hamilton logo to go home
 		$(document).on("click", ".brand-logo", function () {
@@ -3736,10 +3752,38 @@
 			}
 		});
 
+		// ---- File-type mismatch warning helper ----
+		/**
+		 * Show a warning modal when the user adds an unexpected file type.
+		 * @param {string} message  - HTML-safe warning text to display.
+		 * @param {Function} onYes  - Called when the user confirms they want to keep the files.
+		 * @param {Function} onNo   - Called when the user declines (files should be removed).
+		 */
+		function pkgShowFileTypeWarning(message, onYes, onNo) {
+			var $modal = $("#pkgFileTypeWarningModal");
+			$modal.find(".pkg-filetype-warn-message").html(message);
+			// Wire buttons (one-time handlers)
+			$modal.find(".pkg-filetype-warn-yes").off("click").on("click", function() {
+				$modal.modal("hide");
+				if (onYes) onYes();
+			});
+			$modal.find(".pkg-filetype-warn-no").off("click").on("click", function() {
+				$modal.modal("hide");
+				if (onNo) onNo();
+			});
+			// Also treat backdrop dismiss / Esc as "No"
+			$modal.off("hidden.bs.modal.ftw").on("hidden.bs.modal.ftw", function() {
+				// Only fire onNo if neither button was clicked (modal was just dismissed)
+				$modal.off("hidden.bs.modal.ftw");
+			});
+			$modal.modal("show");
+		}
+
 		// ---- Library file inputs ----
 		$(document).on("change", "#pkg-input-libfiles", function() {
 			var fileInput = this;
 			var newDlls = [];
+			var medFiles = [];
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_libraryFiles.indexOf(filePath) === -1) {
@@ -3747,6 +3791,9 @@
 					var baseName = path.basename(filePath);
 					if (baseName.toLowerCase().endsWith('.dll')) {
 						newDlls.push(baseName);
+					}
+					if (baseName.toLowerCase().endsWith('.med')) {
+						medFiles.push(filePath);
 					}
 				}
 			}
@@ -3756,6 +3803,27 @@
 			}
 			pkgUpdateLibFileList();
 			$(this).val('');
+
+			// Warn if .med (method) files were added to the Library Files section
+			if (medFiles.length > 0) {
+				var fileNames = medFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+				pkgShowFileTypeWarning(
+					'Whoa there! This section is for <b>library files</b> only. You\'ve added ' +
+					(medFiles.length === 1 ? 'a method file' : medFiles.length + ' method files') +
+					' (' + fileNames + ') that ' + (medFiles.length === 1 ? 'looks' : 'look') +
+					' like ' + (medFiles.length === 1 ? 'it belongs' : 'they belong') +
+					' in the <b>Demo Method Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
+					(medFiles.length === 1 ? 'this method' : 'these methods') + ' here?',
+					null, // onYes — keep the files
+					function() {
+						// onNo — remove the .med files from library files
+						pkg_libraryFiles = pkg_libraryFiles.filter(function(f) {
+							return medFiles.indexOf(f) === -1;
+						});
+						pkgUpdateLibFileList();
+					}
+				);
+			}
 		});
 
 		$(document).on("change", "#pkg-input-libfolder", function() {
@@ -3764,6 +3832,7 @@
 				try {
 					var files = fs.readdirSync(folderPath);
 					var newDlls = [];
+					var medFiles = [];
 					files.forEach(function(file) {
 						var filePath = path.join(folderPath, file);
 						try {
@@ -3771,6 +3840,9 @@
 								pkg_libraryFiles.push(filePath);
 								if (file.toLowerCase().endsWith('.dll')) {
 									newDlls.push(file);
+								}
+								if (file.toLowerCase().endsWith('.med')) {
+									medFiles.push(filePath);
 								}
 							}
 						} catch(e) {}
@@ -3780,6 +3852,27 @@
 						pkg_comRegisterDlls.push(newDlls[0]);
 					}
 					pkgUpdateLibFileList();
+
+					// Warn if .med (method) files were found in the folder
+					if (medFiles.length > 0) {
+						var fileNames = medFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+						pkgShowFileTypeWarning(
+							'Whoa there! This section is for <b>library files</b> only. You\'ve added ' +
+							(medFiles.length === 1 ? 'a method file' : medFiles.length + ' method files') +
+							' (' + fileNames + ') that ' + (medFiles.length === 1 ? 'looks' : 'look') +
+							' like ' + (medFiles.length === 1 ? 'it belongs' : 'they belong') +
+							' in the <b>Demo Method Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
+							(medFiles.length === 1 ? 'this method' : 'these methods') + ' here?',
+							null, // onYes — keep the files
+							function() {
+								// onNo — remove the .med files from library files
+								pkg_libraryFiles = pkg_libraryFiles.filter(function(f) {
+									return medFiles.indexOf(f) === -1;
+								});
+								pkgUpdateLibFileList();
+							}
+						);
+					}
 				} catch(e) {
 					alert("Error reading folder: " + e.message);
 				}
@@ -3790,14 +3883,39 @@
 		// ---- Demo method file inputs ----
 		$(document).on("change", "#pkg-input-demofiles", function() {
 			var fileInput = this;
+			var dllFiles = [];
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_demoMethodFiles.indexOf(filePath) === -1) {
 					pkg_demoMethodFiles.push(filePath);
+					if (path.basename(filePath).toLowerCase().endsWith('.dll')) {
+						dllFiles.push(filePath);
+					}
 				}
 			}
 			pkgUpdateDemoFileList();
 			$(this).val('');
+
+			// Warn if .dll files were added to the Demo Method Files section
+			if (dllFiles.length > 0) {
+				var fileNames = dllFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+				pkgShowFileTypeWarning(
+					'Whoa there! This section is for <b>demo methods</b> only. You\'ve added ' +
+					(dllFiles.length === 1 ? 'a DLL file' : dllFiles.length + ' DLL files') +
+					' (' + fileNames + ') that ' + (dllFiles.length === 1 ? 'looks' : 'look') +
+					' like ' + (dllFiles.length === 1 ? 'it belongs' : 'they belong') +
+					' in the <b>Library Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
+					(dllFiles.length === 1 ? 'this DLL' : 'these DLLs') + ' here?',
+					null, // onYes — keep the files
+					function() {
+						// onNo — remove the .dll files from demo method files
+						pkg_demoMethodFiles = pkg_demoMethodFiles.filter(function(f) {
+							return dllFiles.indexOf(f) === -1;
+						});
+						pkgUpdateDemoFileList();
+					}
+				);
+			}
 		});
 
 		$(document).on("change", "#pkg-input-demofolder", function() {
@@ -3805,15 +3923,40 @@
 			if (folderPath) {
 				try {
 					var files = fs.readdirSync(folderPath);
+					var dllFiles = [];
 					files.forEach(function(file) {
 						var filePath = path.join(folderPath, file);
 						try {
 							if (fs.statSync(filePath).isFile() && pkg_demoMethodFiles.indexOf(filePath) === -1) {
 								pkg_demoMethodFiles.push(filePath);
+								if (file.toLowerCase().endsWith('.dll')) {
+									dllFiles.push(filePath);
+								}
 							}
 						} catch(e) {}
 					});
 					pkgUpdateDemoFileList();
+
+					// Warn if .dll files were found in the folder
+					if (dllFiles.length > 0) {
+						var fileNames = dllFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+						pkgShowFileTypeWarning(
+							'Whoa there! This section is for <b>demo methods</b> only. You\'ve added ' +
+							(dllFiles.length === 1 ? 'a DLL file' : dllFiles.length + ' DLL files') +
+							' (' + fileNames + ') that ' + (dllFiles.length === 1 ? 'looks' : 'look') +
+							' like ' + (dllFiles.length === 1 ? 'it belongs' : 'they belong') +
+							' in the <b>Library Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
+							(dllFiles.length === 1 ? 'this DLL' : 'these DLLs') + ' here?',
+							null, // onYes — keep the files
+							function() {
+								// onNo — remove the .dll files from demo method files
+								pkg_demoMethodFiles = pkg_demoMethodFiles.filter(function(f) {
+									return dllFiles.indexOf(f) === -1;
+								});
+								pkgUpdateDemoFileList();
+							}
+						);
+					}
 				} catch(e) {
 					alert("Error reading folder: " + e.message);
 				}

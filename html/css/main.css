@@ -1217,6 +1217,69 @@ body {
 	border-color: var(--medium);
 }
 
+/* ---- File-type mismatch warning modal ---- */
+.pkg-filetype-warn-content {
+	border: none;
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+.pkg-filetype-warn-body {
+	padding: 24px 24px 16px;
+	background: #fffbf0;
+	border-top: 4px solid #e8a317;
+}
+
+.pkg-filetype-warn-icon {
+	color: #e8a317;
+	margin-top: 2px;
+}
+
+.pkg-filetype-warn-title {
+	font-weight: 700;
+	font-size: 1.05rem;
+	color: #7a5600;
+}
+
+.pkg-filetype-warn-message {
+	color: #6a4b00;
+	font-size: 0.9rem;
+	line-height: 1.55;
+}
+
+.pkg-filetype-warn-footer {
+	background: #fffbf0;
+	border-top: 1px solid #f0e0b8;
+	padding: 12px 24px;
+	justify-content: space-between;
+}
+
+.pkg-filetype-warn-footer .pkg-filetype-warn-no {
+	background: var(--medium, #3b7fc4);
+	border-color: var(--medium, #3b7fc4);
+	color: #fff;
+	font-weight: 600;
+	padding: 6px 22px;
+	font-size: 0.9rem;
+}
+
+.pkg-filetype-warn-footer .pkg-filetype-warn-no:hover {
+	opacity: 0.9;
+}
+
+.pkg-filetype-warn-footer .pkg-filetype-warn-yes {
+	color: #999;
+	border-color: #ccc;
+	font-size: 0.78rem;
+	padding: 4px 12px;
+}
+
+.pkg-filetype-warn-footer .pkg-filetype-warn-yes:hover {
+	color: #666;
+	border-color: #aaa;
+}
+
 /* ---- Importer / Installed Libraries ---- */
 .importer-container {
 	overflow-y: auto;

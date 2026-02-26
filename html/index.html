@@ -1794,6 +1794,30 @@
 	</div>
 	<!---- Modal Verify & Repair end --->
 
+	<!---- Modal File Type Mismatch Warning start --->
+	<div class="modal" tabindex="-1" role="dialog" id="pkgFileTypeWarningModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:520px;">
+			<div class="modal-content pkg-filetype-warn-content">
+				<div class="modal-body pkg-filetype-warn-body">
+					<div class="d-flex align-items-start">
+						<div class="pkg-filetype-warn-icon mr-3 flex-shrink-0">
+							<i class="fas fa-exclamation-triangle fa-2x"></i>
+						</div>
+						<div class="pkg-filetype-warn-text">
+							<div class="pkg-filetype-warn-title mb-1">Hold on a moment!</div>
+							<div class="pkg-filetype-warn-message"></div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer pkg-filetype-warn-footer">
+					<button type="button" class="btn btn-primary pkg-filetype-warn-no">No, remove them</button>
+					<button type="button" class="btn btn-outline-secondary btn-sm pkg-filetype-warn-yes">Yes, I'm sure</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal File Type Mismatch Warning end --->
+
 	<!-- Hidden open dialog for Check Audit File -->
 	<input type="file" class="d-none" id="audit-open-dialog" accept=".txt">
 
