@@ -1921,6 +1921,76 @@ body {
 	max-width: 220px;
 	min-width: 220px;
 	flex: 0 0 220px;
+	position: relative;
+}
+
+/* ---- Search Autocomplete Dropdown ---- */
+.imp-search-autocomplete {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 1050;
+	background: #1e2a38;
+	border: 1px solid rgba(255,255,255,0.15);
+	border-top: none;
+	border-radius: 0 0 8px 8px;
+	max-height: 180px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+.imp-search-autocomplete::-webkit-scrollbar {
+	width: 4px;
+}
+
+.imp-search-autocomplete::-webkit-scrollbar-thumb {
+	background: rgba(255,255,255,0.2);
+	border-radius: 2px;
+}
+
+.imp-search-ac-item {
+	display: flex;
+	align-items: center;
+	padding: 5px 10px;
+	cursor: pointer;
+	font-size: 0.78rem;
+	color: #d7e7f3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.imp-search-ac-item:hover,
+.imp-search-ac-item.active {
+	background: rgba(95, 151, 197, 0.25);
+	color: #ffffff;
+}
+
+.imp-search-ac-item .ac-icon {
+	margin-right: 6px;
+	font-size: 0.68rem;
+	opacity: 0.6;
+	flex: 0 0 auto;
+}
+
+.imp-search-ac-item .ac-label {
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.imp-search-ac-item .ac-match {
+	font-weight: 600;
+	color: #ffffff;
+}
+
+.imp-search-ac-hint {
+	padding: 4px 10px;
+	font-size: 0.7rem;
+	color: rgba(255,255,255,0.35);
+	border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .imp-search-bar .input-group {

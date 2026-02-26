@@ -26,6 +26,10 @@
 			<param name="Local" value="GUIOverview.html">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Search &amp; Filtering">
+			<param name="Local" value="SearchFeatures.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Splash Screen &amp; Startup Pipeline">
 			<param name="Local" value="SplashScreen.html">
 			</OBJECT>

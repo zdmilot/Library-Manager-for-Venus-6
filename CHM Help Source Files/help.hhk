@@ -18,6 +18,18 @@
 		<param name="Local" value="LibraryAuditLog.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="author chip">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="author filter">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="autocomplete">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="backup">
 		<param name="Local" value="IntegrityVerification.html">
 		</OBJECT>
@@ -32,6 +44,10 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="checksum">
 		<param name="Local" value="HSLFileArchitecture.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="chip">
+		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="CLI">
@@ -96,6 +112,10 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="file hashes">
 		<param name="Local" value="IntegrityVerification.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="filter">
+		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="footer">
@@ -166,6 +186,10 @@
 		<param name="Local" value="ImportingLibraries.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="inline editing">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="installed_libs">
 		<param name="Local" value="DataModel.html">
 		</OBJECT>
@@ -234,6 +258,10 @@
 		<param name="Local" value="DataModel.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="publisher registry">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="RegAsm">
 		<param name="Local" value="ImportingLibraries.html">
 		</OBJECT>
@@ -252,6 +280,22 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="rollback-lib">
 		<param name="Local" value="CLIRollbackLib.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="search">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="search chips">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="search filtering">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="search keyboard shortcuts">
+		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="settings">
@@ -296,6 +340,14 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="sysLibBackupComplete">
 		<param name="Local" value="IntegrityVerification.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="tag chip">
+		<param name="Local" value="SearchFeatures.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="tag filter">
+		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="tampered">

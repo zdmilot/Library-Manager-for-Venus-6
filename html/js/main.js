@@ -2315,6 +2315,180 @@
 			}, 150);
 		}
 
+		// ---- Search Autocomplete ----
+		var _acSelectedIdx = -1;
+
+		function getSearchAutocompleteContext() {
+			var raw = ($("#imp-search-input").val() || '');
+			// Check for trailing @partial (author autocomplete)
+			var authorMatch = raw.match(/(^|.*\s)@([^@]*)$/);
+			if (authorMatch) {
+				return { type: 'author', prefix: (authorMatch[2] || '').toLowerCase() };
+			}
+			// Check for trailing #partial (tag autocomplete)
+			var tagMatch = raw.match(/(^|.*\s)#([^\s#]*)$/);
+			if (tagMatch) {
+				return { type: 'tag', prefix: (tagMatch[2] || '').toLowerCase() };
+			}
+			return null;
+		}
+
+		function updateSearchAutocomplete() {
+			var $ac = $("#imp-search-autocomplete");
+			var ctx = getSearchAutocompleteContext();
+			if (!ctx) {
+				hideSearchAutocomplete();
+				return;
+			}
+
+			var suggestions = [];
+			if (ctx.type === 'tag') {
+				var allTags = getKnownTags();
+				// Also gather tags already used as chips so we can mark them
+				var usedTags = {};
+				(_searchInlineTokens || []).forEach(function(t) {
+					if (t && t.type === 'tag') usedTags[t.value] = true;
+				});
+				allTags.forEach(function(tag) {
+					if (usedTags[tag]) return; // skip already-active tags
+					if (!ctx.prefix || tag.indexOf(ctx.prefix) !== -1) {
+						suggestions.push({ type: 'tag', value: tag, label: '#' + tag });
+					}
+				});
+				// Sort: prefix-match first, then alphabetical
+				suggestions.sort(function(a, b) {
+					var aStart = a.value.indexOf(ctx.prefix) === 0 ? 0 : 1;
+					var bStart = b.value.indexOf(ctx.prefix) === 0 ? 0 : 1;
+					if (aStart !== bStart) return aStart - bStart;
+					return a.value.localeCompare(b.value);
+				});
+			} else if (ctx.type === 'author') {
+				var allPubs = getKnownPublishers();
+				var usedAuthors = {};
+				(_searchInlineTokens || []).forEach(function(t) {
+					if (t && t.type === 'author') usedAuthors[t.value.toLowerCase()] = true;
+				});
+				allPubs.forEach(function(pub) {
+					if (usedAuthors[pub.toLowerCase()]) return;
+					if (!ctx.prefix || pub.toLowerCase().indexOf(ctx.prefix) !== -1) {
+						suggestions.push({ type: 'author', value: pub, label: '@' + pub });
+					}
+				});
+				suggestions.sort(function(a, b) {
+					var aStart = a.value.toLowerCase().indexOf(ctx.prefix) === 0 ? 0 : 1;
+					var bStart = b.value.toLowerCase().indexOf(ctx.prefix) === 0 ? 0 : 1;
+					if (aStart !== bStart) return aStart - bStart;
+					return a.value.localeCompare(b.value);
+				});
+			}
+
+			if (suggestions.length === 0) {
+				hideSearchAutocomplete();
+				return;
+			}
+
+			// Limit to 8 suggestions
+			suggestions = suggestions.slice(0, 8);
+
+			var icon = ctx.type === 'tag' ? 'fa-tag' : 'fa-user';
+			var html = '';
+			suggestions.forEach(function(s, i) {
+				// Highlight matching portion
+				var display = escapeHtml(s.label);
+				if (ctx.prefix) {
+					var matchIdx = s.value.toLowerCase().indexOf(ctx.prefix);
+					if (matchIdx !== -1) {
+						var prefix = s.label.charAt(0); // # or @
+						var before = s.value.substring(0, matchIdx);
+						var match = s.value.substring(matchIdx, matchIdx + ctx.prefix.length);
+						var after = s.value.substring(matchIdx + ctx.prefix.length);
+						display = escapeHtml(prefix) + escapeHtml(before) +
+							'<span class="ac-match">' + escapeHtml(match) + '</span>' +
+							escapeHtml(after);
+					}
+				}
+				html += '<div class="imp-search-ac-item' + (i === 0 ? ' active' : '') + '" data-ac-idx="' + i + '" data-ac-type="' + s.type + '" data-ac-value="' + escapeHtml(s.value) + '">' +
+					'<i class="fas ' + icon + ' ac-icon"></i>' +
+					'<span class="ac-label">' + display + '</span>' +
+				'</div>';
+			});
+
+			$ac.html(html).removeClass('d-none');
+			_acSelectedIdx = 0;
+		}
+
+		function hideSearchAutocomplete() {
+			$("#imp-search-autocomplete").addClass('d-none').empty();
+			_acSelectedIdx = -1;
+		}
+
+		function selectAutocompleteItem(idx) {
+			var $items = $("#imp-search-autocomplete .imp-search-ac-item");
+			if (idx < 0 || idx >= $items.length) return;
+			$items.removeClass('active');
+			$items.eq(idx).addClass('active');
+			_acSelectedIdx = idx;
+			// Scroll into view
+			var item = $items.eq(idx)[0];
+			if (item) item.scrollIntoView({ block: 'nearest' });
+		}
+
+		function commitAutocompleteSelection() {
+			var $items = $("#imp-search-autocomplete .imp-search-ac-item");
+			if (_acSelectedIdx < 0 || _acSelectedIdx >= $items.length) return false;
+			var $item = $items.eq(_acSelectedIdx);
+			var type = $item.attr('data-ac-type');
+			var value = $item.attr('data-ac-value');
+			if (!type || !value) return false;
+
+			var $input = $("#imp-search-input");
+			var raw = $input.val() || '';
+
+			if (type === 'tag') {
+				// Remove the #partial from input
+				var tagMatch = raw.match(/^(.*?)(?:^|\s)#[^\s#]*$/);
+				var prefix = tagMatch ? tagMatch[1] : '';
+				if (prefix.trim()) {
+					_searchInlineTokens.push({ type: 'text', value: prefix });
+				}
+				insertSearchTagToken(value, { trailingSpace: true });
+				$input.val('');
+			} else if (type === 'author') {
+				// Remove the @partial from input
+				var authorMatch = raw.match(/^(.*?)(?:^|\s)@[^@]*$/);
+				var prefix2 = authorMatch ? authorMatch[1] : '';
+				if (prefix2.trim()) {
+					_searchInlineTokens.push({ type: 'text', value: prefix2 });
+				}
+				insertSearchAuthorToken(value, { trailingSpace: true });
+				$input.val('');
+			}
+
+			hideSearchAutocomplete();
+			normalizeSearchInlineTokens();
+			renderSearchInlineTokens();
+			updateSearchInputWidth();
+			scrollSearchFlowToEnd();
+			refreshLibrarySearchFromInput();
+			$("#imp-search-input").focus();
+			return true;
+		}
+
+		$(document).on("click", ".imp-search-ac-item", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var idx = parseInt($(this).attr('data-ac-idx'), 10);
+			if (!isNaN(idx)) {
+				_acSelectedIdx = idx;
+				commitAutocompleteSelection();
+			}
+		});
+
+		// Prevent mousedown on autocomplete from stealing focus
+		$(document).on("mousedown", ".imp-search-autocomplete", function(e) {
+			e.preventDefault();
+		});
+
 		$(document).on("input", "#imp-search-input", function() {
 			clearPendingDeleteChip();
 			// Prevent space immediately after a bare # or @ (no tag/author text yet).
@@ -2331,6 +2505,18 @@
 			updateSearchInputWidth();
 			scrollSearchFlowToEnd();
 			refreshLibrarySearchFromInput();
+			updateSearchAutocomplete();
+		});
+
+		$(document).on("blur", "#imp-search-input", function() {
+			// Small delay so click on autocomplete item fires first
+			setTimeout(function() {
+				hideSearchAutocomplete();
+			}, 150);
+		});
+
+		$(document).on("focus", "#imp-search-input", function() {
+			updateSearchAutocomplete();
 		});
 
 		updateSearchInputWidth();
@@ -2338,6 +2524,7 @@
 		$(document).on("click", ".imp-search-clear", function() {
 			_searchInlineTokens = [];
 			renderSearchInlineTokens();
+			hideSearchAutocomplete();
 			$("#imp-search-input").val("").trigger("input");
 			updateSearchInputWidth();
 		});
@@ -2538,6 +2725,35 @@
 		});
 
 		$(document).on("keydown", "#imp-search-input", function(e) {
+			var acVisible = !$("#imp-search-autocomplete").hasClass("d-none");
+			var acItemCount = acVisible ? $("#imp-search-autocomplete .imp-search-ac-item").length : 0;
+
+			// Autocomplete keyboard navigation
+			if (acVisible && acItemCount > 0) {
+				if (e.key === 'ArrowDown') {
+					e.preventDefault();
+					selectAutocompleteItem((_acSelectedIdx + 1) % acItemCount);
+					return;
+				}
+				if (e.key === 'ArrowUp') {
+					e.preventDefault();
+					selectAutocompleteItem((_acSelectedIdx - 1 + acItemCount) % acItemCount);
+					return;
+				}
+				if (e.key === 'Enter' || e.key === 'Tab') {
+					if (_acSelectedIdx >= 0) {
+						e.preventDefault();
+						commitAutocompleteSelection();
+						return;
+					}
+				}
+				if (e.key === 'Escape') {
+					e.preventDefault();
+					hideSearchAutocomplete();
+					return;
+				}
+			}
+
 			if (e.key === 'Enter') {
 				if (commitTrailingSearchAuthor({ appendSpace: true })) {
 					e.preventDefault();
