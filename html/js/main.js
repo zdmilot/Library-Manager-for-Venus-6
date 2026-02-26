@@ -1940,14 +1940,23 @@
 
 			var textQuery = textTokens.join(' ').trim();
 			var displayBits = [];
-			tagFilters.forEach(function(t) { displayBits.push('#' + t); });
-			if (textQuery) displayBits.push(textQuery);
+			var displayHtmlBits = [];
+			tagFilters.forEach(function(t) {
+				displayBits.push('#' + t);
+				displayHtmlBits.push('<b>#' + escapeHtml(t) + '</b>');
+			});
+			if (textQuery) {
+				displayBits.push(textQuery);
+				displayHtmlBits.push(escapeHtml(textQuery));
+			}
 			var displayQuery = displayBits.join(' ').trim();
+			var displayQueryHtml = displayHtmlBits.join(' ');
 
 			return {
 				tagFilters: tagFilters,
 				textQuery: textQuery,
 				displayQuery: displayQuery,
+				displayQueryHtml: displayQueryHtml,
 				hasSearch: tagFilters.length > 0 || textQuery.length > 0
 			};
 		}
@@ -1959,10 +1968,11 @@
 
 			clearTimeout(_searchTimeout);
 			_searchTimeout = setTimeout(function() {
-				if (state.hasSearch) {
+					if (state.hasSearch) {
 					impEnterSearchMode(state.displayQuery, {
 						tagFilters: state.tagFilters,
-						textQuery: state.textQuery
+						textQuery: state.textQuery,
+						displayQueryHtml: state.displayQueryHtml
 					});
 				} else {
 					impExitSearchMode();
@@ -2119,6 +2129,7 @@
 			$(".navbar-custom .nav-item, .navbar-custom .dropdown-navitem").removeClass("active");
 
 			var displayQuery = (typeof query === 'string') ? query : '';
+			var displayQueryHtml = options.displayQueryHtml || '';
 			var tagFilters = [];
 			(options.tagFilters || []).forEach(function(rawTag) {
 				var sanitized = shared.sanitizeTag(rawTag || '');
@@ -2189,18 +2200,20 @@
 			});
 
 			if (allCards.length === 0) {
+				var noResultsDisplay = displayQueryHtml || ('<b>' + escapeHtml(displayQuery) + '</b>');
 				$container.html(
 					'<div class="w-100 text-center py-5 imp-search-no-results">' +
 						'<i class="fas fa-search fa-2x color-lightgray"></i>' +
-						'<p class="text-muted mt-2">No libraries matching "<b>' + $("<span>").text(displayQuery).html() + '</b>"</p>' +
+						'<p class="text-muted mt-2">No libraries matching "' + noResultsDisplay + '"</p>' +
 					'</div>'
 				);
 			} else {
 				// Search results header
 				var headerIcon = (hasTagFilters && !hasTextQuery) ? '<i class="fas fa-tag mr-1"></i>' : '<i class="fas fa-search mr-1"></i>';
+				var headerDisplay = displayQueryHtml || ('<b>' + escapeHtml(displayQuery) + '</b>');
 				$container.append(
 					'<div class="col-md-12 mb-2">' +
-						'<span class="text-muted text-sm">' + headerIcon + allCards.length + ' result' + (allCards.length !== 1 ? 's' : '') + ' for "<b>' + $("<span>").text(displayQuery).html() + '</b>"</span>' +
+						'<span class="text-muted text-sm">' + headerIcon + allCards.length + ' result' + (allCards.length !== 1 ? 's' : '') + ' for "' + headerDisplay + '"</span>' +
 					'</div>'
 				);
 				allCards.forEach(function(c) {
