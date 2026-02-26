@@ -71,6 +71,12 @@
   <td>Human-readable description of the library.</td>
 </tr>
 <tr>
+  <td><code>github_url</code></td>
+  <td>string</td>
+  <td>format: uri</td>
+  <td>URL to the library's GitHub repository. Must point to a valid <code>/{owner}/{repo}</code> path. See <a href="GitHubRepository.html">GitHub Repository Link</a> for full validation rules.</td>
+</tr>
+<tr>
   <td><code>tags</code></td>
   <td>string[]</td>
   <td>uniqueItems: true</td>
@@ -144,6 +150,7 @@
   "version": "1.0.0",
   "venus_compatibility": "4.7+",
   "description": "My example Hamilton VENUS library.",
+  "github_url": "https://github.com/acme-pharma/venus-library",
   "tags": ["example", "venus"],
   "library_image": "MyVenusLibrary.png",
   "library_files": [

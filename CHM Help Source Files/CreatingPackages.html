@@ -24,6 +24,7 @@
       <li><b>Library Version</b> (required) - A version string (e.g., <code>1.0.0</code>)</li>
       <li><b>VENUS Compatibility</b> (optional) - Target VENUS version range (e.g., <code>4.7+</code>)</li>
       <li><b>Description</b> (optional) - A human-readable summary of the library</li>
+      <li><b>GitHub Repository</b> (optional) - URL to the library's source repository on GitHub. Must be a valid <code>/{owner}/{repo}</code> URL; see <a href="GitHubRepository.html">GitHub Repository Link</a> for validation rules.</li>
       <li><b>Tags</b> (optional) - Searchable keywords. <b>Note:</b> The keywords <code>System</code> and <code>Hamilton</code> are <b>reserved</b> and cannot be used as tags (case-insensitive). If entered, they are automatically removed and an error message is displayed. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for details.</li>
     </ul>
   </li>
@@ -84,6 +85,7 @@
   "version": "1.0.0",
   "venus_compatibility": "4.7+",
   "description": "High-level pipetting helpers for the ML600.",
+  "github_url": "https://github.com/acme-pharma/venus-ml600-helpers",
   "tags": ["pipetting", "ML600", "syringe"],
   "library_image": "MyVenusLibrary.png",
   "library_files": [

@@ -70,6 +70,22 @@
 		<param name="Local" value="CLICreatePackage.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="GitHub repository">
+		<param name="Local" value="GitHubRepository.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="github_url">
+		<param name="Local" value="GitHubRepository.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="repository link">
+		<param name="Local" value="GitHubRepository.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="repository URL validation">
+		<param name="Local" value="GitHubRepository.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="data model">
 		<param name="Local" value="DataModel.html">
 		</OBJECT>

@@ -87,6 +87,10 @@
 				<param name="Local" value="CreatingPackages.html">
 				</OBJECT>
 			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="GitHub Repository Link">
+				<param name="Local" value="GitHubRepository.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Deleting Libraries">
 				<param name="Local" value="DeletingLibraries.html">
 				</OBJECT>
