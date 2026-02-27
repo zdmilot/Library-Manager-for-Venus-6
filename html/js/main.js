@@ -1,4 +1,4 @@
-
+﻿
 		// main.js v1.0 
 
 		var gui = require('nw.gui');
@@ -7,7 +7,7 @@
 		var spawn = require('child_process').spawn; 
 
 		// ---------------------------------------------------------------------------
-		// Global error boundary — catch unhandled errors to prevent silent failures
+		// Global error boundary - catch unhandled errors to prevent silent failures
 		// ---------------------------------------------------------------------------
 		window.onerror = function(message, source, lineno, colno, error) {
 			console.error('Unhandled error:', message, 'at', source, ':', lineno);
@@ -48,13 +48,13 @@
 			'.bmp':'image/bmp', '.gif':'image/gif', '.ico':'image/x-icon', '.svg':'image/svg+xml'
 		};
 
-		/** Sanitize a ZIP entry filename — delegated to shared module */
+		/** Sanitize a ZIP entry filename - delegated to shared module */
 		var safeZipExtractPath = shared.safeZipExtractPath;
 
-		/** Escape HTML — delegated to shared module */
+		/** Escape HTML - delegated to shared module */
 		var escapeHtml = shared.escapeHtml;
 
-		/** Validate library name — delegated to shared module */
+		/** Validate library name - delegated to shared module */
 		var isValidLibraryName = shared.isValidLibraryName;
 
 		/**
@@ -96,7 +96,7 @@
 								var entryRaw = execSync('reg query "' + subkeys[sk] + '" /v DisplayName', { encoding: 'utf8', timeout: 5000 });
 								if (!/Hamilton\s+VENUS\s+\d/i.test(entryRaw)) continue;
 
-								// Found the Hamilton VENUS entry — read all values
+								// Found the Hamilton VENUS entry - read all values
 								var allVals = execSync('reg query "' + subkeys[sk] + '"', { encoding: 'utf8', timeout: 5000 });
 
 								// Extract DisplayVersion
@@ -114,7 +114,7 @@
 									)).toISOString();
 								}
 
-								// If we got a version, we found the right entry — stop searching
+								// If we got a version, we found the right entry - stop searching
 								if (result.version) break;
 							} catch(e2) { /* skip subkey */ }
 						}
@@ -252,7 +252,7 @@
 		}
 
 		/* ================================================================
-		 *  EVENT HISTORY – modal UI for browsing the audit trail
+		 *  EVENT HISTORY - modal UI for browsing the audit trail
 		 * ================================================================ */
 
 		/** Event-type → human-readable label */
@@ -536,11 +536,11 @@
 				}
 
 				rows.push([
-					'"' + (e.timestamp || '') + '"',
-					'"' + lbl + '"',
-					'"' + cat + '"',
-					'"' + user + '"',
-					'"' + (e.hostname || '') + '"',
+					'"' + (e.timestamp || '').replace(/"/g, '""') + '"',
+					'"' + lbl.replace(/"/g, '""') + '"',
+					'"' + cat.replace(/"/g, '""') + '"',
+					'"' + user.replace(/"/g, '""') + '"',
+					'"' + (e.hostname || '').replace(/"/g, '""') + '"',
 					'"' + detailStr.replace(/"/g, '""') + '"'
 				].join(','));
 			}
@@ -567,7 +567,7 @@
         // Diskdb init
 		var db = require('diskdb');
 
-		// ---- Default Groups (hardcoded — never stored in external JSON) ----
+		// ---- Default Groups (hardcoded - never stored in external JSON) ----
 		var DEFAULT_GROUPS = {
 			"gStarred":  { "_id": "gStarred",  "name": "Starred",  "icon-class": "fa-star",         "default": true, "navbar": "left",  "favorite": true, "protected": true },
 			"gAll":      { "_id": "gAll",      "name": "All",      "icon-class": "fa-home",         "default": true, "navbar": "left",  "favorite": true  },
@@ -587,7 +587,7 @@
 			try { return db_groups.groups.findOne({"_id": id}); } catch(e) { return null; }
 		}
 
-		// ---- Settings DB (always in app's db/ folder — portable) ----
+		// ---- Settings DB (always in app's db/ folder - portable) ----
 		var db_settings = db.connect('db', ['settings']);
 
 		// ---- User Data Path ----
@@ -751,7 +751,7 @@
 
 		/**
 		 * Register a publisher/author name in the registry.
-		 * @param {string} name — author or organization name (can contain spaces)
+		 * @param {string} name - author or organization name (can contain spaces)
 		 */
 		function registerPublisher(name) {
 			if (!name || typeof name !== 'string') return;
@@ -995,7 +995,7 @@
 		// ---- Restricted Author Protection ----
 		// Password required to use "Hamilton" (case-insensitive) as author on non-system packages.
 		// This prevents spoofing and acts as an additional signing mechanism for first-party libraries.
-		var HAMILTON_AUTHOR_PASSWORD = 'password123';
+		var HAMILTON_AUTHOR_PASSWORD = '4970EnergyW@y!';
 
 		/**
 		 * Check if an author name is restricted (i.e. "Hamilton" in any case).
@@ -1085,7 +1085,7 @@
 		// Rebuild publisher registry at startup (after system libs are loaded)
 		rebuildPublisherRegistry();
 
-		// ---- Package Store — cache .hxlibpkg files for repair & version rollback ----
+		// ---- Package Store - cache .hxlibpkg files for repair & version rollback ----
 		function getPackageStoreDir() {
 			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
 			var libPath = (libFolderRec && libFolderRec.path) ? libFolderRec.path : "C:\\Program Files (x86)\\HAMILTON\\Library";
@@ -1184,7 +1184,7 @@
 
 		/**
 		 * Package a single system library into a .hxlibpkg backup in the package store.
-		 * System libraries have no demo methods — only library files and help files.
+		 * System libraries have no demo methods - only library files and help files.
 		 * @param {Object} sLib - system library record from system_libraries.json
 		 * @returns {{ success: boolean, path: string, error: string }}
 		 */
@@ -1263,7 +1263,7 @@
 					}
 				});
 
-				// Add help files (CHMs) — packed into help_files/ folder
+				// Add help files (CHMs) - packed into help_files/ folder
 				helpFiles.forEach(function(f) {
 					var fullPath = path.join(sysLibDir, f);
 					if (fs.existsSync(fullPath)) {
@@ -1321,7 +1321,7 @@
 			if (getSettingValue('sysLibBackupComplete')) {
 				return; // Already backed up
 			}
-			console.log('First run detected — backing up system libraries to package store...');
+			console.log('First run detected - backing up system libraries to package store...');
 			var result = backupAllSystemLibraries();
 			console.log('System library backup complete: ' + result.backed + ' backed up, ' +
 				result.skipped + ' already cached, ' + result.errors.length + ' errors.');
@@ -1461,7 +1461,7 @@
 			}, 150, "window-resize");
 		});
 
-        //Window load — race-safe: handles case where native load event fires
+        //Window load - race-safe: handles case where native load event fires
 		//before jQuery can bind its handler (script parse time > resource load time)
 		(function _windowLoadInit() {
 			function _onWindowLoad() {
@@ -2155,7 +2155,7 @@
 
 			// If typed more spaces than any known publisher, auto-commit
 			if (spaceCount > maxSpaces) {
-				// Find the last space — everything before it is the author, after is leftover
+				// Find the last space - everything before it is the author, after is leftover
 				var lastSpaceIdx = afterAt.lastIndexOf(' ');
 				var authorPart = afterAt.slice(0, lastSpaceIdx).trim();
 				var leftover = afterAt.slice(lastSpaceIdx + 1);
@@ -2607,7 +2607,7 @@
 				}
 				e.preventDefault();
 				if (_pendingDeleteChipIdx === nextIdx) {
-					// Second delete — remove the chip (and any whitespace between)
+					// Second delete - remove the chip (and any whitespace between)
 					_searchInlineTokens.splice(idx + 1, nextIdx - idx);
 					_pendingDeleteChipIdx = -1;
 					normalizeSearchInlineTokens();
@@ -2623,7 +2623,7 @@
 					$("#imp-search-input").focus();
 					scrollSearchFlowToEnd();
 				} else {
-					// First delete — highlight the chip
+					// First delete - highlight the chip
 					clearPendingDeleteChip();
 					_pendingDeleteChipIdx = nextIdx;
 					$(".imp-search-chip[data-idx='" + nextIdx + "']").addClass("imp-search-chip-pending-delete");
@@ -2818,7 +2818,7 @@
 				if (lastToken.type === 'tag' || lastToken.type === 'author') {
 					// Chip: highlight on first backspace, delete on second
 					if (_pendingDeleteChipIdx === lastIdx) {
-						// Already highlighted — delete the chip and trailing whitespace
+						// Already highlighted - delete the chip and trailing whitespace
 						_searchInlineTokens.splice(lastIdx);
 						_pendingDeleteChipIdx = -1;
 						normalizeSearchInlineTokens();
@@ -2827,7 +2827,7 @@
 						scrollSearchFlowToEnd();
 						refreshLibrarySearchFromInput();
 					} else {
-						// First backspace — highlight the chip for pending deletion
+						// First backspace - highlight the chip for pending deletion
 						clearPendingDeleteChip();
 						_pendingDeleteChipIdx = lastIdx;
 						$(".imp-search-chip[data-idx='" + lastIdx + "']").addClass("imp-search-chip-pending-delete");
@@ -2958,7 +2958,7 @@
 				allCards.push({ type: 'user', html: impBuildSingleCardHtml(lib) });
 			});
 
-			// System library cards — include public function names in search
+			// System library cards - include public function names in search
 			// System libs carry a virtual "system" tag so #system matches them.
 			var fnCache = hasTextQuery ? _buildSysLibFnCache() : null;
 			sysLibs.forEach(function(sLib) {
@@ -3131,7 +3131,7 @@
 			}
 		});
 
-		//Settings > Display — Show GitHub repository links
+		//Settings > Display - Show GitHub repository links
 		$(document).on("click", "#chk_showGitHubLinks", function(){
 			saveSetting($(this).attr("id"), $(this).prop("checked"));
 		});
@@ -3166,12 +3166,12 @@
 			}
 		});
 
-		//Settings > Unsigned Libraries — Scan Now
+		//Settings > Unsigned Libraries - Scan Now
 		$(document).on("click", "#btn-scan-unsigned-libs", function(){
 			scanUnsignedLibraries(true);
 		});
 
-		//Settings > Unsigned Libraries — Scan on launch checkbox
+		//Settings > Unsigned Libraries - Scan on launch checkbox
 		$(document).on("click", "#chk_scanUnsignedOnLaunch", function(){
 			var checked = $(this).prop("checked");
 			saveSetting("chk_scanUnsignedOnLaunch", checked);
@@ -3184,7 +3184,7 @@
 			saveSetting("recent-max",txt);
 		});
 
-		// Settings > Data Location — browse and apply
+		// Settings > Data Location - browse and apply
 		$(document).on("click", ".btn-browseDataPath", function() {
 			// Use a hidden nwdirectory input to pick a folder
 			var $picker = $("#input-dataPathBrowse");
@@ -3617,7 +3617,7 @@
 		}
 
 
-		//fitSettingsDivHeight removed – groups and settings are now modals with their own scrolling
+		//fitSettingsDivHeight removed - groups and settings are now modals with their own scrolling
 
 
         // Adjusts the elements in the nav bar and hides the ones that exceed the total width available
@@ -3911,7 +3911,7 @@
 					var sItemStr = '<div class="settings-links-method w-100 pt-2 system-lib-item" data-id="' + sLib._id + '">' +
 						sLibIcon +
 						'<div class="d-inline-block pb-2 link-namepath">' +
-							'<div class="name" style="color:#6c757d;">' + sLibName + ' <span class="badge badge-light" style="font-size:0.65rem;">System</span></div>' +
+							'<div class="name" style="color:#6c757d;">' + escapeHtml(sLibName) + ' <span class="badge badge-light" style="font-size:0.65rem;">System</span></div>' +
 							'<div class="path" style="color:#adb5bd;">Hamilton</div>' +
 						'</div>' +
 					'</div>';
@@ -4017,7 +4017,7 @@
 					var gid = $(this).attr('data-group-id');
 					if (gid) {
 						if (_seenAccIds[gid]) {
-							$(this).remove(); // duplicate — remove it
+							$(this).remove(); // duplicate - remove it
 						} else {
 							_seenAccIds[gid] = true;
 						}
@@ -4711,7 +4711,7 @@
 
 			// Guard: if settings record is missing, create a default one
 			if (!settings) {
-				console.warn('Settings record not found — initializing defaults.');
+				console.warn('Settings record not found - initializing defaults.');
 				var defaults = {
 					"_id": "0",
 					"recent-max": 20,
@@ -4866,7 +4866,7 @@
 				var counter = 0;
 				fs.readdir(HxFolder_LogFiles, function(err, files) {
 				if (err) {
-					console.warn('Could not read log directory: ' + HxFolder_LogFiles + ' — ' + err.message);
+					console.warn('Could not read log directory: ' + HxFolder_LogFiles + ' - ' + err.message);
 					return;
 				}
 				$(".cleanup-progress-bar").text("0%").css("width","0%").attr("aria-valuenow", 0);
@@ -4880,7 +4880,7 @@
 							var bool_processFile = false;
 							fs.stat(currentPath, function(err, stats) {
 										if (err) {
-												console.warn('Error getting stat from file: ' + currentPath + ' — ' + (err.code || err.message));
+												console.warn('Error getting stat from file: ' + currentPath + ' - ' + (err.code || err.message));
 										}else{
 										  bool_processFile = true;
 										}
@@ -4946,7 +4946,7 @@
 		}
 
 		function initVENUSData(){
-			// VENUS paths are hardcoded — no DLL/registry lookup needed
+			// VENUS paths are hardcoded - no DLL/registry lookup needed
 			var HxBin = "C:\\Program Files (x86)\\HAMILTON\\Bin";
 
 			// Helper: only set a link key if it has no value yet (preserve user customizations)
@@ -5082,10 +5082,10 @@
 			$("#pkg-removeIcon").hide();
 
 			if (wasAutoDetected) {
-				// User dismissed the auto-detected image — suppress re-detection until files change
+				// User dismissed the auto-detected image - suppress re-detection until files change
 				pkg_iconDismissedAuto = true;
 			} else {
-				// User removed a manually-chosen image — allow auto-detect to run again
+				// User removed a manually-chosen image - allow auto-detect to run again
 				pkgAutoDetectBmpImage();
 			}
 		});
@@ -5181,9 +5181,9 @@
 					' like ' + (medFiles.length === 1 ? 'it belongs' : 'they belong') +
 					' in the <b>Demo Method Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
 					(medFiles.length === 1 ? 'this method' : 'these methods') + ' here?',
-					null, // onYes — keep the files
+					null, // onYes - keep the files
 					function() {
-						// onNo — remove the .med files from library files
+						// onNo - remove the .med files from library files
 						pkg_libraryFiles = pkg_libraryFiles.filter(function(f) {
 							return medFiles.indexOf(f) === -1;
 						});
@@ -5230,9 +5230,9 @@
 							' like ' + (medFiles.length === 1 ? 'it belongs' : 'they belong') +
 							' in the <b>Demo Method Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
 							(medFiles.length === 1 ? 'this method' : 'these methods') + ' here?',
-							null, // onYes — keep the files
+							null, // onYes - keep the files
 							function() {
-								// onNo — remove the .med files from library files
+								// onNo - remove the .med files from library files
 								pkg_libraryFiles = pkg_libraryFiles.filter(function(f) {
 									return medFiles.indexOf(f) === -1;
 								});
@@ -5273,9 +5273,9 @@
 					' like ' + (dllFiles.length === 1 ? 'it belongs' : 'they belong') +
 					' in the <b>Library Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
 					(dllFiles.length === 1 ? 'this DLL' : 'these DLLs') + ' here?',
-					null, // onYes — keep the files
+					null, // onYes - keep the files
 					function() {
-						// onNo — remove the .dll files from demo method files
+						// onNo - remove the .dll files from demo method files
 						pkg_demoMethodFiles = pkg_demoMethodFiles.filter(function(f) {
 							return dllFiles.indexOf(f) === -1;
 						});
@@ -5314,9 +5314,9 @@
 							' like ' + (dllFiles.length === 1 ? 'it belongs' : 'they belong') +
 							' in the <b>Library Files</b> section instead.<br><br>Are you absolutely sure you want to add ' +
 							(dllFiles.length === 1 ? 'this DLL' : 'these DLLs') + ' here?',
-							null, // onYes — keep the files
+							null, // onYes - keep the files
 							function() {
-								// onNo — remove the .dll files from demo method files
+								// onNo - remove the .dll files from demo method files
 								pkg_demoMethodFiles = pkg_demoMethodFiles.filter(function(f) {
 									return dllFiles.indexOf(f) === -1;
 								});
@@ -5427,7 +5427,7 @@
 			}
 
 			if (foundPath) {
-				// Already showing this exact auto-detected image — skip
+				// Already showing this exact auto-detected image - skip
 				if (pkg_iconAutoDetected && pkg_iconAutoDetectedPath === foundPath) return;
 
 				try {
@@ -5445,7 +5445,7 @@
 					// silently ignore read errors
 				}
 			} else if (pkg_iconAutoDetected) {
-				// BMP was removed from file list — clear auto-detected preview
+				// BMP was removed from file list - clear auto-detected preview
 				pkg_iconAutoDetected = false;
 				pkg_iconAutoDetectedPath = null;
 				$("#pkg-icon-preview").html('<i class="fas fa-image fa-2x" style="color:#ccc;"></i>').removeClass('has-image');
@@ -5719,7 +5719,7 @@
 				var SIZE = 128;
 
 				if (!fs.existsSync(LM_LOGO_GRAY_PATH)) {
-					// No logo asset — pass through source image as-is
+					// No logo asset - pass through source image as-is
 					resolve({ base64: sourceB64 || null, mime: sourceMime || null });
 					return;
 				}
@@ -5728,7 +5728,7 @@
 				var logoImg = new Image();
 				logoImg.onload = function() {
 					if (sourceB64 && sourceMime) {
-						// User provided an image — composite with logo overlay
+						// User provided an image - composite with logo overlay
 						var userImg = new Image();
 						userImg.onload = function() {
 							try {
@@ -5765,7 +5765,7 @@
 						userImg.onerror = function() { reject(new Error('Failed to load user image')); };
 						userImg.src = 'data:' + sourceMime + ';base64,' + sourceB64;
 					} else {
-						// No user image — use grayscale logo at full size
+						// No user image - use grayscale logo at full size
 						try {
 							var canvas = document.createElement('canvas');
 							canvas.width = SIZE;
@@ -5828,7 +5828,7 @@
 				// Use library name from the detected field
 				var libName = $("#pkg-library-name").val().trim() || "Unknown";
 
-				// Find matching BMP image (same name as .hsl file) — auto-detect fallback
+				// Find matching BMP image (same name as .hsl file) - auto-detect fallback
 				var libImageFilename = null;
 				var libImageBase64 = null;
 				var libImageMime = null;
@@ -5864,7 +5864,7 @@
 
 				// ---- Composite the library icon with grayscale LM logo overlay ----
 				// The composited icon (with LM logo overlay) is used ONLY for the
-				// icon/ directory inside the package ZIP — this is what Windows shows
+				// icon/ directory inside the package ZIP - this is what Windows shows
 				// for the .hxlibpkg file in Explorer.  The manifest stores the RAW
 				// (uncomposited) image so imported libraries display the original
 				// library artwork without the overlay.
@@ -5881,12 +5881,12 @@
 						}
 					}
 				} catch(e) {
-					// Compositing failed — icon/ will use the raw image (non-critical)
+					// Compositing failed - icon/ will use the raw image (non-critical)
 					console.warn('Icon compositing failed:', e);
 				}
 
 				// Build manifest JSON (matches C# HxLibPkgManifest.ToJson() format)
-				// Manifest stores the RAW library image — no overlay
+				// Manifest stores the RAW library image - no overlay
 				var manifest = {
 					format_version: "1.0",
 					library_name: libName,
@@ -5975,7 +5975,7 @@
 		 * Returns the full path to RegAsm.exe or null if not found.
 		 */
 		function findRegAsmPath() {
-			// Always use the 32-bit (x86) .NET Framework – Hamilton VENUS is a 32-bit application
+			// Always use the 32-bit (x86) .NET Framework - Hamilton VENUS is a 32-bit application
 			var frameworkDir = "C:\\Windows\\Microsoft.NET\\Framework\\";
 			if (!fs.existsSync(frameworkDir)) return null;
 
@@ -6091,7 +6091,7 @@
 		var imp_zipData = null;
 		var imp_filePath = null;
 
-		// ---- HSL function parser — extracts public function signatures ----
+		// ---- HSL function parser - extracts public function signatures ----
 		// Ported from the VS Code HSL IntelliSense extension.
 
 		/**
@@ -7002,7 +7002,7 @@
 				} catch(e) { /* fall through */ }
 			}
 
-			// 2) No root icon found — collect submethod icons and tile them
+			// 2) No root icon found - collect submethod icons and tile them
 			var subIcons = [];
 			var canonDot = canonLower + '.';
 			for (var si = 0; si < discovered.length; si++) {
@@ -7161,8 +7161,13 @@
 
 			// GitHub URL (respect display setting)
 			if (lib.github_url && getSettingValue("chk_showGitHubLinks") !== false) {
-				$("#libDetailModal .lib-detail-github-link").attr("href", lib.github_url).text(lib.github_url);
-				$("#libDetailModal .lib-detail-github-section").removeClass("d-none");
+				var ghValidation = shared.validateGitHubRepoUrl(lib.github_url);
+				if (ghValidation.valid) {
+					$("#libDetailModal .lib-detail-github-link").attr("href", ghValidation.url).text(ghValidation.url);
+					$("#libDetailModal .lib-detail-github-section").removeClass("d-none");
+				} else {
+					$("#libDetailModal .lib-detail-github-section").addClass("d-none");
+				}
 			} else {
 				$("#libDetailModal .lib-detail-github-section").addClass("d-none");
 			}
@@ -7436,7 +7441,7 @@
 		}
 
 		// ---- Rollback to a cached package version from detail modal ----
-		$(document).on("click", ".lib-detail-rollback-btn", function(e) {
+		$(document).on("click", ".lib-detail-rollback-btn", async function(e) {
 			e.preventDefault();
 			var fullPath = $(this).attr("data-fullpath");
 			var version  = $(this).attr("data-version");
@@ -7463,11 +7468,16 @@
 				}
 				var manifest = JSON.parse(zip.readAsText(manifestEntry));
 
+				var rLibName = manifest.library_name || libName;
+				if (!isValidLibraryName(rLibName)) {
+					alert('Invalid library name in cached package: "' + rLibName + '".\nRollback cancelled.');
+					return;
+				}
+
 				var libFolder = db_links.links.findOne({"_id":"lib-folder"});
 				var metFolder = db_links.links.findOne({"_id":"met-folder"});
 				var libBasePath = libFolder ? libFolder.path : "C:\\Program Files (x86)\\HAMILTON\\Library";
 				var metBasePath = metFolder ? metFolder.path : "C:\\Program Files (x86)\\HAMILTON\\Methods";
-				var rLibName = manifest.library_name || libName;
 				var libDestDir = path.join(libBasePath, rLibName);
 				var demoDestDir = path.join(metBasePath, "Library Demo Methods", rLibName);
 
@@ -7486,6 +7496,24 @@
 						libFiles.push(f);
 					}
 				});
+
+				// Deregister existing COM DLLs before overwriting (best-effort)
+				if (comDlls.length > 0 && fs.existsSync(libDestDir)) {
+					var existingComPaths = [];
+					for (var ci = 0; ci < comDlls.length; ci++) {
+						var comFullPath = path.join(libDestDir, comDlls[ci]);
+						if (fs.existsSync(comFullPath)) {
+							existingComPaths.push(comFullPath);
+						}
+					}
+					if (existingComPaths.length > 0) {
+						try {
+							await comRegisterMultipleDlls(existingComPaths, false);
+						} catch(comErr) {
+							console.warn('COM deregistration during rollback failed (continuing): ' + comErr.message);
+						}
+					}
+				}
 
 				// Create destination directories
 				if ((libFiles.length > 0 || helpFiles.length > 0) && !fs.existsSync(libDestDir)) {
@@ -7533,6 +7561,25 @@
 					}
 				});
 
+				// Re-register COM DLLs after extraction (best-effort)
+				var comWarning = false;
+				if (comDlls.length > 0) {
+					var newComPaths = comDlls.map(function(d) { return path.join(libDestDir, d); })
+						.filter(function(p) { return fs.existsSync(p); });
+					if (newComPaths.length > 0) {
+						try {
+							var regResult = await comRegisterMultipleDlls(newComPaths, true);
+							if (!regResult.allSuccess) {
+								comWarning = true;
+								console.warn('COM registration after rollback incomplete for ' + rLibName);
+							}
+						} catch(comErr) {
+							comWarning = true;
+							console.warn('COM registration after rollback failed: ' + comErr.message);
+						}
+					}
+				}
+
 				// Update DB record
 				var existing = db_installed_libs.installed_libs.findOne({"library_name": rLibName});
 				if (existing) {
@@ -7560,7 +7607,7 @@
 					demo_method_files: demoFiles,
 					help_files: helpFiles,
 					com_register_dlls: comDlls,
-					com_warning: false,
+					com_warning: comWarning,
 					lib_install_path: libDestDir,
 					demo_install_path: demoDestDir,
 					installed_date: new Date().toISOString(),
@@ -7585,15 +7632,72 @@
 				}
 				if (!inGroup) {
 					var targetGroupId = null;
-					for (var ti = 0; ti < navtree.length; ti++) {
-						var gEntry = getGroupById(navtree[ti]["group-id"]);
-						if (gEntry && !gEntry["default"]) {
-							targetGroupId = navtree[ti]["group-id"];
-							var existingIds = navtree[ti]["method-ids"] || [];
-							existingIds.push(saved._id);
-							db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
-							break;
+					var rollbackAuthor = (manifest.author || '').trim();
+
+					if (isRestrictedAuthor(rollbackAuthor)) {
+						// Hamilton author: route to gHamilton group
+						var hamiltonTreeEntry = null;
+						for (var ti = 0; ti < navtree.length; ti++) {
+							if (navtree[ti]["group-id"] === "gHamilton") {
+								hamiltonTreeEntry = navtree[ti];
+								break;
+							}
 						}
+						if (hamiltonTreeEntry) {
+							targetGroupId = "gHamilton";
+							var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
+							existingIds.push(saved._id);
+							var treePath = path.join(USER_DATA_DIR, 'tree.json');
+							var treeData = JSON.parse(fs.readFileSync(treePath, 'utf8'));
+							for (var ui = 0; ui < treeData.length; ui++) {
+								if (treeData[ui]["group-id"] === "gHamilton") {
+									treeData[ui]["method-ids"] = existingIds;
+									break;
+								}
+							}
+							fs.writeFileSync(treePath, JSON.stringify(treeData), 'utf8');
+							db_tree = db.connect(USER_DATA_DIR, ['tree']);
+						} else {
+							// Hamilton group tree entry missing; create it
+							var treePath2 = path.join(USER_DATA_DIR, 'tree.json');
+							var treeData2 = JSON.parse(fs.readFileSync(treePath2, 'utf8'));
+							treeData2.push({
+								"group-id": "gHamilton",
+								"method-ids": [saved._id],
+								"locked": true
+							});
+							fs.writeFileSync(treePath2, JSON.stringify(treeData2), 'utf8');
+							db_tree = db.connect(USER_DATA_DIR, ['tree']);
+							targetGroupId = "gHamilton";
+						}
+					} else {
+						// Non-Hamilton: add to first custom group
+						for (var ti = 0; ti < navtree.length; ti++) {
+							var gEntry = getGroupById(navtree[ti]["group-id"]);
+							if (gEntry && !gEntry["default"]) {
+								targetGroupId = navtree[ti]["group-id"];
+								var existingIds = (navtree[ti]["method-ids"] || []).slice();
+								existingIds.push(saved._id);
+								db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
+								break;
+							}
+						}
+					}
+
+					// Fallback: create a "Libraries" group if no target found
+					if (!targetGroupId) {
+						var newGroup = db_groups.groups.save({
+							"name": "Libraries",
+							"icon-class": "fa-book",
+							"default": false,
+							"navbar": "left",
+							"favorite": true
+						});
+						db_tree.tree.save({
+							"group-id": newGroup._id,
+							"method-ids": [saved._id],
+							"locked": false
+						});
 					}
 				}
 
@@ -7604,7 +7708,7 @@
 				showGenericSuccessModal({
 					title: "Version Rollback Successful!",
 					name: rLibName,
-					detail: extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " installed — rolled back to version " + (manifest.version || '?')
+					detail: extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " installed - rolled back to version " + (manifest.version || '?')
 				});
 
 				// ---- Audit trail entry ----
@@ -7662,7 +7766,7 @@
 			// No image
 			$("#libDetailModal .lib-detail-image-section").addClass("d-none");
 
-			// Library files list (from discovered_files) — separate CHMs into help section
+			// Library files list (from discovered_files) - separate CHMs into help section
 			var $libFiles = $("#libDetailModal .lib-detail-lib-files");
 			$libFiles.empty();
 			var discoveredFiles = sLib.discovered_files || [];
@@ -7786,7 +7890,7 @@
 				$sysDepSection.addClass("d-none");
 			}
 
-			// Public functions section — parse .hsl files from discovered_files
+			// Public functions section - parse .hsl files from discovered_files
 			var sysPubFns = [];
 			(discoveredFiles || []).forEach(function(f) {
 				if (path.extname(f).toLowerCase() !== '.hsl') return;
@@ -7957,14 +8061,14 @@
 			$("#exportChoiceModal").modal("show");
 		});
 
-		// Export choice modal — hover effect (skip disabled)
+		// Export choice modal - hover effect (skip disabled)
 		$(document).on("mouseenter", ".export-choice-option:not(.export-choice-disabled)", function() {
 			$(this).css("background", "var(--body-background)");
 		}).on("mouseleave", ".export-choice-option:not(.export-choice-disabled)", function() {
 			$(this).css("background", "");
 		});
 
-		// Export choice modal — click an option (ignore disabled)
+		// Export choice modal - click an option (ignore disabled)
 		$(document).on("click", ".export-choice-option:not(.export-choice-disabled)", function() {
 			var choice = $(this).attr("data-choice");
 			var libId = $("#exportChoiceModal").attr("data-lib-id");
@@ -8033,7 +8137,7 @@
 				var libImageBase64 = lib.library_image_base64 || null;
 				var libImageMime = lib.library_image_mime || null;
 
-				// Build manifest — include help_files for the importer
+				// Build manifest - include help_files for the importer
 				// Also include CHMs in library_files for backward compatibility
 				var manifestLibFiles = libraryFiles.slice();
 				helpFiles.forEach(function(hf) {
@@ -8073,7 +8177,7 @@
 					}
 				});
 
-				// Add help files (CHMs — packed into library/ folder)
+				// Add help files (CHMs - packed into library/ folder)
 				helpFiles.forEach(function(f) {
 					var fullPath = path.join(libBasePath, f);
 					if (fs.existsSync(fullPath)) {
@@ -8122,28 +8226,35 @@
 			var visited = {};   // _id -> true
 			var result  = [];   // ordered list of dependency _ids
 
+			// Pre-fetch all installed libs and build a name->record lookup map (O(n) instead of O(n²))
+			var allLibs = db_installed_libs.installed_libs.find() || [];
+			var libByName = {};  // lowercased library_name -> lib record
+			var libById = {};    // _id -> lib record
+			for (var li = 0; li < allLibs.length; li++) {
+				var al = allLibs[li];
+				if (al.deleted) continue;
+				libById[al._id] = al;
+				var lname = (al.library_name || '').toLowerCase();
+				if (lname && !libByName[lname]) {
+					libByName[lname] = al;
+				}
+			}
+
 			function walk(libId) {
 				if (visited[libId]) return;
 				visited[libId] = true;
 
-				var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
-				if (!lib || lib.deleted) return;
+				var lib = libById[libId];
+				if (!lib) return;
 
 				var deps = extractRequiredDependencies(lib.library_files || [], lib.lib_install_path || '');
 				(deps || []).forEach(function(dep) {
 					if (dep.type !== 'user') return;          // only user-installed libraries can be exported
-					// Resolve dep.libraryName back to a library record
-					var allLibs = db_installed_libs.installed_libs.find() || [];
-					for (var i = 0; i < allLibs.length; i++) {
-						var candidate = allLibs[i];
-						if (candidate.deleted) continue;
-						if ((candidate.library_name || '').toLowerCase() === (dep.libraryName || '').toLowerCase()) {
-							if (!visited[candidate._id]) {
-								result.push(candidate._id);
-								walk(candidate._id);   // recurse into this dependency's own deps
-							}
-							break;
-						}
+					// Resolve dep.libraryName back to a library record via lookup map
+					var candidate = libByName[(dep.libraryName || '').toLowerCase()];
+					if (candidate && !visited[candidate._id]) {
+						result.push(candidate._id);
+						walk(candidate._id);   // recurse into this dependency's own deps
 					}
 				});
 			}
@@ -8168,6 +8279,7 @@
 				var archiveZip = new AdmZip();
 				var exportedLibs = [];
 				var errors = [];
+				var usedFileNames = {};  // track sanitized filenames to avoid collisions
 
 				allIds.forEach(function(id) {
 					var lib = db_installed_libs.installed_libs.findOne({"_id": id});
@@ -8241,7 +8353,15 @@
 					signPackageZip(innerZip);
 
 					var innerBuffer = packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG);
-					var innerFileName = libName.replace(/[<>:"\\\/|?*]/g, '_') + ".hxlibpkg";
+					var baseName = libName.replace(/[<>:"\\\/|?*]/g, '_');
+					var innerFileName = baseName + ".hxlibpkg";
+					// Avoid collisions from sanitized names
+					if (usedFileNames[innerFileName.toLowerCase()]) {
+						var suffix = 2;
+						while (usedFileNames[(baseName + '_' + suffix + '.hxlibpkg').toLowerCase()]) { suffix++; }
+						innerFileName = baseName + '_' + suffix + '.hxlibpkg';
+					}
+					usedFileNames[innerFileName.toLowerCase()] = true;
 					archiveZip.addFile(innerFileName, innerBuffer);
 
 					exportedLibs.push({
@@ -8388,10 +8508,10 @@
 						'</div>' +
 						'<div class="mr-3 exp-arch-lib-icon">' + iconHtml + '</div>' +
 						'<div class="flex-grow-1" style="min-width:0;">' +
-							'<div class="font-weight-bold" style="color:var(--medium2);">' + libName + '</div>' +
+							'<div class="font-weight-bold" style="color:var(--medium2);">' + escapeHtml(libName) + '</div>' +
 							'<div class="text-muted text-sm">' +
-								(version ? 'v' + version : '') +
-								(author ? (version ? ' &middot; ' : '') + author : '') +
+								(version ? 'v' + escapeHtml(version) : '') +
+								(author ? (version ? ' &middot; ' : '') + escapeHtml(author) : '') +
 								' &middot; ' + libFiles + ' lib file' + (libFiles !== 1 ? 's' : '') +
 								(demoFiles > 0 ? ', ' + demoFiles + ' demo file' + (demoFiles !== 1 ? 's' : '') : '') +
 							'</div>' +
@@ -8487,6 +8607,7 @@
 				var archiveZip = new AdmZip();
 				var exportedLibs = [];
 				var errors = [];
+				var usedFileNames = {};  // track sanitized filenames to avoid collisions
 
 				libIds.forEach(function(libId) {
 					var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
@@ -8545,7 +8666,7 @@
 						}
 					});
 
-					// Add help files (CHMs — packed into library/ folder)
+					// Add help files (CHMs - packed into library/ folder)
 					helpFiles.forEach(function(f) {
 						var fullPath = path.join(libBasePath, f);
 						if (fs.existsSync(fullPath)) {
@@ -8568,7 +8689,15 @@
 
 					// Convert inner zip to binary container and add to archive
 					var innerBuffer = packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG);
-					var innerFileName = libName.replace(/[<>:"\\\/|?*]/g, '_') + ".hxlibpkg";
+					var baseName = libName.replace(/[<>:"\\\/|?*]/g, '_');
+					var innerFileName = baseName + ".hxlibpkg";
+					// Avoid collisions from sanitized names
+					if (usedFileNames[innerFileName.toLowerCase()]) {
+						var suffix = 2;
+						while (usedFileNames[(baseName + '_' + suffix + '.hxlibpkg').toLowerCase()]) { suffix++; }
+						innerFileName = baseName + '_' + suffix + '.hxlibpkg';
+					}
+					usedFileNames[innerFileName.toLowerCase()] = true;
 					archiveZip.addFile(innerFileName, innerBuffer);
 
 					exportedLibs.push({
@@ -8830,7 +8959,10 @@
 						registerPublisher(manifest.organization || '');
 						registerTags(manifest.tags || []);
 
-						// Attempt COM registration for DLLs (best-effort, non-blocking)
+						// Attempt COM registration for DLLs (best-effort, non-blocking).
+						// NOTE: This is intentionally not awaited because the enclosing
+						// forEach is synchronous. The promise chain updates the DB record
+						// on completion/failure, which is sufficient for archive import.
 						if (comDlls.length > 0) {
 							var dllPaths = comDlls.map(function(d) { return path.join(libDestDir, d); });
 							comRegisterMultipleDlls(dllPaths, true).then(function(comResult) {
@@ -8855,14 +8987,55 @@
 						if (!settings || settings.chk_autoAddToGroup !== false) {
 							var navtree = db_tree.tree.find();
 							var targetGroupId = null;
-							for (var ti = 0; ti < navtree.length; ti++) {
-								var gEntry = getGroupById(navtree[ti]["group-id"]);
-								if (gEntry && !gEntry["default"]) {
-									targetGroupId = navtree[ti]["group-id"];
-									var existingIds = navtree[ti]["method-ids"] || [];
+							var archImportAuthor = (manifest.author || '').trim();
+
+							if (isRestrictedAuthor(archImportAuthor)) {
+								// Hamilton author: add to the Hamilton group
+								var hamiltonTreeEntry = null;
+								for (var ti = 0; ti < navtree.length; ti++) {
+									if (navtree[ti]["group-id"] === "gHamilton") {
+										hamiltonTreeEntry = navtree[ti];
+										break;
+									}
+								}
+								if (hamiltonTreeEntry) {
+									targetGroupId = "gHamilton";
+									var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
 									existingIds.push(saved._id);
-									db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
-									break;
+									var treePath = path.join(USER_DATA_DIR, 'tree.json');
+									var treeData = JSON.parse(fs.readFileSync(treePath, 'utf8'));
+									for (var ui = 0; ui < treeData.length; ui++) {
+										if (treeData[ui]["group-id"] === "gHamilton") {
+											treeData[ui]["method-ids"] = existingIds;
+											break;
+										}
+									}
+									fs.writeFileSync(treePath, JSON.stringify(treeData), 'utf8');
+									db_tree = db.connect(USER_DATA_DIR, ['tree']);
+								} else {
+									// Hamilton group tree entry missing; create it
+									var treePath2 = path.join(USER_DATA_DIR, 'tree.json');
+									var treeData2 = JSON.parse(fs.readFileSync(treePath2, 'utf8'));
+									treeData2.push({
+										"group-id": "gHamilton",
+										"method-ids": [saved._id],
+										"locked": true
+									});
+									fs.writeFileSync(treePath2, JSON.stringify(treeData2), 'utf8');
+									db_tree = db.connect(USER_DATA_DIR, ['tree']);
+									targetGroupId = "gHamilton";
+								}
+							} else {
+								// Non-Hamilton author: add to first custom group
+								for (var ti = 0; ti < navtree.length; ti++) {
+									var gEntry = getGroupById(navtree[ti]["group-id"]);
+									if (gEntry && !gEntry["default"]) {
+										targetGroupId = navtree[ti]["group-id"];
+										var existingIds = (navtree[ti]["method-ids"] || []).slice();
+										existingIds.push(saved._id);
+										db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
+										break;
+									}
 								}
 							}
 							if (!targetGroupId) {
@@ -9220,7 +9393,7 @@
 			// --- Remove from tree ---
 			var navtree = db_tree.tree.find();
 			for (var ti = 0; ti < navtree.length; ti++) {
-				var mids = navtree[ti]["method-ids"] || [];
+				var mids = (navtree[ti]["method-ids"] || []).slice();  // clone to avoid mutating DiskDB internal array
 				var idx = mids.indexOf(libId);
 				if (idx !== -1) {
 					mids.splice(idx, 1);
@@ -9369,10 +9542,15 @@
 					$modal.find(".imp-preview-desc-section").addClass("d-none");
 				}
 
-				// GitHub URL (respect display setting)
+				// GitHub URL (respect display setting, validate to prevent javascript: XSS)
 				if (manifest.github_url && getSettingValue("chk_showGitHubLinks") !== false) {
-					$modal.find(".imp-preview-github-link").attr("href", manifest.github_url).text(manifest.github_url);
-					$modal.find(".imp-preview-github-section").removeClass("d-none");
+					var ghCheck = shared.validateGitHubRepoUrl(manifest.github_url);
+					if (ghCheck.valid) {
+						$modal.find(".imp-preview-github-link").attr("href", ghCheck.url).text(ghCheck.url);
+						$modal.find(".imp-preview-github-section").removeClass("d-none");
+					} else {
+						$modal.find(".imp-preview-github-section").addClass("d-none");
+					}
 				} else {
 					$modal.find(".imp-preview-github-section").addClass("d-none");
 				}
@@ -9509,8 +9687,12 @@
 
 		// ---- Confirm install from preview modal ----
 		$(document).on("click", "#imp-preview-confirm", async function() {
-			if (_isImporting) return; // prevent double-click triggering duplicate installs
-			_isImporting = true;
+			// _isImporting is already true (set by impLoadAndInstall when the
+			// preview modal was opened).  Disable the button to prevent
+			// double-click; _isImporting is reset in the finally block.
+			var $confirmBtn = $(this);
+			if ($confirmBtn.prop('disabled')) return;
+			$confirmBtn.prop('disabled', true);
 
 			var $modal = $("#importPreviewModal");
 			var zip = $modal.data("imp-zip");
@@ -9519,7 +9701,7 @@
 			var demoDestDir = $modal.data("imp-demoDestDir");
 			var filePath = $modal.data("imp-filePath");
 
-			if (!zip || !manifest) { _isImporting = false; return; }
+			if (!zip || !manifest) { _isImporting = false; $confirmBtn.prop('disabled', false); return; }
 
 			var libName = manifest.library_name || "Unknown";
 			var helpFiles = $modal.data("imp-helpFiles") || [];
@@ -9641,7 +9823,7 @@
 							extractedCount++;
 						}
 					} else if (entry.entryName.indexOf("help_files/") === 0) {
-						// Legacy/explicit help_files folder — extract to library directory
+						// Legacy/explicit help_files folder - extract to library directory
 						var fname = entry.entryName.substring("help_files/".length);
 						if (fname) {
 							var outPath = safeZipExtractPath(libDestDir, fname);
@@ -9719,7 +9901,7 @@
 					}
 					if (hamiltonTreeEntry) {
 						targetGroupId = "gHamilton";
-						var existingIds = hamiltonTreeEntry["method-ids"] || [];
+						var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
 						existingIds.push(saved._id);
 						// Use raw file I/O to safely update tree (diskdb update may replace entire record)
 						var treePath = path.join(USER_DATA_DIR, 'tree.json');
@@ -9751,7 +9933,7 @@
 						var gEntry = getGroupById(navtree[ti]["group-id"]);
 						if (gEntry && !gEntry["default"]) {
 							targetGroupId = navtree[ti]["group-id"];
-							var existingIds = navtree[ti]["method-ids"] || [];
+							var existingIds = (navtree[ti]["method-ids"] || []).slice();
 							existingIds.push(saved._id);
 							db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
 							break;
@@ -9843,6 +10025,7 @@
 				alert("Error installing package:\n" + e.message);
 			} finally {
 				_isImporting = false;
+				$confirmBtn.prop('disabled', false);
 			}
 		});
 
@@ -10194,7 +10377,7 @@
 						'The audit log integrity signature is valid.\nThis file has not been modified since it was generated.');
 				} else {
 					showAuditVerifyResult($vm, false, path.basename(filePath),
-						'Signature mismatch — the file contents have been altered.\n\nStored:    ' + storedSig + '\nComputed: ' + computedSig);
+						'Signature mismatch - the file contents have been altered.\n\nStored:    ' + storedSig + '\nComputed: ' + computedSig);
 				}
 			} catch(e) {
 				showAuditVerifyResult($vm, false, path.basename(filePath),
@@ -10288,8 +10471,8 @@
 				}
 
 				var detailLines = [];
-				integrity.errors.forEach(function(e) { detailLines.push('<span class="text-danger text-sm">&bull; ' + e + '</span>'); });
-				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + w + '</span>'); });
+				integrity.errors.forEach(function(e) { detailLines.push('<span class="text-danger text-sm">&bull; ' + escapeHtml(e) + '</span>'); });
+				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + escapeHtml(w) + '</span>'); });
 
 				var repairBtnHtml = '';
 				if (!integrity.valid && hasCached) {
@@ -10307,7 +10490,7 @@
 						'<div class="mr-3 mt-1"><i class="fas ' + statusIcon + ' ' + statusClass + '"></i></div>' +
 						'<div class="flex-grow-1" style="min-width:0;">' +
 							'<div class="d-flex align-items-center flex-wrap">' +
-								'<span class="font-weight-bold" style="color:var(--medium2);">' + libName + '</span>' +
+								'<span class="font-weight-bold" style="color:var(--medium2);">' + escapeHtml(libName) + '</span>' +
 								'<span class="badge badge-secondary ml-2" style="font-size:0.6rem;">System</span>' +
 								'<span class="ml-2 ' + statusClass + ' text-sm font-weight-bold">' + statusText + '</span>' +
 								cachedInfo +
@@ -10350,8 +10533,8 @@
 				}
 
 				var detailLines = [];
-				integrity.errors.forEach(function(e) { detailLines.push('<span class="text-danger text-sm">&bull; ' + e + '</span>'); });
-				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + w + '</span>'); });
+				integrity.errors.forEach(function(e) { detailLines.push('<span class="text-danger text-sm">&bull; ' + escapeHtml(e) + '</span>'); });
+				integrity.warnings.forEach(function(w) { detailLines.push('<span class="text-warning text-sm">&bull; ' + escapeHtml(w) + '</span>'); });
 
 				var repairBtnHtml = '';
 				if (!integrity.valid && hasCached) {
@@ -10369,8 +10552,8 @@
 						'<div class="mr-3 mt-1"><i class="fas ' + statusIcon + ' ' + statusClass + '"></i></div>' +
 						'<div class="flex-grow-1" style="min-width:0;">' +
 							'<div class="d-flex align-items-center flex-wrap">' +
-								'<span class="font-weight-bold" style="color:var(--medium2);">' + libName + '</span>' +
-								'<span class="badge badge-light ml-2">' + (lib.version || '') + '</span>' +
+								'<span class="font-weight-bold" style="color:var(--medium2);">' + escapeHtml(libName) + '</span>' +
+								'<span class="badge badge-light ml-2">' + escapeHtml(lib.version || '') + '</span>' +
 								'<span class="ml-2 ' + statusClass + ' text-sm font-weight-bold">' + statusText + '</span>' +
 								cachedInfo +
 							'</div>' +
@@ -10457,7 +10640,9 @@
 				var newest = cached[0];
 				var zip;
 				try {
-					zip = new AdmZip(newest.fullPath);
+					var rawBuf = fs.readFileSync(newest.fullPath);
+					var zipBuf = unpackContainer(rawBuf, CONTAINER_MAGIC_PKG);
+					zip = new AdmZip(zipBuf);
 				} catch(e) {
 					var msg2 = 'Failed to read cached package: ' + e.message;
 					if (!silent) alert(msg2);
@@ -10479,6 +10664,14 @@
 					return { success: false, error: msg4 };
 				}
 				var manifest = JSON.parse(zip.readAsText(manifestEntry));
+
+				// Validate library name from cached package
+				var cachedLibName = manifest.library_name || libName;
+				if (!isValidLibraryName(cachedLibName)) {
+					var msg4b = 'Invalid library name in cached package: "' + cachedLibName + '".';
+					if (!silent) alert(msg4b);
+					return { success: false, error: msg4b };
+				}
 
 				// Find the installed library record
 				var lib = db_installed_libs.installed_libs.findOne({ library_name: libName });
@@ -10555,7 +10748,7 @@
 					showGenericSuccessModal({
 						title: "Library Repaired Successfully!",
 						name: libName,
-						detail: extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " re-extracted — Version " + (newest.version || '?'),
+						detail: extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " re-extracted - Version " + (newest.version || '?'),
 						statusHtml: sigResult.signed ? '<i class="fas fa-check mr-1"></i>Package signature: verified' : null,
 						statusClass: 'com-ok'
 					});
@@ -10698,7 +10891,7 @@
 
 		/**
 		 * Show or hide the COM registration warning in the unsigned library modal footer.
-		 * Unlike the old behaviour, export is NOT blocked — the warning is informational only.
+		 * Unlike the old behaviour, export is NOT blocked - the warning is informational only.
 		 */
 		function ulibUpdateComWarning() {
 			var $warning = $("#ulib-com-warning");
@@ -10713,7 +10906,7 @@
 		 * Scan the Library folder for .hsl and .smt files that are NOT part of a
 		 * system library or a signed/installed library. Groups files by library name
 		 * (derived from filename without extension) and stores them in unsigned_libs DB.
-		 * No hashing or integrity checking is performed — this is purely for convenience.
+		 * No hashing or integrity checking is performed - this is purely for convenience.
 		 */
 		function scanUnsignedLibraries(showVisualFeedback) {
 			var $status = $(".unsigned-scan-status");
@@ -10801,7 +10994,7 @@
 						// Derive library name from primary definition files (.hsl or .smt)
 						if (targetExts.indexOf(ext) !== -1) {
 							var libName = path.basename(entry, ext);
-							// Skip Enu/Deu/Jpn/etc. resource variants — they'll be grouped with the base
+							// Skip Enu/Deu/Jpn/etc. resource variants - they'll be grouped with the base
 							var enuMatch = libName.match(/^(.+?)(Enu|Deu|Jpn|Chs|Kor|Fra|Esp|Por)$/i);
 							var baseName = enuMatch ? enuMatch[1] : libName;
 
@@ -10871,9 +11064,11 @@
 
 				// Clear and rebuild
 				db_unsigned_libs.unsigned_libs.remove({locked: false}); // remove all (diskdb quirk: need a filter)
-				// Force clear: overwrite file
+				// Force clear: write to temp file then atomically rename
 				var ulibPath = path.join(USER_DATA_DIR, 'unsigned_libs.json');
-				fs.writeFileSync(ulibPath, '[]', 'utf8');
+				var ulibTmpPath = ulibPath + '.tmp';
+				fs.writeFileSync(ulibTmpPath, '[]', 'utf8');
+				fs.renameSync(ulibTmpPath, ulibPath);
 				db_unsigned_libs = db.connect(USER_DATA_DIR, ['unsigned_libs']);
 
 				var count = 0;
@@ -10951,7 +11146,7 @@
 			if (showVisualFeedback) {
 				$btn.prop("disabled", false);
 			}
-			}, 50); // end setTimeout — allows browser repaint so spinner is visible
+			}, 50); // end setTimeout - allows browser repaint so spinner is visible
 		}
 
 		/** Force nav bar rebuild to reflect unsigned group visibility changes */
@@ -11509,6 +11704,10 @@
 
 				var libName = uLib.library_name || "Unknown";
 				var libDir = uLib.lib_base_path || '';
+				if (!libDir) {
+					alert('Cannot register "' + libName + '": library base path is missing.');
+					return false;
+				}
 				var discoveredFiles = uLib.library_files || [];
 				var additionalFiles = uLib.additional_library_files || [];
 				var demoFiles = uLib.demo_method_files || [];
@@ -11536,7 +11735,7 @@
 				var sysLibDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
 				var libDestDir = libDir || sysLibDir;
 
-				var methodFolderRec = db_links.links.findOne({"_id":"method-folder"});
+				var methodFolderRec = db_links.links.findOne({"_id":"met-folder"});
 				var sysMethodDir = (methodFolderRec && methodFolderRec.path) ? methodFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Methods';
 				var demoDestDir = path.join(sysMethodDir, 'Library Demo Methods', libName);
 
@@ -11600,7 +11799,7 @@
 					}
 					if (hamiltonTreeEntry) {
 						targetGroupId = "gHamilton";
-						var existingIds = hamiltonTreeEntry["method-ids"] || [];
+						var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
 						existingIds.push(saved._id);
 						var treePath = path.join(USER_DATA_DIR, 'tree.json');
 						var treeData = JSON.parse(fs.readFileSync(treePath, 'utf8'));
@@ -11629,7 +11828,7 @@
 						var gEntry = getGroupById(navtree[ti]["group-id"]);
 						if (gEntry && !gEntry["default"]) {
 							targetGroupId = navtree[ti]["group-id"];
-							var existingIds = navtree[ti]["method-ids"] || [];
+							var existingIds = (navtree[ti]["method-ids"] || []).slice();
 							existingIds.push(saved._id);
 							db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
 							break;

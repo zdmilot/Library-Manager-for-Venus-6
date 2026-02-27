@@ -118,7 +118,7 @@ function isSystemLibraryByName(libName) {
 // Password required to use "Hamilton" (case-insensitive) as author on
 // non-system packages. Prevents spoofing and acts as an additional signing
 // mechanism for first-party libraries.
-const HAMILTON_AUTHOR_PASSWORD = 'password123';
+const HAMILTON_AUTHOR_PASSWORD = '4970EnergyW@y!';
 
 /**
  * Check if an author name is restricted (i.e. "Hamilton" in any case).

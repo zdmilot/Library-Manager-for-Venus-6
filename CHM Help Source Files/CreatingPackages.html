@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Creating Packages</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -9,7 +9,7 @@
 <div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; Creating Packages</div>
 
 <h2>Overview</h2>
-<p>Venus Library Manager provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output — a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and the entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
+<p>Venus Library Manager provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and the entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
 
 <h2>GUI Library Packager</h2>
 <div class="image-placeholder">PLACE IMAGE OF LIBRARY PACKAGER MAIN VIEW HERE</div>
@@ -118,7 +118,7 @@
 <p>If any validation fails, the build is aborted with a descriptive error message.</p>
 
 <h2>Output Structure</h2>
-<p>The resulting <code>.hxlibpkg</code> is a <a href="BinaryContainerFormat.html">binary container file</a> — not a plain ZIP archive. The container wraps an internal ZIP with the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the per-file HMAC-SHA256 integrity signature. The outer binary container adds a second integrity layer (container-level HMAC-SHA256) and XOR scrambling that prevents the file from being opened by standard archive tools. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for full technical details.</p>
+<p>The resulting <code>.hxlibpkg</code> is a <a href="BinaryContainerFormat.html">binary container file</a> - not a plain ZIP archive. The container wraps an internal ZIP with the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the per-file HMAC-SHA256 integrity signature. The outer binary container adds a second integrity layer (container-level HMAC-SHA256) and XOR scrambling that prevents the file from being opened by standard archive tools. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for full technical details.</p>
 
 <h2>Audit Trail</h2>
 <p>Every package build is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username of the packager, the Windows OS version, the installed VENUS version, the computer hostname, and the package metadata (library name, version, author). This enables full traceability of who created each package and on which system. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>

@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Package Formats</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -11,7 +11,7 @@
 <h2>Overview</h2>
 <p>Venus Library Manager uses two file formats for distributing and archiving Hamilton VENUS libraries: <code>.hxlibpkg</code> (single library package) and <code>.hxlibarch</code> (multi-library archive). Both formats use a <b>custom binary container</b> that wraps an internal ZIP archive inside a proprietary envelope. The binary container prevents the files from being opened, browsed, or extracted using standard tools such as 7-Zip, WinRAR, or Windows Explorer.</p>
 
-<p>For full details on the binary container layer — including the header layout, XOR scrambling, HMAC-SHA256 integrity verification, and fail-closed design — see <a href="BinaryContainerFormat.html">Binary Container Format</a>.</p>
+<p>For full details on the binary container layer - including the header layout, XOR scrambling, HMAC-SHA256 integrity verification, and fail-closed design - see <a href="BinaryContainerFormat.html">Binary Container Format</a>.</p>
 
 <p>This page describes the <b>internal ZIP structure</b> that lives inside each binary container: the manifest, signature, file layout, and metadata schema.</p>
 

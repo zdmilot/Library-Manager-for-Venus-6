@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Exporting Libraries</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -9,7 +9,7 @@
 <div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; Exporting Libraries</div>
 
 <h2>Overview</h2>
-<p>Venus Library Manager can export installed libraries back into portable package files. All exported files use the <a href="BinaryContainerFormat.html">binary container format</a> — they are not plain ZIP files and cannot be opened by standard archive tools. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
+<p>Venus Library Manager can export installed libraries back into portable package files. All exported files use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
 <p>When exporting from the Library Detail Modal, Venus Library Manager presents an <b>Export Choice Modal</b> that lets you choose between exporting just the library itself, or exporting the library together with all of its dependencies.</p>
 
 <h2>Export Choice Modal</h2>
@@ -124,7 +124,7 @@
 <p>The resulting <code>.hxlibarch</code> file contains:</p>
 <ul>
   <li>An <code>archive_manifest.json</code> with archive metadata, library count, included library names, and a base64-encoded purple archive icon</li>
-  <li>One <code>.hxlibpkg</code> entry per selected library — each is a full <a href="BinaryContainerFormat.html">binary container</a> with its own <code>manifest.json</code>, payload, and <code>signature.json</code> integrity signature</li>
+  <li>One <code>.hxlibpkg</code> entry per selected library - each is a full <a href="BinaryContainerFormat.html">binary container</a> with its own <code>manifest.json</code>, payload, and <code>signature.json</code> integrity signature</li>
   <li>An <code>icon/archive_icon.png</code> file - a distinctive purple icon (three stacked purple diamonds) that visually identifies the file as a multi-library archive</li>
 </ul>
 <p>The archive icon is loaded from the static asset <code>assets/archive_icon_128.png</code> at export time. See <a href="VisualIdentity.html">Visual Identity &amp; Assets</a> for details.</p>

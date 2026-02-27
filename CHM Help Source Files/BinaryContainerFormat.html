@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Binary Container Format</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -14,7 +14,7 @@
 <p>The binary container provides two key properties:</p>
 <ul>
   <li><b>Opacity:</b> The file cannot be casually browsed, edited, or extracted by end users or standard archive tools. The internal ZIP payload is scrambled so that no ZIP signature bytes (<code>PK\x03\x04</code>) are visible in the raw file.</li>
-  <li><b>Integrity:</b> An HMAC-SHA256 digest covers the entire payload. Any modification — accidental or deliberate — is detected on import and the file is rejected. The importer <b>fails closed</b>: a corrupted or tampered container cannot be imported.</li>
+  <li><b>Integrity:</b> An HMAC-SHA256 digest covers the entire payload. Any modification - accidental or deliberate - is detected on import and the file is rejected. The importer <b>fails closed</b>: a corrupted or tampered container cannot be imported.</li>
 </ul>
 
 <div class="warning">
@@ -34,7 +34,7 @@
 12       4 bytes  Payload Length     Little-endian uint32: byte length of the scrambled payload
 16       32 bytes HMAC-SHA256        Cryptographic digest of the scrambled payload</pre></div>
 
-<p>Immediately following the 48-byte header is the <b>scrambled payload</b> — the XOR-scrambled ZIP archive data. The total file size is always <code>48 + payload_length</code> bytes.</p>
+<p>Immediately following the 48-byte header is the <b>scrambled payload</b> - the XOR-scrambled ZIP archive data. The total file size is always <code>48 + payload_length</code> bytes.</p>
 
 <h3>Visual Layout</h3>
 <div class="code"><pre>┌──────────────────────────────── Container File ────────────────────────────────┐
@@ -71,7 +71,7 @@
 <h2>XOR Scrambling</h2>
 <!-- ================================================================== -->
 
-<p>The internal ZIP archive is obscured using a fixed 32-byte XOR key that is cycled across the entire payload. This is a lightweight reversible transformation — <b>not encryption</b> — whose purpose is to prevent casual inspection and to eliminate recognizable ZIP signature bytes from the raw file.</p>
+<p>The internal ZIP archive is obscured using a fixed 32-byte XOR key that is cycled across the entire payload. This is a lightweight reversible transformation - <b>not encryption</b> - whose purpose is to prevent casual inspection and to eliminate recognizable ZIP signature bytes from the raw file.</p>
 
 <h3>How It Works</h3>
 <ol>
@@ -112,16 +112,16 @@
 <ol>
   <li>The file must be at least 48 bytes (the header size). Files smaller than this are rejected.</li>
   <li>The first 8 bytes are compared to the expected magic value. A mismatch produces an "Unrecognized file format" error.</li>
-  <li>The payload length is read from bytes 12–15 (little-endian uint32).</li>
+  <li>The payload length is read from bytes 12-15 (little-endian uint32).</li>
   <li>The file must contain at least <code>48 + payload_length</code> bytes. If the file is truncated, it is rejected.</li>
   <li>The HMAC-SHA256 is recomputed over the payload portion of the file (<code>bytes[48 .. 48+payload_length]</code>).</li>
-  <li>The recomputed HMAC is compared to the stored HMAC (bytes 16–47) using a <b>timing-safe comparison</b> to prevent timing attacks.</li>
+  <li>The recomputed HMAC is compared to the stored HMAC (bytes 16-47) using a <b>timing-safe comparison</b> to prevent timing attacks.</li>
   <li>If the HMACs do not match, the file is rejected with a "Container integrity check failed" error. <b>No data is returned.</b></li>
   <li>If the HMACs match, the payload is XOR-descrambled to recover the original ZIP buffer.</li>
 </ol>
 
 <div class="warning">
-<p><b>Fail-Closed Design:</b> If any validation step fails — wrong magic, truncated file, HMAC mismatch — the importer rejects the file entirely. No partial data is extracted. This prevents importing corrupted or tampered packages.</p>
+<p><b>Fail-Closed Design:</b> If any validation step fails - wrong magic, truncated file, HMAC mismatch - the importer rejects the file entirely. No partial data is extracted. This prevents importing corrupted or tampered packages.</p>
 </div>
 
 <!-- ================================================================== -->
@@ -133,7 +133,7 @@
 <table>
 <thead><tr><th>Layer</th><th>Scope</th><th>Mechanism</th><th>What It Catches</th></tr></thead>
 <tbody>
-<tr><td><b>Outer: Container HMAC</b></td><td>Entire file (all bytes after the header)</td><td>HMAC-SHA256 over scrambled payload</td><td>Any byte change to the file — accidental corruption, disk errors, truncation, manual editing attempts</td></tr>
+<tr><td><b>Outer: Container HMAC</b></td><td>Entire file (all bytes after the header)</td><td>HMAC-SHA256 over scrambled payload</td><td>Any byte change to the file - accidental corruption, disk errors, truncation, manual editing attempts</td></tr>
 <tr><td><b>Inner: <code>signature.json</code></b></td><td>Individual ZIP entries inside the container</td><td>Per-file SHA-256 hashes + HMAC over the hash map</td><td>Individual file tampering, entry injection/removal within the ZIP (if the outer container were bypassed)</td></tr>
 </tbody>
 </table>
@@ -146,7 +146,7 @@
 <h2>Nested Containers in Archives</h2>
 <!-- ================================================================== -->
 
-<p>A <code>.hxlibarch</code> archive file is itself a binary container. Inside its descrambled ZIP payload, each inner <code>.hxlibpkg</code> entry is <b>also a full binary container</b> — not a raw ZIP. This means every level has its own container header, HMAC, and scrambled payload:</p>
+<p>A <code>.hxlibarch</code> archive file is itself a binary container. Inside its descrambled ZIP payload, each inner <code>.hxlibpkg</code> entry is <b>also a full binary container</b> - not a raw ZIP. This means every level has its own container header, HMAC, and scrambled payload:</p>
 
 <div class="code"><pre>MyBundle.hxlibarch (binary container)
   ├── Header: HXLARC magic + HMAC covering outer payload
@@ -174,12 +174,12 @@
 <table>
 <thead><tr><th>Tool</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td><b>Notepad / text editors</b></td><td>Binary garbage — no readable text or file names are visible</td></tr>
-<tr><td><b>7-Zip</b></td><td>"Cannot open file as archive" — no ZIP signature detected</td></tr>
+<tr><td><b>Notepad / text editors</b></td><td>Binary garbage - no readable text or file names are visible</td></tr>
+<tr><td><b>7-Zip</b></td><td>"Cannot open file as archive" - no ZIP signature detected</td></tr>
 <tr><td><b>WinRAR</b></td><td>"The archive is either in unknown format or damaged"</td></tr>
 <tr><td><b>Windows Explorer</b></td><td>Does not recognize the file as an archive; shows it as a generic file</td></tr>
 <tr><td><b>Hex editors</b></td><td>Shows the <code>HXLPKG</code> or <code>HXLARC</code> magic bytes, then binary data with no recognizable structure</td></tr>
-<tr><td><b>Unix <code>file</code> command</b></td><td>"data" — the magic bytes are not in the standard file-type database</td></tr>
+<tr><td><b>Unix <code>file</code> command</b></td><td>"data" - the magic bytes are not in the standard file-type database</td></tr>
 </tbody>
 </table>
 
@@ -194,7 +194,7 @@
 <tbody>
 <tr><td>"Container too small"</td><td>File is less than 48 bytes (minimum header size)</td><td>The file is severely truncated or is not a valid package file. Re-obtain the file from the original source.</td></tr>
 <tr><td>"Unrecognized container format"</td><td>The first 8 bytes do not match any known magic value</td><td>The file is not a Venus Library Manager package or has been renamed from a different format. Verify you selected the correct file.</td></tr>
-<tr><td>"Container integrity check failed — file may be corrupted or tampered with"</td><td>HMAC-SHA256 mismatch — one or more bytes of the file have been changed since it was created</td><td>The file has been corrupted (e.g., disk error, incomplete network transfer) or manually edited. Re-obtain an intact copy from the original source.</td></tr>
+<tr><td>"Container integrity check failed - file may be corrupted or tampered with"</td><td>HMAC-SHA256 mismatch - one or more bytes of the file have been changed since it was created</td><td>The file has been corrupted (e.g., disk error, incomplete network transfer) or manually edited. Re-obtain an intact copy from the original source.</td></tr>
 <tr><td>"Container payload truncated"</td><td>The header declares a payload length, but the file does not contain enough bytes</td><td>The file was partially downloaded or truncated during copy. Re-obtain the complete file.</td></tr>
 </tbody>
 </table>
@@ -241,10 +241,10 @@ Layer 3:  Package Contents  (manifest.json, signature.json, library/, demo_metho
 
 <h2>Related Topics</h2>
 <ul>
-  <li><a href="PackageFormats.html">Package Formats</a> — Internal ZIP structure, manifest schema, and file inventory</li>
-  <li><a href="IntegrityVerification.html">Integrity Verification</a> — Inner <code>signature.json</code> mechanism and file-level integrity</li>
-  <li><a href="CreatingPackages.html">Creating Packages</a> — How packages are built</li>
-  <li><a href="CLIVerifyPackage.html">CLI: verify-package</a> — Standalone package verification command</li>
+  <li><a href="PackageFormats.html">Package Formats</a> - Internal ZIP structure, manifest schema, and file inventory</li>
+  <li><a href="IntegrityVerification.html">Integrity Verification</a> - Inner <code>signature.json</code> mechanism and file-level integrity</li>
+  <li><a href="CreatingPackages.html">Creating Packages</a> - How packages are built</li>
+  <li><a href="CLIVerifyPackage.html">CLI: verify-package</a> - Standalone package verification command</li>
 </ul>
 </div>
 <div class="footer">

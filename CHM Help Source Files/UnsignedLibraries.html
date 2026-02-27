@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Unsigned Libraries</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -36,8 +36,8 @@
 <h2>Scanning</h2>
 <p>When you click <b>Scan Now</b>, the application performs the following steps:</p>
 <ol>
-  <li><b>Reads the Library folder</b> — recursively scans the directory configured via the Library Path setting (default: <code>C:\Program Files (x86)\HAMILTON\Library</code>). Files and directories that match the exclusion rules described below are skipped (see <a href="#excluded-files">Excluded Files and Directories</a>).</li>
-  <li><b>Identifies primary files</b> — discovers all <code>.hsl</code> and <code>.smt</code> files.</li>
+  <li><b>Reads the Library folder</b> - recursively scans the directory configured via the Library Path setting (default: <code>C:\Program Files (x86)\HAMILTON\Library</code>). Files and directories that match the exclusion rules described below are skipped (see <a href="#excluded-files">Excluded Files and Directories</a>).</li>
+  <li><b>Identifies primary files</b> - discovers all <code>.hsl</code> and <code>.smt</code> files.</li>
   <li><b>Excludes claimed files</b> - filters out any file that is already tracked by a system library (from <code>system_libraries.json</code>) or an installed user library (from <code>installed_libs.json</code>).</li>
   <li><b>Groups by library name</b> - derives a library name from the filename (without extension). Language-variant suffixes (e.g., <code>Enu</code>, <code>Deu</code>, <code>Jpn</code>) are folded into the base library name.</li>
   <li><b>Discovers related files</b> - for each library name, gathers associated files with related extensions: <code>.hs_</code>, <code>.sub</code>, <code>.bmp</code>, <code>.ico</code>, <code>.chm</code>, <code>.stp</code>, <code>.res</code>, <code>.fdb</code>, <code>.sii</code>, <code>.dec</code>, <code>.dll</code>.</li>
@@ -74,7 +74,7 @@
 </table>
 
 <div class="note">
-<p><b>Note:</b> These exclusion rules are applied during the recursive directory scan. If a directory is excluded, none of its contents — including any subdirectories — are scanned. For example, a folder named <code>.archive</code> containing valid <code>.hsl</code> files will be entirely ignored.</p>
+<p><b>Note:</b> These exclusion rules are applied during the recursive directory scan. If a directory is excluded, none of its contents - including any subdirectories - are scanned. For example, a folder named <code>.archive</code> containing valid <code>.hsl</code> files will be entirely ignored.</p>
 </div>
 
 <h3>Visual Feedback</h3>
@@ -295,7 +295,7 @@
   <li><b>No version history</b> - unsigned libraries are not cached in the package store and do not support version rollback. However, once registered or exported as a package, the library gains full version management capabilities.</li>
   <li><b>Metadata is user-supplied</b> - unlike installed libraries, metadata fields (author, version, etc.) start blank and must be filled in manually.</li>
   <li><b>File removal is soft</b> - removing an unsigned library from the list only deletes the database record. The actual files on disk remain untouched. The library will reappear on the next scan unless the files are manually deleted, claimed by a proper import, or <b>registered using the "Register to Library Manager" button</b>.</li>
-  <li><b>Dot-prefixed files and folders are excluded</b> — any file or directory whose name starts with <code>.</code> (e.g., <code>.MyLibrary.hsl</code>, <code>.backup/</code>) is treated as a hidden or temporary artifact and is completely excluded from scanning. The same applies to tilde-prefixed files. See <a href="#excluded-files">Excluded Files and Directories</a> for the full list of exclusion rules.</li>
+  <li><b>Dot-prefixed files and folders are excluded</b> - any file or directory whose name starts with <code>.</code> (e.g., <code>.MyLibrary.hsl</code>, <code>.backup/</code>) is treated as a hidden or temporary artifact and is completely excluded from scanning. The same applies to tilde-prefixed files. See <a href="#excluded-files">Excluded Files and Directories</a> for the full list of exclusion rules.</li>
 </ul>
 
 <h2>Related Topics</h2>

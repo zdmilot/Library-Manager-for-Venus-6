@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>Integrity Verification</title>
     <link rel="stylesheet" type="text/css" href="help.css">
@@ -11,10 +11,10 @@
 <h2>Overview</h2>
 <p>Venus Library Manager provides a multi-layered integrity system to detect when library files have been modified, tampered with, or deleted. The system uses four complementary mechanisms depending on the context:</p>
 <ol>
-  <li><b>Binary container HMAC</b> — cryptographic whole-file integrity check on every <code>.hxlibpkg</code> and <code>.hxlibarch</code> file (see <a href="BinaryContainerFormat.html">Binary Container Format</a>)</li>
-  <li><b>HMAC-SHA256 package signing</b> — per-file integrity signature (<code>signature.json</code>) inside each package’s internal ZIP</li>
-  <li><b>SHA-256 file hashing</b> — tracks individual files in user-installed libraries after import</li>
-  <li><b>Hamilton metadata footer verification</b> — checks Hamilton’s built-in <code>$$valid$$</code> / <code>$$checksum$$</code> fields in system library HSL files</li>
+  <li><b>Binary container HMAC</b> - cryptographic whole-file integrity check on every <code>.hxlibpkg</code> and <code>.hxlibarch</code> file (see <a href="BinaryContainerFormat.html">Binary Container Format</a>)</li>
+  <li><b>HMAC-SHA256 package signing</b> - per-file integrity signature (<code>signature.json</code>) inside each package’s internal ZIP</li>
+  <li><b>SHA-256 file hashing</b> - tracks individual files in user-installed libraries after import</li>
+  <li><b>Hamilton metadata footer verification</b> - checks Hamilton’s built-in <code>$$valid$$</code> / <code>$$checksum$$</code> fields in system library HSL files</li>
 </ol>
 <p>Together, these mechanisms ensure that package files cannot be casually opened or modified, that packages are intact before import, that library files remain unchanged from the time they were installed, and that system libraries match Hamilton’s original release state.</p>
 
