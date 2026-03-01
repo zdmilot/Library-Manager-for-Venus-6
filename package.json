@@ -15,7 +15,12 @@
     "list-libs": "node cli.js list-libs",
     "help": "node cli.js help",
     "test": "node test/test_shared.js",
-    "lint": "node --check cli.js lib/shared.js"
+    "lint": "node --check cli.js lib/shared.js",
+    "chm:images:scan": "node scripts/chm-image-placeholders.js scan",
+    "chm:images:check": "node scripts/chm-image-placeholders.js check",
+    "chm:images:apply": "node scripts/chm-image-placeholders.js apply",
+    "chm:images:dry": "node scripts/chm-image-placeholders.js dry-run",
+    "chm:images:revert": "node scripts/chm-image-placeholders.js revert"
   },
   "chromium-args": "--disable-logging --enable-logging=stderr --log-level=3 --disable-crash-reporter",
   "window": {

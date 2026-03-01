@@ -1,0 +1,158 @@
+{
+  "PLACE IMAGE OF LIBRARY PACKAGER MAIN VIEW HERE": {
+    "image": "packager-main.png",
+    "file": "CreatingPackages.html"
+  },
+  "PLACE IMAGE OF PACKAGER WITH FILLED METADATA AND FILE LIST HERE": {
+    "image": "packager-filled.png",
+    "file": "CreatingPackages.html"
+  },
+  "PLACE IMAGE OF THE DB FOLDER STRUCTURE HERE": {
+    "image": "db-folder-structure.png",
+    "file": "DataModel.html"
+  },
+  "PLACE IMAGE OF DELETE CONFIRMATION DIALOG HERE": {
+    "image": "delete-confirmation-dialog.png",
+    "file": "DeletingLibraries.html"
+  },
+  "PLACE IMAGE OF EXPORT CHOICE MODAL HERE": {
+    "image": "export-choice-modal.png",
+    "file": "ExportingLibraries.html"
+  },
+  "PLACE IMAGE OF EXPORT BUTTON IN LIBRARY DETAIL MODAL HERE": {
+    "image": "export-button-detail-modal.png",
+    "file": "ExportingLibraries.html"
+  },
+  "PLACE IMAGE OF EXPORT CHOICE MODAL WITH DEPENDENCIES LISTED HERE": {
+    "image": "export-choice-with-deps.png",
+    "file": "ExportingLibraries.html"
+  },
+  "PLACE IMAGE OF ARCHIVE EXPORT MODAL WITH LIBRARY CHECKBOXES HERE": {
+    "image": "archive-export-modal.png",
+    "file": "ExportingLibraries.html"
+  },
+  "PLACE IMAGE OF APPLICATION LAUNCH / MAIN WINDOW HERE": {
+    "image": "main-window.png",
+    "file": "GettingStarted.html"
+  },
+  "PLACE IMAGE OF MAIN WINDOW WITH LABELED REGIONS (SIDEBAR, CARD AREA, TABS) HERE": {
+    "image": "main-window-labeled.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF NAVIGATION TABS HERE": {
+    "image": "navigation-tabs.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF A LIBRARY CARD WITH ANNOTATIONS HERE": {
+    "image": "library-card-annotated.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF LIBRARY DETAIL MODAL HERE": {
+    "image": "library-detail-modal.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF PRE-INSTALL PREVIEW MODAL WITH SIGNATURE STATUS HERE": {
+    "image": "import-preview-modal.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF LIBRARY PACKAGER UI HERE": {
+    "image": "packager-main.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF SETTINGS PANEL HERE": {
+    "image": "settings-panel.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF OVERFLOW MENU DROPDOWN WITH ALL ITEMS VISIBLE HERE": {
+    "image": "overflow-menu.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF EVENT HISTORY MODAL WITH FILTERS AND EVENT LIST HERE": {
+    "image": "event-history-modal.png",
+    "file": "GUIOverview.html"
+  },
+  "PLACE IMAGE OF IMPORT PREVIEW MODAL WITH LIBRARY METADATA AND SIGNATURE STATUS HERE": {
+    "image": "import-preview-modal.png",
+    "file": "ImportingLibraries.html"
+  },
+  "PLACE IMAGE OF POST-IMPORT SUCCESS MODAL HERE": {
+    "image": "import-success-modal.png",
+    "file": "ImportingLibraries.html"
+  },
+  "PLACE IMAGE OF THE VENUS LIBRARY MANAGER MAIN WINDOW HERE": {
+    "image": "main-window.png",
+    "file": "index.html"
+  },
+  "PLACE IMAGE OF GROUP CREATION IN SETTINGS HERE": {
+    "image": "group-create.png",
+    "file": "LibraryGrouping.html"
+  },
+  "PLACE IMAGE OF DRAG-AND-DROP GROUP ASSIGNMENT IN SETTINGS HERE": {
+    "image": "group-drag-drop.png",
+    "file": "LibraryGrouping.html"
+  },
+  "PLACE IMAGE OF VENUS LIBRARY MANAGER MAIN WINDOW HERE": {
+    "image": "main-window.png",
+    "file": "Overview.html"
+  },
+  "PLACE IMAGE OF VENUS TOOL SHORTCUTS IN SIDEBAR HERE": {
+    "image": "venus-shortcuts-sidebar.png",
+    "file": "VENUSIntegration.html"
+  },
+  "PLACE IMAGE OF LIBRARY CARD INTEGRITY ERROR STYLING HERE": {
+    "image": "integrity-error-card.png",
+    "file": "IntegrityVerification.html"
+  },
+  "PLACE IMAGE OF VERIFY AND REPAIR MODAL WITH LIBRARY STATUS LIST HERE": {
+    "image": "verify-repair-modal.png",
+    "file": "IntegrityVerification.html"
+  },
+  "PLACE IMAGE OF RUN LIBRARY AUDIT MENU ITEM IN OVERFLOW MENU HERE": {
+    "image": "overflow-menu.png",
+    "file": "LibraryAuditLog.html"
+  },
+  "PLACE IMAGE OF AUDIT VERIFICATION RESULT DIALOG HERE": {
+    "image": "audit-verify-result.png",
+    "file": "LibraryAuditLog.html"
+  },
+  "PLACE IMAGE OF SEARCH BAR WITH TAG AND AUTHOR CHIPS HERE": {
+    "image": "search-bar-chips.png",
+    "file": "SearchFeatures.html"
+  },
+  "PLACE IMAGE OF SEARCH AUTOCOMPLETE DROPDOWN WITH SUGGESTIONS HERE": {
+    "image": "search-autocomplete.png",
+    "file": "SearchFeatures.html"
+  },
+  "PLACE IMAGE OF THE SPLASH SCREEN WITH ANIMATED LOGO AND STATUS TEXT HERE": {
+    "image": "splash-screen.png",
+    "file": "SplashScreen.html"
+  },
+  "PLACE IMAGE OF A SUCCESS DIALOG EXAMPLE SHOWING GREEN CHECKMARK AND DETAILS HERE": {
+    "image": "success-dialog.png",
+    "file": "SuccessDialogs.html"
+  },
+  "PLACE IMAGE OF UNSIGNED LIBRARIES SETTINGS CHECKBOXES AND SCAN BUTTON HERE": {
+    "image": "unsigned-settings.png",
+    "file": "UnsignedLibraries.html"
+  },
+  "PLACE IMAGE OF UNSIGNED LIBRARY CARDS ON THE MAIN SCREEN HERE": {
+    "image": "unsigned-library-cards.png",
+    "file": "UnsignedLibraries.html"
+  },
+  "PLACE IMAGE OF UNSIGNED LIBRARY DETAIL AND EDIT MODAL HERE": {
+    "image": "unsigned-detail-modal.png",
+    "file": "UnsignedLibraries.html"
+  },
+  "PLACE IMAGE OF CACHED VERSIONS LIST IN LIBRARY DETAIL MODAL HERE": {
+    "image": "cached-versions-list.png",
+    "file": "VersionRollback.html"
+  },
+  "PLACE IMAGE OF ROLLBACK CONFIRMATION DIALOG HERE": {
+    "image": "rollback-confirmation.png",
+    "file": "VersionRollback.html"
+  },
+  "PLACE IMAGE OF COMPOSITED PACKAGE ICON EXAMPLE SHOWING LOGO OVERLAY HERE": {
+    "image": "composited-icon-example.png",
+    "file": "VisualIdentity.html"
+  }
+}

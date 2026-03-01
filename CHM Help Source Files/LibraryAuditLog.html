@@ -21,6 +21,7 @@
   <li>The audit runs immediately and saves the log file automatically</li>
   <li>A success confirmation dialog is displayed with the saved file path</li>
 </ol>
+<div class="image-placeholder">PLACE IMAGE OF RUN LIBRARY AUDIT MENU ITEM IN OVERFLOW MENU HERE</div>
 
 <h3>Save Location</h3>
 <p>Audit logs are saved to a fixed directory to ensure consistency and prevent user modification of the file name or path:</p>
@@ -98,6 +99,7 @@
 <tr><td><b>No Signature Found</b></td><td style="color:red;">&#10008;</td><td>The file does not contain an <code>$$INTEGRITY_SIGNATURE$$</code> line - it may not be a signed audit log, or the signature was removed</td></tr>
 </tbody>
 </table>
+<div class="image-placeholder">PLACE IMAGE OF AUDIT VERIFICATION RESULT DIALOG HERE</div>
 
 <p>When a signature mismatch is detected, both the stored signature and the computed signature are displayed so the discrepancy can be documented.</p>
 
@@ -122,6 +124,7 @@
   <li><b>Archive Imported</b> &mdash; A <code>.hxlibarch</code> (multi-library archive) is installed</li>
   <li><b>Library Deleted</b> &mdash; An installed library is removed</li>
   <li><b>Library Rollback</b> &mdash; A library is rolled back to a previously cached version</li>
+  <li><b>System Library Integrity Check</b> &mdash; A system library integrity verification was performed via the Verify &amp; Repair tool</li>
 </ul>
 
 <h3>What Each Entry Contains</h3>
@@ -129,7 +132,7 @@
 <table>
 <thead><tr><th>Field</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><b>event</b></td><td>The event type (e.g. <code>package_created</code>, <code>library_imported</code>, <code>archive_imported</code>, <code>library_deleted</code>, <code>library_rollback</code>)</td></tr>
+<tr><td><b>event</b></td><td>The event type (e.g. <code>package_created</code>, <code>library_imported</code>, <code>archive_imported</code>, <code>library_deleted</code>, <code>library_rollback</code>, <code>syslib_integrity_check</code>)</td></tr>
 <tr><td><b>timestamp</b></td><td>ISO 8601 date and time when the event occurred</td></tr>
 <tr><td><b>username</b></td><td>The Windows username of the user who performed the action</td></tr>
 <tr><td><b>windows_version</b></td><td>The Windows OS version string (e.g. <code>Windows_NT 10.0.19045 (x64)</code>)</td></tr>
@@ -172,7 +175,8 @@
 <p>Together, these entries provide a complete chain of custody showing who created the package, on what system, and who installed it, on what system.</p>
 
 <h3>Visibility</h3>
-<p>The audit trail is <b>not</b> displayed in the library detail view or any GUI panel. It is intended as a background record for compliance, troubleshooting, and forensic review. To inspect the trail, open <code>audit_trail.json</code> directly in a text editor or JSON viewer.</p>
+<p>The audit trail can be viewed directly within the application through the <b>Event History</b> modal, accessible from <b>Overflow Menu &rarr; History</b>. The Event History modal provides a searchable, filterable view of all recorded events with category/user filters and CSV export capability. See <a href="GUIOverview.html">GUI Overview &mdash; Event History</a> for full details.</p>
+<p>The raw data can also be inspected directly in <code>audit_trail.json</code> in the user data directory.</p>
 
 <h2>Related Topics</h2>
 <ul>

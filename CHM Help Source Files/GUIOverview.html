@@ -21,6 +21,7 @@
 <tr><td><b>Recent</b></td><td>Shows recently imported libraries, limited by the configurable maximum (default: 20)</td></tr>
 <tr><td><b>System</b></td><td>Shows Hamilton system libraries discovered from the VENUS installation. This is a read-only auto-detected group.</td></tr>
 <tr><td><b>Hamilton</b></td><td>Shows libraries authored by Hamilton. This is a protected default group with a solid checkmark icon. See <a href="LibraryGrouping.html">Library Grouping</a> for details on its protections.</td></tr>
+<tr><td><b>Starred</b></td><td>Shows only libraries you have starred (favorited). Click the star icon on any library card to toggle. Starred library IDs are saved in settings and persist across sessions.</td></tr>
 <tr><td><b>Unsigned</b></td><td>Shows unsigned libraries discovered by scanning. Only visible when the feature is enabled and libraries have been found. See <a href="UnsignedLibraries.html">Unsigned Libraries</a> for details.</td></tr>
 <tr><td><b>Import</b></td><td>Provides the import workflow for <code>.hxlibpkg</code> and <code>.hxlibarch</code> files</td></tr>
 <tr><td><b>Custom Groups</b></td><td>Filtered views showing only libraries assigned to a specific group</td></tr>
@@ -108,7 +109,7 @@
   <li>Confirm to extract and install</li>
   <li>A post-install success modal summarizes the outcome</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF PRE-INSTALL PREVIEW MODAL WITH SIGNATURE STATUS HERE</div>
+<div class="image-placeholder">PLACE IMAGE OF IMPORT PREVIEW MODAL WITH LIBRARY METADATA AND SIGNATURE STATUS HERE</div>
 
 <h3>Archive Import (<code>.hxlibarch</code>)</h3>
 <ol>
@@ -180,6 +181,90 @@
 <div class="note">
 <p><b>Note:</b> Libraries imported with <code>--no-cache</code> have no cached package in the store and cannot be repaired through this tool. Re-import the original package file instead. System libraries without a first-run backup (e.g., if the first run failed) can be re-backed-up by removing the <code>sysLibBackupComplete</code> setting and restarting.</p>
 </div>
+
+<h2>Overflow Menu</h2>
+<p>The overflow menu is accessed from the vertical ellipsis (<i class="fas fa-ellipsis-v"></i>) button in the top-right corner of the navigation bar. It provides access to tools and settings that are not assigned to individual tabs.</p>
+<div class="image-placeholder">PLACE IMAGE OF RUN LIBRARY AUDIT MENU ITEM IN OVERFLOW MENU HERE</div>
+<table>
+<thead><tr><th>Menu Item</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Package Library</b></td><td>Opens the Library Packager in the Export tab, pre-filling the VENUS compatibility version</td></tr>
+<tr><td><b>Verify &amp; Repair</b></td><td>Opens the integrity verification modal for all libraries</td></tr>
+<tr><td><b>Library Groups</b></td><td>Opens the groups management modal to create, rename, delete, and reorder groups</td></tr>
+<tr><td><b>History</b></td><td>Opens the Event History modal showing all recorded activity (see below)</td></tr>
+<tr><td colspan="2"><hr style="margin:4px 0;border-color:#ccc"></td></tr>
+<tr><td><b>Run Library Audit</b></td><td>Generates a signed audit log <code>.txt</code> file. See <a href="LibraryAuditLog.html">Library Audit Log</a></td></tr>
+<tr><td><b>Check Audit File</b></td><td>Opens a file picker to select and verify an existing audit log file's integrity signature</td></tr>
+<tr><td colspan="2"><hr style="margin:4px 0;border-color:#ccc"></td></tr>
+<tr><td><b>Export Archive</b></td><td>Opens the multi-library archive export modal. See <a href="ExportingLibraries.html">Exporting Libraries</a></td></tr>
+<tr><td><b>Settings</b></td><td>Opens the Settings modal</td></tr>
+<tr><td><b>Help</b></td><td>Opens this compiled help file (<code>Venus Library Manager.chm</code>)</td></tr>
+</tbody>
+</table>
+
+<h2>Starred Libraries</h2>
+<p>Any library can be starred (favorited) by clicking the star icon (<i class="far fa-star"></i>) in the bottom-right corner of its library card. Starred libraries appear with a solid star icon (<i class="fas fa-star"></i>) and are collected in the <b>Starred</b> navigation tab.</p>
+<ul>
+  <li>Click the star on a card to toggle starred status on or off</li>
+  <li>Starred library IDs are saved to <code>settings.json</code> and persist across application restarts</li>
+  <li>If you are viewing the Starred tab and unstar a library, the card is immediately removed from view</li>
+  <li>The Starred tab shows an empty-state message when no libraries are starred</li>
+</ul>
+
+<h2>Event History</h2>
+<p>The Event History modal (accessed from <b>Overflow Menu &rarr; History</b>) provides a complete, searchable log of all recorded library management activity. This is your primary tool for auditing who did what and when.</p>
+<div class="image-placeholder">PLACE IMAGE OF EVENT HISTORY MODAL WITH FILTERS AND EVENT LIST HERE</div>
+
+<h3>Event Types</h3>
+<table>
+<thead><tr><th>Event</th><th>Category</th><th>Icon Color</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Package Created</b></td><td>Create</td><td>Green</td><td>A new <code>.hxlibpkg</code> was built using the Library Packager</td></tr>
+<tr><td><b>Library Imported</b></td><td>Import</td><td>Blue</td><td>A single library package was imported</td></tr>
+<tr><td><b>Archive Imported</b></td><td>Import</td><td>Teal</td><td>A multi-library archive was imported</td></tr>
+<tr><td><b>Library Deleted</b></td><td>Delete</td><td>Red</td><td>A library was deleted</td></tr>
+<tr><td><b>Library Rollback</b></td><td>Rollback</td><td>Orange</td><td>A library was rolled back to a previous version</td></tr>
+<tr><td><b>System Library Integrity Check</b></td><td>System</td><td>Purple</td><td>A system library integrity verification was performed</td></tr>
+</tbody>
+</table>
+
+<h3>Filtering &amp; Search</h3>
+<p>The Event History toolbar provides three filtering mechanisms that work simultaneously:</p>
+<ul>
+  <li><b>Text Search:</b> Free-text search across all visible event content (library names, versions, filenames, usernames)</li>
+  <li><b>Category Filter:</b> Dropdown to filter by event category (All, Import, Export, Create, Delete, Settings, Group, Repair, Rollback, Audit, System)</li>
+  <li><b>User Filter:</b> Dropdown dynamically populated with all usernames found in the audit trail</li>
+</ul>
+<p>The total visible event count is shown in the toolbar and updates as filters are applied.</p>
+
+<h3>Event Details</h3>
+<p>Each event row displays:</p>
+<ul>
+  <li>A color-coded icon badge matching the event type</li>
+  <li>The event label (e.g., "Library Imported")</li>
+  <li>A summary line showing the library name, version, and source file</li>
+  <li>Timestamp, Windows username, and hostname</li>
+  <li>An expandable <b>Details</b> toggle revealing a full key-value table of all captured metadata</li>
+</ul>
+
+<h3>CSV Export</h3>
+<p>Click the <b>Export</b> button to save the currently visible (filtered) events as a CSV file. The export includes columns for Timestamp, Event, Category, User, Hostname, and Details.</p>
+
+<h2>Run Log Cleanup</h2>
+<p>Venus Library Manager can automatically clean up old VENUS run log files at startup. This feature is controlled by settings in the Settings modal:</p>
+<table>
+<thead><tr><th>Setting</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Enable Run Log Cleanup</b></td><td>Master toggle to enable/disable automatic cleanup at startup</td></tr>
+<tr><td><b>Days Threshold</b></td><td>Files older than this many days are processed</td></tr>
+<tr><td><b>Cleanup Action</b></td><td><b>Delete</b> (permanently remove) or <b>Archive</b> (move to archive folder)</td></tr>
+<tr><td><b>Archive Folder</b></td><td>Destination directory for archived files (defaults to system temp directory)</td></tr>
+</tbody>
+</table>
+<p>When cleanup runs, a progress bar appears in the navigation bar showing "Cleaning up run logs" with a percentage. After completion, the message changes to "Run log cleanup completed!" and fades out after a few seconds.</p>
+
+<h2>Window State</h2>
+<p>The application saves and restores its <b>maximized state</b> across sessions. If you close the window while maximized, it reopens maximized. The initial non-maximized dimensions are 1280 &times; 800 pixels (minimum 800 &times; 700). Window position (x, y coordinates) is not persisted.</p>
 </div>
 <div class="footer">
 <p>Venus Library Manager Help</p>

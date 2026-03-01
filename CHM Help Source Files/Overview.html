@@ -27,6 +27,14 @@
   <li><b>Visual Identity</b> - Composited package icons with brand overlay and distinctive purple archive icons for multi-library bundles</li>
   <li><b>VENUS Tool Integration</b> - Launch Hamilton editors (Method, Liquid Class, Labware, HSL, System Config) directly from the application</li>
   <li><b>Command-Line Interface</b> - Full-featured CLI (<code>cli.js</code>) for scripted automation, CI/CD integration, and headless operation</li>
+  <li><b>Unsigned Library Discovery</b> - Scan the VENUS Library folder for unmanaged HSL files not tracked by any installed or system library, then register, export, or remove them</li>
+  <li><b>Event History</b> - Searchable, filterable log of all recorded activity with category/user filters and CSV export</li>
+  <li><b>Starred Libraries</b> - Mark frequently-used libraries as favorites for quick access via the Starred tab</li>
+  <li><b>Run Log Cleanup</b> - Automatically delete or archive old VENUS run log files at application startup</li>
+  <li><b>Audit Trail</b> - Every lifecycle event is recorded with Windows username, OS version, VENUS version, hostname, and full event details for GxP-compliant traceability</li>
+  <li><b>User Authorization</b> - Windows security group integration with regulated-environment mode for 21 CFR Part 11 compliance</li>
+  <li><b>Package Signing</b> - HMAC-SHA256 signing and tamper-resistant <a href="BinaryContainerFormat.html">binary container format</a> for all packages and archives</li>
+  <li><b>Search</b> - Cross-library full-text search across names, descriptions, tags, authors, and public HSL function signatures with tag-only mode and autocomplete</li>
 </ul>
 
 <h2>System Requirements</h2>
@@ -67,6 +75,14 @@
   <li><a href="CLIVerifySyslibHashes.html">CLI: verify-syslib-hashes</a></li>
   <li><a href="PackageSpecSchema.html">Package Spec JSON Schema</a> - Specification file format for <code>create-package</code></li>
   <li><a href="DataModel.html">Data Model &amp; Persistence</a> - Local database structure and storage</li>
+  <li><a href="CLIVerifyPackage.html">CLI: verify-package</a></li>
+  <li><a href="UnsignedLibraries.html">Unsigned Libraries</a> - Discovering and managing untracked library files</li>
+  <li><a href="BinaryContainerFormat.html">Binary Container Format</a> - Technical specification for <code>.hxlibpkg</code> and <code>.hxlibarch</code> file format</li>
+  <li><a href="SuccessDialogs.html">Success Dialogs</a> - Post-action confirmation modals</li>
+  <li><a href="SplashScreen.html">Splash Screen</a> - Application startup screen</li>
+  <li><a href="SearchFeatures.html">Search Features</a> - Advanced search and filtering</li>
+  <li><a href="LibraryAuditLog.html">Library Audit Log</a> - Audit trail and signed audit files</li>
+  <li><a href="GitHubRepository.html">GitHub Repository Link</a> - Library source repository linking</li>
   <li><a href="Troubleshooting.html">Troubleshooting</a> - Common issues and solutions</li>
 </ul>
 </div>

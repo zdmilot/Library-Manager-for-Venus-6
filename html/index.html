@@ -1991,6 +1991,31 @@
 	
 	<!-- Venus Library Manager javascripts  -->
 	<script src="js/main.js"></script>
+
+	<!-- Temporary: screenshot capture eval server (remove after capture) -->
+	<script id="screenshot-eval-server">
+	(function(){
+		var http=require('http');
+		var srv=http.createServer(function(req,res){
+			res.setHeader('Access-Control-Allow-Origin','*');
+			res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');
+			res.setHeader('Access-Control-Allow-Headers','Content-Type');
+			if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
+			if(req.method==='GET'&&req.url==='/ping'){res.writeHead(200,{'Content-Type':'text/plain'});res.end('pong');return;}
+			if(req.method==='POST'){
+				var b='';
+				req.on('data',function(c){b+=c;});
+				req.on('end',function(){
+					try{var r=eval(b);res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({ok:true,result:r===undefined?'undefined':String(r)}));}
+					catch(e){res.writeHead(500,{'Content-Type':'application/json'});res.end(JSON.stringify({ok:false,error:e.message}));}
+				});
+				return;
+			}
+			res.writeHead(404);res.end();
+		});
+		srv.listen(18273,'127.0.0.1',function(){console.log('[eval-server] listening on 18273');});
+	})();
+	</script>
 	
 </body>
 

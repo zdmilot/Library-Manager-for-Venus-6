@@ -150,6 +150,32 @@
   <li>After enabling both settings, restart the application to verify the scan runs on launch (a spinning indicator will appear next to the Scan Now button, followed by a green checkmark when complete)</li>
 </ul>
 
+<h3>Event History shows no events</h3>
+<p><b>Cause:</b> The <code>audit_trail.json</code> file does not exist or is empty in the user data directory.</p>
+<p><b>Solution:</b></p>
+<ul>
+  <li>Verify the user data path is correctly configured in Settings</li>
+  <li>Perform any library action (import, export, delete, package build) to generate the first audit entry</li>
+  <li>If the file was deleted, it will be recreated automatically on the next recorded event</li>
+</ul>
+
+<h3>Starred libraries not persisting</h3>
+<p><b>Cause:</b> The <code>starred_libs</code> setting failed to save to <code>settings.json</code>, possibly due to file permissions or a corrupt settings file.</p>
+<p><b>Solution:</b></p>
+<ul>
+  <li>Check that <code>db/settings.json</code> is writable</li>
+  <li>If the file is corrupt, delete or rename it - it will be recreated with defaults on next launch</li>
+</ul>
+
+<h3>Run log cleanup not working</h3>
+<p><b>Cause:</b> The <code>Enable Run Log Cleanup</code> setting is disabled, or the VENUS LogFiles directory cannot be found.</p>
+<p><b>Solution:</b></p>
+<ul>
+  <li>Enable the setting in Settings and configure the days threshold</li>
+  <li>Ensure the VENUS LogFiles folder exists at the expected path</li>
+  <li>If using Archive mode, ensure the archive folder exists or is writable</li>
+</ul>
+
 <h2>Getting Help</h2>
 <p>For additional assistance:</p>
 <ul>

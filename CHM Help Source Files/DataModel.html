@@ -160,6 +160,7 @@
 <tbody>
 <tr><td><code>gAll</code></td><td>All</td><td><code>fa-th</code></td><td>left</td><td>Shows all installed libraries</td></tr>
 <tr><td><code>gRecent</code></td><td>Recent</td><td><code>fa-clock</code></td><td>left</td><td>Recently accessed libraries</td></tr>
+<tr><td><code>gStarred</code></td><td>Starred</td><td><code>fa-star</code></td><td>left</td><td>Libraries starred (favorited) by the user</td></tr>
 <tr><td><code>gHamilton</code></td><td>Hamilton</td><td><code>fa-check-circle</code> (solid)</td><td>left</td><td>Protected Hamilton-authored libraries</td></tr>
 <tr><td><code>gFolders</code></td><td>Import</td><td><code>fa-file-import</code></td><td>right</td><td>Import workflow tab</td></tr>
 <tr><td><code>gEditors</code></td><td>Export</td><td><code>fa-file-export</code></td><td>right</td><td>Export workflow tab</td></tr>
@@ -251,6 +252,13 @@
 <tr><td><code>chk_scanUnsignedOnLaunch</code></td><td>boolean</td><td>Automatically scan for new unsigned libraries each time the application launches</td></tr>
 <tr><td><code>userDataPath</code></td><td>string</td><td>User data directory (where the user's copy of the database is stored)</td></tr>
 <tr><td><code>windowMaximized</code></td><td>boolean</td><td>Whether the main window should start maximized</td></tr>
+<tr><td><code>starred_libs</code></td><td>string[]</td><td>Array of library <code>_id</code> values that the user has starred (favorited)</td></tr>
+<tr><td><code>chk_settingHistoryCleanup</code></td><td>boolean</td><td>Enable automatic VENUS run log cleanup at startup</td></tr>
+<tr><td><code>history-days</code></td><td>number</td><td>Days threshold for run log cleanup (files older than this are processed)</td></tr>
+<tr><td><code>cleanup-action</code></td><td>string</td><td><code>"delete"</code> or <code>"archive"</code> - action to take on old run log files</td></tr>
+<tr><td><code>history-archive-folder</code></td><td>string</td><td>Directory path for archived run log files (defaults to system temp directory)</td></tr>
+<tr><td><code>chk_regulatedEnvMode</code></td><td>boolean</td><td>Enable Regulated Environment Mode for Windows group-based authorization (see <a href="VENUSIntegration.html">VENUS Integration</a>)</td></tr>
+<tr><td><code>sysLibBackupComplete</code></td><td>boolean</td><td>Whether the first-run system library backup has been completed</td></tr>
 </tbody>
 </table>
 

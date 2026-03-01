@@ -561,5 +561,57 @@
 		<param name="Name" value="GPU compositing">
 		<param name="Local" value="SplashScreen.html">
 		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="starred libraries">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="favorites">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="event history">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="overflow menu">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="run log cleanup">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="window state">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="CSV export">
+		<param name="Local" value="GUIOverview.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="regulated environment">
+		<param name="Local" value="VENUSIntegration.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="user authorization">
+		<param name="Local" value="VENUSIntegration.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Windows security groups">
+		<param name="Local" value="VENUSIntegration.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="21 CFR Part 11">
+		<param name="Local" value="VENUSIntegration.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Lab Method Programmer">
+		<param name="Local" value="VENUSIntegration.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="author password">
+		<param name="Local" value="LibraryGrouping.html">
+		</OBJECT>
 </UL>
 </BODY></HTML>
