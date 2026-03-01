@@ -49,8 +49,7 @@ img.save("assets/app_logo_gray_128.png")</pre></div>
   <li>The grayscale logo is overlaid in the <b>bottom-right corner</b> of the canvas at one-third of the canvas dimensions</li>
   <li>The resulting composited image is exported as a base64-encoded PNG and written to the <code>icon/</code> directory in the ZIP</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF COMPOSITED PACKAGE ICON EXAMPLE SHOWING LOGO OVERLAY HERE</div>
-<p>This produces a branded file-system icon that prominently shows the library's own artwork while indicating it is a Venus Library Manager package - similar to how Windows draws shortcut arrows on desktop shortcuts.</p>
+<p>The compositing process produces a <b>branded file-system icon</b> that prominently shows the library's own artwork with a small grayscale Library Manager logo overlaid in the bottom-right corner at one-third of the canvas dimensions. This is similar to how Windows draws shortcut arrows on desktop shortcuts &mdash; the overlay clearly identifies the file as a Venus Library Manager package without obscuring the library's visual identity. The composited icon is used <b>only</b> for the file-system representation; the package manifest stores the raw, uncomposited library image for display inside the application.</p>
 
 <h3>Without a User-Supplied Image</h3>
 <p>If no image was selected by the user and no matching <code>.bmp</code> was auto-detected from the library files, the grayscale Library Manager logo is drawn at full canvas size and used as the file-system icon. The manifest will contain no image data in this case.</p>

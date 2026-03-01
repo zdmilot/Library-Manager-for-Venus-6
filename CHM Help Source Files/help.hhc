@@ -34,6 +34,10 @@
 			<param name="Local" value="SplashScreen.html">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="System Architecture">
+			<param name="Local" value="SystemArchitecture.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Core Concepts">
 			</OBJECT>
 		<UL>

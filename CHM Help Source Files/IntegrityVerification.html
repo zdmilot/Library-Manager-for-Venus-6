@@ -61,7 +61,7 @@
   <li><b>Red / error border:</b> One or more tracked files are missing or have been modified. The card also shows a red tooltip with details.</li>
   <li><b>Yellow / warning icon:</b> Non-critical issues such as legacy libraries without hash data.</li>
 </ul>
-<div class="image-placeholder">PLACE IMAGE OF LIBRARY CARD INTEGRITY ERROR STYLING HERE</div>
+<img src="images/dependancy-issues.png" alt="Library card integrity error styling" class="doc-screenshot">
 <p>The library detail modal (clicked from a card) shows a dedicated <b>File Integrity</b> section listing every error and warning. If errors are detected and a cached backup package exists, a <b>Repair from Backup</b> button is displayed. See <a href="#repair">Repair</a> below.</p>
 
 <!-- ================================================================== -->
@@ -291,7 +291,10 @@
 <h3>Summary Bar</h3>
 <p>The footer of the modal shows a summary line, for example:</p>
 <div class="code"><pre>42 libraries • 2 failed • 1 warning</pre></div>
-<p>If everything passes: <code>42 libraries • all OK</code></p><div class="image-placeholder">PLACE IMAGE OF VERIFY AND REPAIR MODAL WITH LIBRARY STATUS LIST HERE</div>
+<p>If everything passes: <code>42 libraries • all OK</code></p>
+<img src="images/VerifyAndRepair.png" alt="Verify and Repair modal with library status list" class="doc-screenshot">
+<p>When issues are detected, libraries with warnings or failures are highlighted with their status and specific error details:</p>
+<img src="images/VerifyAndRepairWithWarning.png" alt="Verify and Repair modal showing warnings" class="doc-screenshot">
 <!-- ================================================================== -->
 <h2>Package Store</h2>
 <!-- ================================================================== -->

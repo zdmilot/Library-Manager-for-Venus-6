@@ -11,7 +11,25 @@
 <h2>Overview</h2>
 <p>Venus Library Manager uses <b>diskdb</b>, a lightweight JSON-backed database, to persist all application state. The database resides in the <code>db/</code> directory within the application folder. Each collection is stored as a separate <code>.json</code> file.</p>
 
-<div class="image-placeholder">PLACE IMAGE OF THE DB FOLDER STRUCTURE HERE</div>
+<div class="code"><pre>db/
+├── settings.json            (Application settings)
+├── system_libraries.json    (Hamilton system library definitions)
+└── system_library_hashes.json (Integrity baseline for system libraries)
+
+local/  (User Data Directory)
+├── installed_libs.json      (Installed library records)
+├── groups.json              (Custom navigation groups)
+├── tree.json                (Group ↔ library assignments)
+├── unsigned_libs.json       (Auto-detected unsigned libraries)
+├── audit_trail.json         (Event history)
+├── publisher_registry.json  (Known authors and tags)
+└── LibraryPackages/         (Cached .hxlibpkg files for rollback &amp; repair)
+    ├── MyLibrary/
+    │   └── MyLibrary_v1.0.0_20260115-103000.hxlibpkg
+    └── AnotherLib/
+        └── AnotherLib_v2.1.0_20260220-091500.hxlibpkg</pre></div>
+
+<p>The <code>db/</code> directory ships with the application and contains read-only reference data. The <b>user data directory</b> (by default <code>C:\Program Files (x86)\HAMILTON\Library\VenusLibraryManager</code>) stores all user-specific working data including installed library records, group assignments, the audit trail, and cached packages. This separation ensures the application remains portable while user data is kept in a consistent, configurable location.</p>
 
 <h2>Collections</h2>
 <table>

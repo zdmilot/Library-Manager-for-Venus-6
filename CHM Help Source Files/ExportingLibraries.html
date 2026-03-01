@@ -21,7 +21,7 @@
 <tr><td><b>Export with All Dependencies</b></td><td><code>.hxlibarch</code></td><td>Recursively resolves all required dependencies and bundles the library plus every dependency into a multi-library archive</td></tr>
 </tbody>
 </table>
-<div class="image-placeholder">PLACE IMAGE OF EXPORT CHOICE MODAL HERE</div>
+<img src="images/export-choice-modal.png" alt="Export choice modal" class="doc-screenshot">
 
 <h3>Dependency Summary</h3>
 <p>The Export Choice Modal automatically scans the library's HSL source files for <code>#include</code> directives and recursively resolves them to user-installed libraries. A summary is displayed beneath the "Export with All Dependencies" option showing the number of dependencies found and their names.</p>
@@ -40,7 +40,7 @@
   <li>Venus Library Manager verifies that all expected library files exist on disk before exporting</li>
   <li>A new <code>.hxlibpkg</code> is built from the current files and metadata</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF EXPORT BUTTON IN LIBRARY DETAIL MODAL HERE</div>
+<img src="images/export-button-detail-modal.png" alt="Export button in library detail modal" class="doc-screenshot">
 
 <h3>What Is Included in the Export</h3>
 <p>The exported package contains:</p>
@@ -73,7 +73,7 @@
   <li>Choose a save location - the suggested filename is <code>&lt;LibraryName&gt;_with_dependencies.hxlibarch</code></li>
   <li>Venus Library Manager recursively resolves all dependencies and packages everything into a single archive</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF EXPORT CHOICE MODAL WITH DEPENDENCIES LISTED HERE</div>
+<img src="images/export-choice-with-deps.png" alt="Export choice modal with dependencies listed" class="doc-screenshot">
 
 <h3>How Recursive Dependency Resolution Works</h3>
 <p>When you choose to export with dependencies, Venus Library Manager performs the following steps:</p>
@@ -118,7 +118,7 @@
   <li>Choose an output location for the <code>.hxlibarch</code> file</li>
   <li>Each selected library is re-packed from its current installed state</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF ARCHIVE EXPORT MODAL WITH LIBRARY CHECKBOXES HERE</div>
+<img src="images/archive-export-modal.png" alt="Archive export modal with library checkboxes" class="doc-screenshot">
 
 <h3>Archive Contents</h3>
 <p>The resulting <code>.hxlibarch</code> file contains:</p>

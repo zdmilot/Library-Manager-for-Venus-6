@@ -1,0 +1,963 @@
+<html>
+<head>
+    <title>System Architecture</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+    <style>
+        .phase-table { width: 95%; border-collapse: collapse; margin: 0 0 0 0; }
+        .phase-table th { background-color: #002f5d; color: #fff; padding: 6px 10px; text-align: left; font-size: 14px; }
+        .phase-table td { border: 1px solid #ddd; padding: 6px 10px; font-family: Verdana, Tahoma; font-size: 14px; vertical-align: top; }
+        .phase-table tr.decision { background-color: #fff8e1; }
+        .phase-table tr.outcome-fail { background-color: #fce4ec; }
+        .phase-table td.step-label { width: 35%; font-weight: bold; }
+        .flow-arrow { text-align: center; font-size: 18px; color: #888; margin: 4px 0; letter-spacing: 2px; }
+        .flow-start, .flow-end { text-align: center; padding: 6px; margin: 8px auto; width: 60%; background-color: #e8f5e9; border: 1px solid #66bb6a; font-weight: bold; font-size: 14px; }
+        .flow-abort { text-align: center; padding: 6px; margin: 8px auto; width: 60%; background-color: #fce4ec; border: 1px solid #ef5350; font-weight: bold; font-size: 14px; }
+        .component-box { border: 2px solid #002f5d; padding: 8px; margin-bottom: 4px; }
+        .component-box h4 { margin: 0 0 4px 0; color: #002f5d; }
+        .entity-table { width: 95%; border-collapse: collapse; margin: 0 0 10px 0; }
+        .entity-table th { background-color: #34495e; color: #fff; padding: 5px 8px; text-align: left; font-size: 13px; }
+        .entity-table td { border: 1px solid #ddd; padding: 4px 8px; font-size: 13px; vertical-align: top; }
+        .entity-table tr:nth-child(odd) { background-color: #f9f9f9; }
+        .toc-list { columns: 2; -moz-columns: 2; column-gap: 20px; }
+        .toc-list li { break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="header">System Architecture</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Venus Library Manager</a> &raquo; System Architecture</div>
+
+<h2>Overview</h2>
+<p>This page provides a comprehensive architectural reference for the Venus Library Manager application. It documents all major system components, data flows, security mechanisms, and user-facing features using structured diagrams and process tables.</p>
+
+<p>Venus Library Manager is a dual-interface application (GUI + CLI) built on <b>NW.js</b> and <b>Node.js</b>. It manages Hamilton VENUS HSL libraries through a custom binary container format with HMAC-SHA256 integrity protection, package signing, role-based access control, and a JSON-file database.</p>
+
+<!-- ================================================================== -->
+<h2>Table of Contents</h2>
+<!-- ================================================================== -->
+<ol class="toc-list">
+  <li><a href="#sec1">High-Level System Architecture</a></li>
+  <li><a href="#sec2">Data Model &amp; Storage</a></li>
+  <li><a href="#sec3">Binary Container Format</a></li>
+  <li><a href="#sec4">Creating / Packaging a Library</a></li>
+  <li><a href="#sec5">Importing / Unpacking a Library</a></li>
+  <li><a href="#sec6">Exporting a Library Archive</a></li>
+  <li><a href="#sec7">Importing a Library Archive</a></li>
+  <li><a href="#sec8">Library Delete Flow</a></li>
+  <li><a href="#sec9">Version Rollback Flow</a></li>
+  <li><a href="#sec10">Integrity &amp; Signing Pipeline</a></li>
+  <li><a href="#sec11">System Library Integrity Verification</a></li>
+  <li><a href="#sec12">Authorization &amp; Access Control</a></li>
+  <li><a href="#sec13">GUI Navigation &amp; Group System</a></li>
+  <li><a href="#sec14">CLI Command Map</a></li>
+</ol>
+
+<!-- ================================================================== -->
+<a name="sec1"></a>
+<h2>1. High-Level System Architecture</h2>
+<!-- ================================================================== -->
+
+<p>The system is organized into four layers: User Interfaces, Shared Core, Data Layer, and External Systems. Both the GUI and CLI depend on a shared module (<code>lib/shared.js</code>) that implements all container, signing, validation, and authorization logic.</p>
+
+<div class="code"><pre>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; User Interfaces &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                                                              &#9474;
+&#9474;  &#9484;&#9472; GUI (NW.js) &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472; CLI (Node.js) &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;
+&#9474;  &#9474; html/index.html        &#9474;  &#9474; cli.js                  &#9474;  &#9474;
+&#9474;  &#9474; html/js/main.js        &#9474;  &#9474; 12 commands             &#9474;  &#9474;
+&#9474;  &#9474; jQuery + Bootstrap     &#9474;  &#9474; yargs-based parsing     &#9474;  &#9474;
+&#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+              &#9474;                         &#9474;
+              &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                        &#9474;
+                        &#9660;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; Shared Core: lib/shared.js &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; &#8226; Container pack/unpack    &#8226; HMAC-SHA256 signing      &#9474;
+&#9474; &#8226; ZIP entry hashing        &#8226; Path traversal protection &#9474;
+&#9474; &#8226; Library name validation  &#8226; Tag sanitization          &#9474;
+&#9474; &#8226; HSL metadata footer      &#8226; File integrity hashing    &#9474;
+&#9474; &#8226; GitHub URL validation    &#8226; Role-based authorization  &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                         &#9474;
+            &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+            &#9660;                         &#9660;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; Data Layer (diskdb) &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                                                        &#9474;
+&#9474;  db/ (shipped defaults)     local/ (per-machine state)  &#9474;
+&#9474;  &#9500;&#9472; settings.json            &#9500;&#9472; installed_libs.json      &#9474;
+&#9474;  &#9500;&#9472; links.json               &#9500;&#9472; groups.json              &#9474;
+&#9474;  &#9500;&#9472; groups.json              &#9500;&#9472; tree.json                &#9474;
+&#9474;  &#9500;&#9472; system_libraries.json    &#9500;&#9472; unsigned_libs.json       &#9474;
+&#9474;  &#9492;&#9472; system_library_hashes    &#9500;&#9472; audit_trail.json         &#9474;
+&#9474;                              &#9500;&#9472; publisher_registry.json  &#9474;
+&#9474;                              &#9492;&#9472; LibraryPackages/         &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                         &#9474;
+                         &#9660;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; External Systems &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; &#8226; VENUS Library Folder     &#8226; RegAsm.exe (COM)         &#9474;
+&#9474; &#8226; VENUS Methods Folder     &#8226; Windows Registry         &#9474;
+&#9474; &#8226; File System              &#8226; whoami /groups (auth)     &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre></div>
+
+<h3>Component Summary</h3>
+<table>
+<thead><tr><th>Component</th><th>Technology</th><th>Source File(s)</th><th>Responsibilities</th></tr></thead>
+<tbody>
+<tr><td><b>GUI</b></td><td>NW.js (Chromium + Node.js)</td><td>html/index.html, html/js/main.js</td><td>Desktop UI for all library operations: import, export, create, delete, rollback, search, group management, settings, event history</td></tr>
+<tr><td><b>CLI</b></td><td>Node.js + yargs</td><td>cli.js</td><td>12 scriptable commands for headless/CI operation: list-libs, import-lib, import-archive, export-lib, export-archive, delete-lib, create-package, list-versions, rollback-lib, generate-syslib-hashes, verify-syslib-hashes, verify-package</td></tr>
+<tr><td><b>Shared Core</b></td><td>Node.js module</td><td>lib/shared.js</td><td>All cryptographic, validation, container, and authorization logic shared between GUI and CLI</td></tr>
+<tr><td><b>Data Layer</b></td><td>diskdb (JSON files)</td><td>db/*.json, local/*.json</td><td>Persistent state: settings, installed libraries, groups, tree, audit trail, package cache, publisher registry, system library definitions</td></tr>
+<tr><td><b>Integrity Worker</b></td><td>Node.js child process</td><td>html/js/syscheck-worker.js</td><td>Background startup task: file integrity checks, missing package detection, backup prompts. Reports results to GUI via IPC.</td></tr>
+</tbody>
+</table>
+
+<!-- ================================================================== -->
+<a name="sec2"></a>
+<h2>2. Data Model &amp; Storage</h2>
+<!-- ================================================================== -->
+
+<p>All persistent data is stored as JSON files managed by <b>diskdb</b>. The database is split into two directories: <code>db/</code> contains shipped default/reference data, and <code>local/</code> contains per-machine state that changes during operation. See <a href="DataModel.html">Data Model</a> for the full specification.</p>
+
+<h3>Settings (db/settings.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>_id</code></td><td>string</td><td>Always "0" (singleton record)</td></tr>
+<tr><td><code>recent_max</code></td><td>string</td><td>Maximum number of recent items to display</td></tr>
+<tr><td><code>chk_confirmBeforeInstall</code></td><td>boolean</td><td>Show confirmation dialog before installing a library</td></tr>
+<tr><td><code>chk_autoAddToGroup</code></td><td>boolean</td><td>Automatically assign imported library to a group</td></tr>
+<tr><td><code>chk_hideSystemLibraries</code></td><td>boolean</td><td>Hide system libraries from the default library view</td></tr>
+<tr><td><code>chk_includeUnsignedLibs</code></td><td>boolean</td><td>Include unsigned libraries in library listing</td></tr>
+<tr><td><code>chk_showGitHubLinks</code></td><td>boolean</td><td>Display GitHub repository links on library cards</td></tr>
+<tr><td><code>chk_requireActionComment</code></td><td>boolean</td><td>Part 11: require comment for every action</td></tr>
+<tr><td><code>chk_requireActionSignature</code></td><td>boolean</td><td>Part 11: require signature for every action</td></tr>
+<tr><td><code>chk_part11StrictLibraryAuth</code></td><td>boolean</td><td>Regulated mode: strict deny-by-default authorization</td></tr>
+<tr><td><code>starred_libs</code></td><td>array</td><td>List of starred/favorited library IDs</td></tr>
+</tbody>
+</table>
+
+<h3>Installed Libraries (local/installed_libs.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>_id</code></td><td>string</td><td>Auto-generated unique identifier</td></tr>
+<tr><td><code>library_name</code></td><td>string</td><td>Unique library display name</td></tr>
+<tr><td><code>author</code></td><td>string</td><td>Package author</td></tr>
+<tr><td><code>organization</code></td><td>string</td><td>Author's organization</td></tr>
+<tr><td><code>version</code></td><td>string</td><td>Version string from manifest</td></tr>
+<tr><td><code>venus_compatibility</code></td><td>string</td><td>Compatible VENUS version(s)</td></tr>
+<tr><td><code>description</code></td><td>string</td><td>Library description text</td></tr>
+<tr><td><code>github_url</code></td><td>string</td><td>Source repository URL</td></tr>
+<tr><td><code>tags</code></td><td>array</td><td>Sanitized tag strings</td></tr>
+<tr><td><code>created_date</code></td><td>string</td><td>Package creation date (ISO 8601)</td></tr>
+<tr><td><code>library_image</code></td><td>string</td><td>Image filename</td></tr>
+<tr><td><code>library_image_base64</code></td><td>string</td><td>Embedded icon (base64 data)</td></tr>
+<tr><td><code>library_image_mime</code></td><td>string</td><td>MIME type of the image</td></tr>
+<tr><td><code>library_files</code></td><td>array</td><td>Relative paths of all library files</td></tr>
+<tr><td><code>demo_method_files</code></td><td>array</td><td>Relative paths of demo method files</td></tr>
+<tr><td><code>help_files</code></td><td>array</td><td>CHM help filenames</td></tr>
+<tr><td><code>com_register_dlls</code></td><td>array</td><td>DLL filenames requiring COM registration</td></tr>
+<tr><td><code>lib_install_path</code></td><td>string</td><td>Disk location of installed library files</td></tr>
+<tr><td><code>demo_install_path</code></td><td>string</td><td>Disk location of installed demo methods</td></tr>
+<tr><td><code>installed_date</code></td><td>string</td><td>When the library was installed (ISO 8601)</td></tr>
+<tr><td><code>installed_by</code></td><td>string</td><td>Windows username who installed</td></tr>
+<tr><td><code>source_package</code></td><td>string</td><td>Original package filename</td></tr>
+<tr><td><code>file_hashes</code></td><td>object</td><td>Map of filename &rarr; SHA-256 hash</td></tr>
+<tr><td><code>public_functions</code></td><td>array</td><td>Parsed HSL public function signatures</td></tr>
+<tr><td><code>required_dependencies</code></td><td>array</td><td>Resolved #include dependencies</td></tr>
+<tr><td><code>deleted</code></td><td>boolean</td><td>Soft-delete flag</td></tr>
+<tr><td><code>deleted_date</code></td><td>string</td><td>When soft-deleted (ISO 8601)</td></tr>
+</tbody>
+</table>
+
+<h3>System Libraries (db/system_libraries.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>_id</code></td><td>string</td><td>sys_ prefixed MD5 identifier</td></tr>
+<tr><td><code>canonical_name</code></td><td>string</td><td>Internal canonical name</td></tr>
+<tr><td><code>display_name</code></td><td>string</td><td>Display name for the UI</td></tr>
+<tr><td><code>is_system</code></td><td>boolean</td><td>Always true</td></tr>
+<tr><td><code>is_read_only</code></td><td>boolean</td><td>Always true (cannot be modified)</td></tr>
+<tr><td><code>author</code></td><td>string</td><td>Always "Hamilton"</td></tr>
+<tr><td><code>discovered_files</code></td><td>array</td><td>Relative file paths belonging to this library</td></tr>
+<tr><td><code>resource_types</code></td><td>array</td><td>File extensions present (e.g., .hsl, .hs_)</td></tr>
+<tr><td><code>venus_version</code></td><td>string</td><td>VENUS version association</td></tr>
+</tbody>
+</table>
+
+<h3>Groups (local/groups.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>_id</code></td><td>string</td><td>Auto-generated ID or gXxx prefix</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Display name of the group</td></tr>
+<tr><td><code>icon_class</code></td><td>string</td><td>FontAwesome icon class</td></tr>
+<tr><td><code>default</code></td><td>boolean</td><td>Whether this is a built-in group</td></tr>
+<tr><td><code>navbar</code></td><td>string</td><td>"left" or "right" placement</td></tr>
+<tr><td><code>favorite</code></td><td>boolean</td><td>Favorited flag</td></tr>
+<tr><td><code>protected</code></td><td>boolean</td><td>Cannot be deleted (e.g., Hamilton group)</td></tr>
+</tbody>
+</table>
+
+<h3>Tree (local/tree.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>group_id</code></td><td>string</td><td>References a Groups._id</td></tr>
+<tr><td><code>method_ids</code></td><td>array</td><td>List of library _id values assigned to this group</td></tr>
+<tr><td><code>locked</code></td><td>boolean</td><td>Prevents drag-and-drop reordering</td></tr>
+</tbody>
+</table>
+
+<h3>Audit Trail (local/audit_trail.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>event</code></td><td>string</td><td>Event type code (e.g., library_imported, library_deleted)</td></tr>
+<tr><td><code>timestamp</code></td><td>string</td><td>ISO 8601 timestamp</td></tr>
+<tr><td><code>username</code></td><td>string</td><td>Windows username</td></tr>
+<tr><td><code>windows_version</code></td><td>string</td><td>OS version string</td></tr>
+<tr><td><code>venus_version</code></td><td>string</td><td>Installed VENUS version</td></tr>
+<tr><td><code>hostname</code></td><td>string</td><td>Machine hostname</td></tr>
+<tr><td><code>details</code></td><td>object</td><td>Event-specific data (library name, version, etc.)</td></tr>
+</tbody>
+</table>
+
+<h3>Publisher Registry (local/publisher_registry.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>author</code></td><td>string</td><td>Publisher name (primary key)</td></tr>
+<tr><td><code>count</code></td><td>integer</td><td>Number of times this publisher has been seen</td></tr>
+<tr><td><code>last_org</code></td><td>string</td><td>Last organization associated with this author</td></tr>
+<tr><td><code>known_tags</code></td><td>array</td><td>All tags ever used by this publisher</td></tr>
+</tbody>
+</table>
+
+<h3>Links (db/links.json)</h3>
+<table class="entity-table">
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>_id</code></td><td>string</td><td>"lib-folder" or "met-folder"</td></tr>
+<tr><td><code>path</code></td><td>string</td><td>Filesystem path to VENUS directory</td></tr>
+</tbody>
+</table>
+
+<h3>Entity Relationships</h3>
+<div class="code"><pre>
+Groups &#9472;&#9472;&#9472;1:N&#9472;&#9472;&#9472; Tree (each group has one tree entry)
+                       &#9474;
+Installed Libraries &#9472;N:M&#9472;&#9496; (assigned via method_ids array)
+                       &#9474;
+Installed Libraries &#9472;1:N&#9472; Audit Trail (each action generates events)
+</pre></div>
+
+<!-- ================================================================== -->
+<a name="sec3"></a>
+<h2>3. Binary Container Format</h2>
+<!-- ================================================================== -->
+
+<p>All <code>.hxlibpkg</code> and <code>.hxlibarch</code> files use a custom binary container. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for the full specification. Below is a summary of the container structure and the pack/unpack processes.</p>
+
+<h3>Container Layout (48-byte header + payload)</h3>
+<div class="code"><pre>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; 8B Magic  &#9474; 4B Flags &#9474; 4B Length &#9474; 32B HMAC-SHA256  &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; XOR-Scrambled ZIP Payload (N bytes)                   &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre></div>
+
+<table>
+<thead><tr><th>Field</th><th>Size</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Magic</b></td><td>8 bytes</td><td><code>HXLPKG\x01\x00</code> for .hxlibpkg, <code>HXLARC\x01\x00</code> for .hxlibarch</td></tr>
+<tr><td><b>Flags</b></td><td>4 bytes</td><td>uint32 LE, reserved (currently 0)</td></tr>
+<tr><td><b>Payload Length</b></td><td>4 bytes</td><td>uint32 LE, byte length of the scrambled payload</td></tr>
+<tr><td><b>HMAC-SHA256</b></td><td>32 bytes</td><td>Cryptographic digest over the scrambled payload bytes</td></tr>
+<tr><td><b>Scrambled Payload</b></td><td>N bytes</td><td>XOR-scrambled ZIP data using a 32-byte repeating key</td></tr>
+</tbody>
+</table>
+
+<h3>Pack Process (packContainer)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Container Packing</th></tr>
+<tr><td class="step-label">1. Get raw ZIP buffer</td><td>Call <code>AdmZip.toBuffer()</code> to get the raw ZIP bytes</td></tr>
+<tr><td class="step-label">2. XOR scramble</td><td>Apply 32-byte repeating XOR key to all ZIP bytes, destroying ZIP magic signatures</td></tr>
+<tr><td class="step-label">3. Compute HMAC</td><td>Generate HMAC-SHA256 over the scrambled bytes using the application signing key</td></tr>
+<tr><td class="step-label">4. Build header</td><td>Construct 48-byte header: magic (8B) + flags (4B) + payload length (4B) + HMAC (32B)</td></tr>
+<tr><td class="step-label">5. Concatenate</td><td><code>Buffer.concat([header, scrambledPayload])</code> &rarr; final container file</td></tr>
+</table>
+
+<h3>Unpack Process (unpackContainer)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Container Unpacking</th></tr>
+<tr><td class="step-label">1. Verify magic bytes</td><td>Read first 8 bytes; must match expected magic for the file type</td></tr>
+<tr><td class="step-label">2. Read header fields</td><td>Parse payload length (uint32 LE) and stored HMAC-SHA256 from bytes 8&ndash;47</td></tr>
+<tr><td class="step-label">3. Verify HMAC</td><td>Recompute HMAC-SHA256 over scrambled payload; compare using <code>timingSafeEqual</code></td></tr>
+<tr class="decision"><td class="step-label">&#x2794; HMAC mismatch?</td><td><b>Throw error:</b> "file is corrupted or has been tampered with"</td></tr>
+<tr><td class="step-label">4. XOR de-scramble</td><td>Apply same 32-byte key to recover original ZIP bytes</td></tr>
+<tr><td class="step-label">5. Return ZIP buffer</td><td>Recovered ZIP buffer ready for <code>new AdmZip(buffer)</code></td></tr>
+</table>
+
+<!-- ================================================================== -->
+<a name="sec4"></a>
+<h2>4. Creating / Packaging a Library</h2>
+<!-- ================================================================== -->
+
+<p>This flow covers building a <code>.hxlibpkg</code> from source files. Available via the GUI Library Packager tool or the CLI <code>create-package</code> command.</p>
+
+<div class="flow-start">User initiates packaging (GUI Packager or CLI --spec)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: Input Collection</th></tr>
+<tr class="decision"><td class="step-label">Source: GUI or CLI?</td><td>
+  <b>GUI &rarr;</b> User fills the Package Metadata Form: library name (auto-detected from .hsl), author, organization, version, VENUS compatibility, description, tags, GitHub URL, drag-drop library files, drag-drop demo methods, library icon image<br/>
+  <b>CLI &rarr;</b> Read JSON spec file (<code>--spec path.json</code>) validated against <code>cli-schema.json</code>; resolve all file paths relative to the spec directory
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Validation</th></tr>
+<tr><td class="step-label">Validate required fields</td><td>author, version, description, venus_compatibility must be present; at least 1 library file required</td></tr>
+<tr class="decision"><td class="step-label">Author = "Hamilton"?</td><td>
+  <b>Yes &rarr;</b> Require author password (PBKDF2-HMAC-SHA512, 100K iterations). Invalid password aborts.<br/>
+  <b>No &rarr;</b> Continue
+</td></tr>
+<tr><td class="step-label">Sanitize &amp; validate tags</td><td>Remove reserved words, enforce length limits, deduplicate</td></tr>
+<tr><td class="step-label">Validate library name</td><td>No path separators, no &apos;..&apos; traversal, no reserved Windows names (CON, PRN, etc.)</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: Package Assembly</th></tr>
+<tr><td class="step-label">Build manifest.json</td><td>format_version: 1.0, library_name, author, version, created_date (ISO 8601), library_files[], demo_method_files[], help_files[], com_register_dlls[], library_image_base64 (embedded icon)</td></tr>
+<tr><td class="step-label">Create AdmZip instance</td><td>New empty ZIP archive in memory</td></tr>
+<tr><td class="step-label">Add manifest.json</td><td>Package metadata at ZIP root</td></tr>
+<tr><td class="step-label">Add library files</td><td>All library files &rarr; <code>library/</code> directory in ZIP</td></tr>
+<tr><td class="step-label">Add help files</td><td>CHM files &rarr; <code>library/</code> directory in ZIP</td></tr>
+<tr><td class="step-label">Add demo method files</td><td>Demo .hsl files &rarr; <code>demo_methods/</code> directory in ZIP</td></tr>
+<tr><td class="step-label">Add icon image</td><td>Library icon &rarr; <code>icon/</code> directory in ZIP</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 4: Signing (signPackageZip)</th></tr>
+<tr><td class="step-label">1. Hash every ZIP entry</td><td>SHA-256 hash of each file&rsquo;s content (excluding signature.json itself)</td></tr>
+<tr><td class="step-label">2. Sort hashes</td><td>Sort file hash entries alphabetically by filename</td></tr>
+<tr><td class="step-label">3. Stringify</td><td><code>JSON.stringify(sortedHashes)</code> to create a deterministic payload</td></tr>
+<tr><td class="step-label">4. Compute HMAC</td><td>HMAC-SHA256 over the stringified hash payload using PKG_SIGNING_KEY</td></tr>
+<tr><td class="step-label">5. Embed signature</td><td>Add <code>signature.json</code> to ZIP: format_version, algorithm, signed_date, file_hashes, hmac</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 5: Container Wrapping</th></tr>
+<tr><td class="step-label">packContainer()</td><td>XOR-scramble ZIP bytes &rarr; compute HMAC-SHA256 &rarr; build 48-byte header &rarr; concatenate</td></tr>
+<tr><td class="step-label">Write to disk</td><td>Save the binary container as <code>LibraryName.hxlibpkg</code></td></tr>
+<tr><td class="step-label">Audit trail</td><td>Append event: <code>package_created</code> with library name, version, author</td></tr>
+</table>
+
+<div class="flow-end">Package Created Successfully</div>
+
+<!-- ================================================================== -->
+<a name="sec5"></a>
+<h2>5. Importing / Unpacking a Library</h2>
+<!-- ================================================================== -->
+
+<p>This flow covers importing a single <code>.hxlibpkg</code> into the VENUS installation.</p>
+
+<div class="flow-start">User imports .hxlibpkg (GUI drag-drop / browse, or CLI --file)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: File Reading &amp; Unpacking</th></tr>
+<tr><td class="step-label">Read raw file bytes</td><td><code>fs.readFileSync(filePath)</code></td></tr>
+<tr><td class="step-label">Unpack container</td><td><code>unpackContainer(buffer, MAGIC_PKG)</code> &mdash; verify magic bytes, verify HMAC-SHA256 (timing-safe), XOR de-scramble payload</td></tr>
+<tr class="outcome-fail"><td class="step-label">&#x2794; Failure</td><td><b>Abort:</b> "file is corrupted or has been tampered with"</td></tr>
+<tr><td class="step-label">Parse ZIP</td><td><code>new AdmZip(zipBuffer)</code> &mdash; read manifest.json from ZIP root</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Signature Verification</th></tr>
+<tr><td class="step-label">verifyPackageSignature(zip)</td><td>Read signature.json, recompute HMAC over stored hashes, compare each file hash to actual ZIP entry</td></tr>
+<tr class="decision"><td class="step-label">Result?</td><td>
+  <b>Valid &rarr;</b> Signature confirmed, continue<br/>
+  <b>Unsigned &rarr;</b> Legacy package (no signature.json), continue with warning<br/>
+  <b>Failed &rarr;</b> Check for <code>--force</code> flag. With force: continue with WARNING. Without force: <b>abort</b>
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: Validation</th></tr>
+<tr><td class="step-label">Validate library name</td><td><code>isValidLibraryName()</code> &mdash; no path separators, no traversal, no reserved names</td></tr>
+<tr class="decision"><td class="step-label">Author = "Hamilton"?</td><td>
+  <b>Yes (and not a system library) &rarr;</b> Require <code>--author-password</code> or GUI password prompt (PBKDF2-HMAC-SHA512)<br/>
+  <b>No &rarr;</b> Continue
+</td></tr>
+<tr class="decision"><td class="step-label">Library already installed?</td><td>
+  <b>Yes + no --force &rarr;</b> Abort: "already installed"<br/>
+  <b>No or --force &rarr;</b> Continue (will overwrite existing)
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 4: Preview (GUI Only)</th></tr>
+<tr><td class="step-label">Show Import Preview Modal</td><td>Library metadata, file list with sizes, signature status badge, author info, Confirm / Cancel buttons</td></tr>
+<tr class="decision"><td class="step-label">User response?</td><td>
+  <b>Confirm &rarr;</b> Proceed to installation<br/>
+  <b>Cancel &rarr;</b> Abort
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 5: Installation (installPackage)</th></tr>
+<tr><td class="step-label">Sanitize file lists</td><td><code>safeZipExtractPath()</code> to prevent path traversal</td></tr>
+<tr><td class="step-label">Create directories</td><td>Library: <code>HAMILTON\Library\LibName\</code> &mdash; Demo: <code>HAMILTON\Methods\Library Demo Methods\LibName\</code></td></tr>
+<tr><td class="step-label">Extract ZIP entries</td><td><code>library/*</code> &rarr; lib dir, <code>demo_methods/*</code> &rarr; demo dir, <code>help_files/*</code> &rarr; lib dir. Skip manifest.json, signature.json, icon/</td></tr>
+<tr class="decision"><td class="step-label">COM DLLs declared?</td><td>
+  <b>Yes (GUI) &rarr;</b> UAC-elevated <code>RegAsm.exe</code> via PowerShell Start-Process<br/>
+  <b>No or CLI &rarr;</b> Skip COM registration
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 6: Database &amp; Indexing</th></tr>
+<tr><td class="step-label">Upsert DB record</td><td>Remove existing record if overwriting; compute SHA-256 file hashes; parse public HSL functions; extract #include dependencies; save to installed_libs.json</td></tr>
+<tr><td class="step-label">Auto-assign to group</td><td>Hamilton author &rarr; gHamilton group. Others &rarr; first custom group. Auto-create &ldquo;Libraries&rdquo; group if none exist.</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 7: Post-Install</th></tr>
+<tr><td class="step-label">Cache package</td><td>Copy .hxlibpkg to <code>local/LibraryPackages/LibName/</code> for rollback and repair</td></tr>
+<tr><td class="step-label">Audit trail</td><td>Append event: <code>library_imported</code> with all library details</td></tr>
+</table>
+
+<div class="flow-end">Import Successful (GUI shows success modal)</div>
+
+<!-- ================================================================== -->
+<a name="sec6"></a>
+<h2>6. Exporting a Library Archive</h2>
+<!-- ================================================================== -->
+
+<p>This flow covers bundling multiple installed libraries into a <code>.hxlibarch</code> file.</p>
+
+<div class="flow-start">User initiates archive export (GUI multi-select or CLI --all / --names / --ids)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: Library Selection</th></tr>
+<tr class="decision"><td class="step-label">Selection mode?</td><td>
+  <b>--all &rarr;</b> Get all installed, non-deleted, non-system libraries<br/>
+  <b>--names / --ids &rarr;</b> Look up each library by name or ID<br/>
+  <b>GUI &rarr;</b> User checks libraries in Export Archive modal
+</td></tr>
+<tr><td class="step-label">Filter</td><td>Remove system libraries (read-only), deleted libraries, and not-found entries</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Per-Library Packaging (repeated for each library)</th></tr>
+<tr><td class="step-label">Read DB record</td><td>Load library_files, demo_method_files, help_files, com_register_dlls from database</td></tr>
+<tr><td class="step-label">Sanitize file lists</td><td><code>sanitizeRelativeFileList()</code> on all file arrays</td></tr>
+<tr><td class="step-label">Build manifest.json</td><td>Per-library manifest with current metadata</td></tr>
+<tr><td class="step-label">Create inner ZIP</td><td>manifest.json + library/* files + demo_methods/* files</td></tr>
+<tr><td class="step-label">Sign inner ZIP</td><td><code>signPackageZip(innerZip)</code> &mdash; hash all entries, compute HMAC, embed signature.json</td></tr>
+<tr><td class="step-label">Wrap as .hxlibpkg</td><td><code>packContainer(innerZip, MAGIC_PKG)</code> &mdash; XOR scramble + HMAC header</td></tr>
+<tr><td class="step-label">Add to outer ZIP</td><td>Add <code>LibName.hxlibpkg</code> entry to the archive-level ZIP</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660; (repeat for each library)</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: Archive Assembly</th></tr>
+<tr><td class="step-label">Create archive_manifest.json</td><td>format_version: 1.0, archive_type: hxlibarch, created_date (ISO 8601), library_count: N, libraries: [name1, name2, ...]</td></tr>
+<tr><td class="step-label">Add manifest to outer ZIP</td><td>archive_manifest.json at outer ZIP root</td></tr>
+<tr><td class="step-label">Wrap outer container</td><td><code>packContainer(archiveZip, MAGIC_ARC)</code> &mdash; XOR scramble + HMAC + HXLARC magic</td></tr>
+<tr><td class="step-label">Write to disk</td><td>Save as <code>ArchiveName.hxlibarch</code></td></tr>
+</table>
+
+<div class="flow-end">Archive Exported Successfully</div>
+
+<h3>Archive Nesting Structure</h3>
+<p>Archives use double-nested binary containers. The outer container holds an archive ZIP which itself contains individually-wrapped .hxlibpkg files:</p>
+
+<div class="code"><pre>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; .hxlibarch File &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;  [Outer Header 48B: HXLARC magic + HMAC]              &#9474;
+&#9474;  [XOR-Scrambled Outer ZIP]                             &#9474;
+&#9474;                                                        &#9474;
+&#9474;    &#9484;&#9472;&#9472; Outer ZIP Contents &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;
+&#9474;    &#9474;  archive_manifest.json                        &#9474;  &#9474;
+&#9474;    &#9474;                                                &#9474;  &#9474;
+&#9474;    &#9474;  LibraryA.hxlibpkg (binary container)         &#9474;  &#9474;
+&#9474;    &#9474;    &#9484;&#9472; [Header 48B: HXLPKG + HMAC] &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;  [XOR-Scrambled Inner ZIP]          &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    manifest.json                    &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    signature.json                   &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    library/ (.hsl, .dll, .chm ...)  &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    demo_methods/ (.hsl files)       &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    icon/ (library image)            &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9474;  &#9474;
+&#9474;    &#9474;                                                &#9474;  &#9474;
+&#9474;    &#9474;  LibraryB.hxlibpkg (binary container)         &#9474;  &#9474;
+&#9474;    &#9474;    &#9484;&#9472; [Header 48B: HXLPKG + HMAC] &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;  [XOR-Scrambled Inner ZIP]          &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    manifest.json                    &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    signature.json                   &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    library/ (...)                   &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9474;    demo_methods/ (...)              &#9474;   &#9474;  &#9474;
+&#9474;    &#9474;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9474;  &#9474;
+&#9474;    &#9474;                                                &#9474;  &#9474;
+&#9474;    &#9474;  LibraryN.hxlibpkg  ...                       &#9474;  &#9474;
+&#9474;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre></div>
+
+<!-- ================================================================== -->
+<a name="sec7"></a>
+<h2>7. Importing a Library Archive</h2>
+<!-- ================================================================== -->
+
+<p>This flow covers importing a <code>.hxlibarch</code> file containing multiple libraries.</p>
+
+<div class="flow-start">User imports .hxlibarch (GUI or CLI --file)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: Archive Unpacking</th></tr>
+<tr><td class="step-label">Read raw file bytes</td><td><code>fs.readFileSync(filePath)</code></td></tr>
+<tr><td class="step-label">Unpack outer container</td><td><code>unpackContainer(buffer, MAGIC_ARC)</code> &mdash; verify HXLARC magic, verify HMAC, de-scramble outer ZIP</td></tr>
+<tr><td class="step-label">Scan outer ZIP</td><td>List all <code>.hxlibpkg</code> entries inside the outer ZIP</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Per-Package Import Loop (repeated for each .hxlibpkg)</th></tr>
+<tr><td class="step-label">Unpack inner container</td><td><code>unpackContainer(entryData, MAGIC_PKG)</code> &mdash; verify inner HMAC, de-scramble</td></tr>
+<tr><td class="step-label">Parse manifest</td><td>Read manifest.json from inner ZIP</td></tr>
+<tr><td class="step-label">Verify signature</td><td><code>verifyPackageSignature()</code> on inner ZIP</td></tr>
+<tr><td class="step-label">Validate</td><td>Library name validation + restricted author check</td></tr>
+<tr class="decision"><td class="step-label">Already installed?</td><td>
+  <b>Yes + no --force &rarr;</b> Skip this package (record as failure)<br/>
+  <b>No or --force &rarr;</b> Proceed with installation
+</td></tr>
+<tr><td class="step-label">Install package</td><td><code>installPackage()</code> &mdash; extract files, upsert DB record, compute hashes, parse HSL functions, extract dependencies</td></tr>
+<tr><td class="step-label">Cache package</td><td>Copy .hxlibpkg to local package store for rollback</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660; (repeat for each package)</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: Summary</th></tr>
+<tr><td class="step-label">Import summary</td><td>Succeeded: N, Failed: M (with reasons for each failure)</td></tr>
+<tr><td class="step-label">Audit trail</td><td>Append event: <code>archive_imported</code> with succeeded[] and failed[] lists</td></tr>
+</table>
+
+<div class="flow-end">Archive Import Complete</div>
+
+<!-- ================================================================== -->
+<a name="sec8"></a>
+<h2>8. Library Delete Flow</h2>
+<!-- ================================================================== -->
+
+<p>Libraries can be deleted via the GUI or CLI. The process includes authorization checks, optional COM deregistration, file removal, and database updates.</p>
+
+<div class="flow-start">User deletes library (GUI or CLI delete-lib)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: Authorization</th></tr>
+<tr><td class="step-label">Check access</td><td><code>canManageLibraries()</code> &mdash; verify Windows group membership</td></tr>
+<tr class="outcome-fail"><td class="step-label">&#x2794; Denied</td><td><b>Abort:</b> access denied (user not in authorized Windows group)</td></tr>
+<tr class="decision"><td class="step-label">System library?</td><td>
+  <b>Yes &rarr;</b> Abort: system libraries are read-only<br/>
+  <b>No &rarr;</b> Continue
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Confirmation</th></tr>
+<tr class="decision"><td class="step-label">Confirmation method?</td><td>
+  <b>GUI &rarr;</b> GitHub-style modal: user must type the library name to confirm deletion<br/>
+  <b>CLI &rarr;</b> Requires <code>--yes</code> or <code>--force</code> flag (no flag = abort)
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: File Cleanup</th></tr>
+<tr class="decision"><td class="step-label">COM DLLs registered? (GUI only)</td><td>
+  <b>Yes &rarr;</b> Deregister COM DLLs via UAC-elevated <code>RegAsm /unregister</code><br/>
+  <b>No or CLI &rarr;</b> Skip
+</td></tr>
+<tr class="decision"><td class="step-label">--keep-files flag?</td><td>
+  <b>No (default) &rarr;</b> Delete library files from disk, delete demo method files, remove empty directories<br/>
+  <b>Yes &rarr;</b> Skip file deletion, only update database
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 4: Database Update</th></tr>
+<tr class="decision"><td class="step-label">Hard or soft delete?</td><td>
+  <b>Hard (--hard) &rarr;</b> <code>db.installed_libs.remove()</code> &mdash; permanent deletion from database<br/>
+  <b>Soft (default) &rarr;</b> Set <code>deleted: true</code>, <code>deleted_date: now</code> &mdash; record preserved for history
+</td></tr>
+<tr><td class="step-label">Tree cleanup</td><td>Remove library ID from all group tree entries</td></tr>
+<tr><td class="step-label">Audit trail</td><td>Append event: <code>library_deleted</code></td></tr>
+</table>
+
+<div class="flow-end">Library Deleted</div>
+
+<!-- ================================================================== -->
+<a name="sec9"></a>
+<h2>9. Version Rollback Flow</h2>
+<!-- ================================================================== -->
+
+<p>Every imported package is cached in <code>local/LibraryPackages/LibName/</code>. Users can restore any previously installed version from this cache.</p>
+
+<div class="flow-start">User initiates rollback (GUI or CLI rollback-lib)</div>
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 1: Version Selection</th></tr>
+<tr><td class="step-label">List cached packages</td><td>Scan <code>local/LibraryPackages/LibName/</code> for all cached .hxlibpkg files</td></tr>
+<tr><td class="step-label">Parse each cached package</td><td>Read manifest for version and author; get file stat for cache date and size</td></tr>
+<tr><td class="step-label">Sort by cache date</td><td>Newest first</td></tr>
+<tr class="decision"><td class="step-label">Version selection method?</td><td>
+  <b>--version X.Y.Z &rarr;</b> Find newest cached file matching the specified version<br/>
+  <b>--index N &rarr;</b> Select the Nth entry from the sorted list<br/>
+  <b>GUI &rarr;</b> User picks from a dropdown list
+</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 2: Reinstall from Cache</th></tr>
+<tr><td class="step-label">Read cached file</td><td>Load the selected .hxlibpkg from the package cache</td></tr>
+<tr><td class="step-label">Unpack container</td><td><code>unpackContainer(MAGIC_PKG)</code></td></tr>
+<tr><td class="step-label">Parse manifest</td><td>Extract library metadata from manifest.json</td></tr>
+<tr><td class="step-label">Install package</td><td><code>installPackage()</code> &mdash; overwrite existing files, replace DB record, recompute hashes, re-parse HSL functions, re-extract dependencies</td></tr>
+</table>
+
+<p class="flow-arrow">&#9660;</p>
+
+<table class="phase-table">
+<tr><th colspan="2">Phase 3: Completion</th></tr>
+<tr><td class="step-label">Audit trail</td><td>Append event: <code>library_rollback</code> with version and source_file details</td></tr>
+</table>
+
+<div class="flow-end">Rollback Complete &mdash; Library restored to version X.Y.Z</div>
+
+<!-- ================================================================== -->
+<a name="sec10"></a>
+<h2>10. Integrity &amp; Signing Pipeline</h2>
+<!-- ================================================================== -->
+
+<p>The system uses three layers of integrity protection: package signing at creation time, package verification at import time, and post-install file integrity monitoring.</p>
+
+<h3>Layer 1: Package Signing (at creation time)</h3>
+<table class="phase-table">
+<tr><th colspan="2">signPackageZip() &mdash; Creating the Signature</th></tr>
+<tr><td class="step-label">1. Hash all ZIP entries</td><td>SHA-256 hash of each file in the ZIP (excluding signature.json itself)</td></tr>
+<tr><td class="step-label">2. Sort by filename</td><td>Alphabetical sort to ensure deterministic ordering</td></tr>
+<tr><td class="step-label">3. Stringify</td><td><code>JSON.stringify(sortedHashes)</code> creates the payload to be signed</td></tr>
+<tr><td class="step-label">4. Compute HMAC</td><td>HMAC-SHA256 over the stringified payload using <code>PKG_SIGNING_KEY</code></td></tr>
+<tr><td class="step-label">5. Embed signature</td><td>Add <code>signature.json</code> to ZIP containing: format_version, algorithm, signed_date, file_hashes, hmac</td></tr>
+</table>
+
+<h3>Layer 2: Package Verification (at import time)</h3>
+<table class="phase-table">
+<tr><th colspan="2">verifyPackageSignature() &mdash; Verifying the Signature</th></tr>
+<tr><td class="step-label">1. Read signature.json</td><td>Extract stored file hashes and HMAC from the ZIP</td></tr>
+<tr><td class="step-label">2. Recompute HMAC</td><td>HMAC-SHA256 over the stored hash payload</td></tr>
+<tr class="decision"><td class="step-label">HMAC match?</td><td>
+  <b>No &rarr;</b> ERROR: signature has been tampered with<br/>
+  <b>Yes &rarr;</b> Continue to per-file verification
+</td></tr>
+<tr><td class="step-label">3. Hash each ZIP entry</td><td>Recompute SHA-256 for every actual file in the ZIP</td></tr>
+<tr class="decision"><td class="step-label">All hashes match?</td><td>
+  <b>Yes &rarr;</b> VALID signature<br/>
+  <b>No &rarr;</b> ERROR: file(s) corrupted or modified since signing
+</td></tr>
+<tr class="decision"><td class="step-label">Extra files not in signature?</td><td>
+  <b>Yes &rarr;</b> ERROR: file(s) injected into package<br/>
+  <b>No &rarr;</b> All files accounted for
+</td></tr>
+</table>
+
+<h3>Layer 3: Library Integrity (post-install monitoring)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Post-Install File Integrity Check</th></tr>
+<tr><td class="step-label">1. Load stored hashes</td><td>Read <code>file_hashes</code> from the library&rsquo;s database record</td></tr>
+<tr><td class="step-label">2. Recompute on disk</td><td>SHA-256 hash of each file currently on disk</td></tr>
+<tr class="decision"><td class="step-label">Hashes match?</td><td>
+  <b>Yes &rarr;</b> Library intact &mdash; no modifications since import<br/>
+  <b>No &rarr;</b> Files have been modified since import (triggers repair prompt in GUI)
+</td></tr>
+</table>
+
+<!-- ================================================================== -->
+<a name="sec11"></a>
+<h2>11. System Library Integrity Verification</h2>
+<!-- ================================================================== -->
+
+<p>System libraries (Hamilton built-in) use a different integrity strategy based on Hamilton&rsquo;s proprietary metadata footer embedded in HSL files.</p>
+
+<h3>Baseline Generation (generate-syslib-hashes)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Creating the Baseline</th></tr>
+<tr><td class="step-label">1. Start from known-good state</td><td>Run against a clean, trusted HAMILTON\Library folder</td></tr>
+<tr><td class="step-label">2. Iterate system libraries</td><td>Walk through each library defined in <code>system_libraries.json</code> and its <code>discovered_files</code> list</td></tr>
+<tr><td class="step-label">3. Filter to HSL-type files</td><td>Only process <code>.hsl</code>, <code>.hs_</code>, <code>.smt</code> files (which contain metadata footers)</td></tr>
+<tr><td class="step-label">4. Parse metadata footer</td><td><code>parseHslMetadataFooter()</code> &mdash; extract: <code>$$valid$$</code>, <code>$$checksum$$</code>, <code>$$author$$</code>, <code>$$time$$</code>, <code>$$length$$</code></td></tr>
+<tr><td class="step-label">5. Write baseline</td><td>Save to <code>system_library_hashes.json</code> with strategy: "hamilton-footer" and per-file valid/checksum/author data</td></tr>
+</table>
+
+<h3>Verification (verify-syslib-hashes)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Verifying System Libraries Against Baseline</th></tr>
+<tr><td class="step-label">1. Load baseline</td><td>Read <code>system_library_hashes.json</code></td></tr>
+<tr><td class="step-label">2. For each baselined file...</td><td>Iterate all files in the baseline</td></tr>
+<tr class="decision"><td class="step-label">File exists on disk?</td><td>
+  <b>No &rarr;</b> Status: MISSING
+</td></tr>
+<tr><td class="step-label">3. Parse current footer</td><td><code>parseHslMetadataFooter()</code> on the current file</td></tr>
+<tr class="decision"><td class="step-label">Footer present?</td><td>
+  <b>No (but baseline had valid=1) &rarr;</b> Status: TAMPERED (footer removed)
+</td></tr>
+<tr class="decision"><td class="step-label">Valid flag changed 1&rarr;0?</td><td>
+  <b>Yes &rarr;</b> Status: TAMPERED (valid flag changed)
+</td></tr>
+<tr class="decision"><td class="step-label">Checksum matches baseline?</td><td>
+  <b>Yes &rarr;</b> Status: OK<br/>
+  <b>No &rarr;</b> Status: TAMPERED (checksum changed)
+</td></tr>
+</table>
+
+<h3>Background Worker (syscheck-worker.js)</h3>
+<table class="phase-table">
+<tr><th colspan="2">Startup Integrity Worker</th></tr>
+<tr><td class="step-label">Launch</td><td>GUI spawns <code>syscheck-worker.js</code> as a child process at application startup</td></tr>
+<tr><td class="step-label">Process</td><td>Runs integrity checks, detects missing packages, identifies backups needed</td></tr>
+<tr><td class="step-label">Report</td><td>Sends IPC message to main thread: <code>integrityResults</code>, <code>missingPackages</code>, <code>backupsNeeded</code></td></tr>
+<tr><td class="step-label">UI response</td><td>Main thread shows warnings in UI and triggers repair prompts as needed</td></tr>
+</table>
+
+<!-- ================================================================== -->
+<a name="sec12"></a>
+<h2>12. Authorization &amp; Access Control</h2>
+<!-- ================================================================== -->
+
+<p>The system implements two authorization mechanisms: Windows security group-based access control for protected actions, and password-based protection for restricted author names.</p>
+
+<h3>Role-Based Access (Windows Groups)</h3>
+<p>Protected actions (import, delete, rollback) require Windows group membership verification. The system detects group membership via <code>whoami /groups /fo csv /nh</code> (cached for 15 seconds).</p>
+
+<table>
+<thead><tr><th>Check</th><th>Groups</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><b>Allow list</b></td><td>Lab Method Programmer, Lab Service</td><td style="background-color:#e8f5e9;"><b>ALLOWED</b></td></tr>
+<tr><td><b>Deny list</b></td><td>Lab Operator, Lab Operator 2, Lab Remote Service</td><td style="background-color:#fce4ec;"><b>DENIED</b></td></tr>
+<tr><td><b>Not in any list + strict mode ON</b></td><td>(any other groups)</td><td style="background-color:#fce4ec;"><b>DENIED</b> (strict_default_deny)</td></tr>
+<tr><td><b>Not in any list + strict mode OFF</b></td><td>(any other groups)</td><td style="background-color:#e8f5e9;"><b>ALLOWED</b> (compat_default_allow)</td></tr>
+</tbody>
+</table>
+
+<h3>Authorization Decision Flow</h3>
+<div class="code"><pre>
+Protected Action (import / delete / rollback)
+  &#9474;
+  &#9500;&#9472; getWindowsGroups() via whoami (cached 15s)
+  &#9474;
+  &#9500;&#9472; Member of ALLOW groups? &#9472;&#9472; Yes &#9472;&#9472;&#9654; ALLOWED
+  &#9474;
+  &#9500;&#9472; Member of DENY groups? &#9472;&#9472;&#9472; Yes &#9472;&#9472;&#9654; DENIED
+  &#9474;
+  &#9492;&#9472; Strict mode enabled?
+       &#9500;&#9472; Yes &#9472;&#9654; DENIED  (strict_default_deny)
+       &#9492;&#9472; No  &#9472;&#9654; ALLOWED (compat_default_allow)
+</pre></div>
+
+<h3>Restricted Author Protection</h3>
+<p>Packages claiming author = &ldquo;Hamilton&rdquo; (case-insensitive) require additional authentication to prevent unauthorized Hamilton-branded packages.</p>
+
+<div class="code"><pre>
+Package Author Field
+  &#9474;
+  &#9500;&#9472; Author = "Hamilton"?
+  &#9474;   &#9500;&#9472; No &#9472;&#9654; No restriction (proceed normally)
+  &#9474;   &#9492;&#9472; Yes
+  &#9474;       &#9500;&#9472; Known system library? &#9472;&#9472; Yes &#9472;&#9654; No restriction
+  &#9474;       &#9492;&#9472; No
+  &#9474;           &#9492;&#9472; Require author password
+  &#9474;               &#9500;&#9472; PBKDF2-HMAC-SHA512 (100,000 iterations)
+  &#9474;               &#9500;&#9472; Compare to stored hash
+  &#9474;               &#9500;&#9472; Match &#9472;&#9654; ALLOWED
+  &#9474;               &#9492;&#9472; No match &#9472;&#9654; DENIED
+</pre></div>
+
+<!-- ================================================================== -->
+<a name="sec13"></a>
+<h2>13. GUI Navigation &amp; Group System</h2>
+<!-- ================================================================== -->
+
+<p>The GUI uses a left-side navigation bar with fixed tabs and user-created custom groups. Most navigation tabs display the same Library Card Grid view filtered by different criteria.</p>
+
+<h3>Navigation Tabs</h3>
+<table>
+<thead><tr><th>Tab</th><th>Type</th><th>View</th><th>Content</th></tr></thead>
+<tbody>
+<tr><td><b>All</b></td><td>Fixed</td><td>Card Grid</td><td>All installed, non-deleted libraries</td></tr>
+<tr><td><b>Starred</b></td><td>Fixed</td><td>Card Grid</td><td>Libraries marked as favorites</td></tr>
+<tr><td><b>Recent</b></td><td>Fixed</td><td>Card Grid</td><td>Recently imported/updated libraries</td></tr>
+<tr><td><b>System</b></td><td>Fixed</td><td>Card Grid</td><td>Hamilton built-in system libraries (read-only)</td></tr>
+<tr><td><b>Hamilton</b></td><td>Protected Group</td><td>Card Grid</td><td>Hamilton-authored user libraries</td></tr>
+<tr><td><b>Unsigned</b></td><td>Fixed</td><td>Card Grid</td><td>Unmanaged HSL files discovered in VENUS Library folder</td></tr>
+<tr><td><b>Custom Groups</b></td><td>User-created</td><td>Card Grid</td><td>User-defined library groupings with custom names and icons</td></tr>
+<tr><td><b>Import</b></td><td>Fixed</td><td>Import View</td><td>Drop zone for .hxlibpkg files + browse file picker</td></tr>
+<tr><td><b>Export</b></td><td>Fixed</td><td>Library Packager</td><td>Metadata form, file drag-drop, icon upload, create .hxlibpkg</td></tr>
+<tr><td><b>History</b></td><td>Fixed</td><td>Event History</td><td>Timeline of all actions with search, filter, CSV export</td></tr>
+</tbody>
+</table>
+
+<h3>Library Card Grid</h3>
+<p>Each library appears as a card displaying:</p>
+<ul>
+  <li>Library icon (or tiled sub-icons for archives)</li>
+  <li>Library name, author, and version</li>
+  <li>Tags as colored chips</li>
+  <li>Star toggle for favorites</li>
+  <li>Integrity status indicator</li>
+  <li>Click &rarr; opens Detail Modal</li>
+</ul>
+
+<h3>Modal Dialogs</h3>
+<table>
+<thead><tr><th>Modal</th><th>Purpose</th><th>Key Features</th></tr></thead>
+<tbody>
+<tr><td><b>Library Detail</b></td><td>Full library information</td><td>All metadata, public function list, dependency tree, file hash table, Export / Delete / Rollback actions</td></tr>
+<tr><td><b>Import Preview</b></td><td>Pre-import review</td><td>Package contents preview, signature status badge, Confirm / Cancel</td></tr>
+<tr><td><b>Delete Confirmation</b></td><td>Safe deletion</td><td>Type library name to confirm, Hard / Soft delete option</td></tr>
+<tr><td><b>Export Choice</b></td><td>Export format selection</td><td>Single .hxlibpkg or with-dependencies .hxlibarch</td></tr>
+<tr><td><b>Archive Export</b></td><td>Multi-library export</td><td>Multi-select checkboxes, Select All toggle</td></tr>
+<tr><td><b>Verify &amp; Repair</b></td><td>Integrity management</td><td>Per-library integrity status, repair from cache</td></tr>
+<tr><td><b>Settings</b></td><td>Application configuration</td><td>Part 11 compliance toggles, data directory config, feature flags</td></tr>
+</tbody>
+</table>
+
+<h3>GUI Component Layout</h3>
+<div class="code"><pre>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                    Title Bar                          &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;              &#9474; Search Bar                              &#9474;
+&#9474; Navigation   &#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;   Bar        &#9474;                                       &#9474;
+&#9474;              &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;      &#9474;
+&#9474; &#9642; All        &#9474;  &#9474; Card &#9474; &#9474; Card &#9474; &#9474; Card &#9474;      &#9474;
+&#9474; &#9733; Starred    &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;      &#9474;
+&#9474; &#9201; Recent     &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;      &#9474;
+&#9474; &#9881; System     &#9474;  &#9474; Card &#9474; &#9474; Card &#9474; &#9474; Card &#9474;      &#9474;
+&#9474; H Hamilton   &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;      &#9474;
+&#9474; ? Unsigned   &#9474;                                       &#9474;
+&#9474; &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;     Library Card Grid               &#9474;
+&#9474; Groups...    &#9474;     (varies by selected tab)          &#9474;
+&#9474; &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;                                       &#9474;
+&#9474; Import       &#9474;                                       &#9474;
+&#9474; Export       &#9474;                                       &#9474;
+&#9474; History      &#9474;                                       &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre></div>
+
+<!-- ================================================================== -->
+<a name="sec14"></a>
+<h2>14. CLI Command Map</h2>
+<!-- ================================================================== -->
+
+<p>The CLI (<code>cli.js</code>) provides 12 commands for headless and scripted operation. Four commands are authorization-gated and require appropriate Windows group membership. See <a href="CLIReference.html">CLI Reference</a> for full documentation of each command.</p>
+
+<h3>Command Overview</h3>
+<table>
+<thead><tr><th>Command</th><th>Auth Required</th><th>Required Options</th><th>Key Optional Flags</th></tr></thead>
+<tbody>
+<tr><td><code>list-libs</code></td><td>No</td><td>(none)</td><td><code>--include-deleted</code>, <code>--json</code></td></tr>
+<tr style="background-color:#e8f0fd;"><td><code>import-lib</code></td><td><b>Yes</b></td><td><code>--file</code></td><td><code>--lib-dir</code>, <code>--met-dir</code>, <code>--force</code>, <code>--no-group</code>, <code>--no-cache</code>, <code>--author-password</code></td></tr>
+<tr style="background-color:#e8f0fd;"><td><code>import-archive</code></td><td><b>Yes</b></td><td><code>--file</code></td><td><code>--lib-dir</code>, <code>--met-dir</code>, <code>--force</code>, <code>--no-group</code>, <code>--no-cache</code>, <code>--author-password</code></td></tr>
+<tr><td><code>export-lib</code></td><td>No</td><td><code>--name</code> or <code>--id</code>, <code>--output</code></td><td>(none)</td></tr>
+<tr><td><code>export-archive</code></td><td>No</td><td><code>--all</code> or <code>--names</code> or <code>--ids</code>, <code>--output</code></td><td>(none)</td></tr>
+<tr style="background-color:#fce4ec;"><td><code>delete-lib</code></td><td><b>Yes</b></td><td><code>--name</code> or <code>--id</code>, <code>--yes</code></td><td><code>--hard</code>, <code>--keep-files</code></td></tr>
+<tr><td><code>create-package</code></td><td>No</td><td><code>--spec</code>, <code>--output</code></td><td><code>--author-password</code></td></tr>
+<tr><td><code>list-versions</code></td><td>No</td><td><code>--name</code></td><td><code>--json</code></td></tr>
+<tr style="background-color:#fff8e1;"><td><code>rollback-lib</code></td><td><b>Yes</b></td><td><code>--name</code></td><td><code>--version</code>, <code>--index</code>, <code>--lib-dir</code>, <code>--met-dir</code></td></tr>
+<tr><td><code>generate-syslib-hashes</code></td><td>No</td><td><code>--source-dir</code></td><td><code>--output</code></td></tr>
+<tr><td><code>verify-syslib-hashes</code></td><td>No</td><td>(none)</td><td><code>--hash-file</code>, <code>--lib-dir</code>, <code>--json</code></td></tr>
+<tr><td><code>verify-package</code></td><td>No</td><td><code>--file</code></td><td><code>--json</code></td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<p><b>Note:</b> Authorization-gated commands are highlighted. Blue = import commands, Red = delete command, Yellow = rollback command. These commands call <code>canManageLibraries()</code> before execution and will abort if the current Windows user lacks the required group membership.</p>
+</div>
+
+<h3>CLI Processing Pipeline</h3>
+<div class="code"><pre>
+node cli.js &lt;command&gt; [options]
+  &#9474;
+  &#9500;&#9472; yargs parses command and options
+  &#9474;
+  &#9500;&#9472; Auth-gated command?
+  &#9474;   &#9500;&#9472; Yes &#9472;&#9654; canManageLibraries() check
+  &#9474;   &#9474;       &#9500;&#9472; Denied &#9472;&#9654; Exit with error
+  &#9474;   &#9474;       &#9492;&#9472; Allowed &#9472;&#9654; Continue
+  &#9474;   &#9492;&#9472; No &#9472;&#9654; Continue
+  &#9474;
+  &#9500;&#9472; Load database (diskdb)
+  &#9474;
+  &#9500;&#9472; Resolve file paths (--lib-dir, --met-dir, etc.)
+  &#9474;
+  &#9500;&#9472; Execute command-specific logic
+  &#9474;   (calls into lib/shared.js as needed)
+  &#9474;
+  &#9500;&#9472; Append audit trail entry
+  &#9474;
+  &#9492;&#9472; Output results (text or --json)
+</pre></div>
+
+</div>
+<div class="footer">
+<p>Venus Library Manager Help</p>
+</div>
+</body>
+</html>

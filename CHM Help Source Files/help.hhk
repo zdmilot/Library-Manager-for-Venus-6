@@ -18,6 +18,18 @@
 		<param name="Local" value="LibraryAuditLog.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="architecture">
+		<param name="Local" value="SystemArchitecture.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="authorization">
+		<param name="Local" value="SystemArchitecture.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="access control">
+		<param name="Local" value="SystemArchitecture.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="author chip">
 		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
@@ -310,6 +322,10 @@
 		<param name="Local" value="IntegrityVerification.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="signing pipeline">
+		<param name="Local" value="SystemArchitecture.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="package store">
 		<param name="Local" value="VersionRollback.html">
 		</OBJECT>
@@ -384,6 +400,10 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="spec file">
 		<param name="Local" value="PackageSpecSchema.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="system architecture">
+		<param name="Local" value="SystemArchitecture.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="system libraries">

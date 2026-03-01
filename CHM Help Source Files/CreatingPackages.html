@@ -12,7 +12,7 @@
 <p>Venus Library Manager provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and the entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
 
 <h2>GUI Library Packager</h2>
-<div class="image-placeholder">PLACE IMAGE OF LIBRARY PACKAGER UI HERE</div>
+<img src="images/packager-main.png" alt="Library Packager main view" class="doc-screenshot">
 
 <h3>Step-by-Step</h3>
 <ol>
@@ -42,7 +42,7 @@
   <li><b>Mark COM DLLs</b> (optional): If your library includes <code>.dll</code> files that need COM registration, select them individually from the payload list to mark them for COM registration.</li>
   <li><b>Build the Package:</b> Choose a save location and build the <code>.hxlibpkg</code> file.</li>
 </ol>
-<div class="image-placeholder">PLACE IMAGE OF PACKAGER WITH FILLED METADATA AND FILE LIST HERE</div>
+<img src="images/packager-filled.png" alt="Packager with filled metadata and file list" class="doc-screenshot">
 
 <h3>Package Icon Compositing</h3>
 <p>When the package is built, a <b>composited icon</b> is generated for the file-system representation of the <code>.hxlibpkg</code> file (the <code>icon/</code> directory inside the ZIP). The <b>manifest</b> stores the <b>raw, uncomposited</b> library image so that imported libraries display your original artwork without any overlay:</p>
