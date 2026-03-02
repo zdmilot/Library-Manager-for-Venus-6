@@ -373,68 +373,55 @@ span.badge-flag {
 	background-color: #2980b9;
 }
 
-/* ── Click-to-enlarge lightbox ──────────────────────────────── */
+/* ── Click-to-enlarge lightbox (IE-compatible) ─────────────── */
 
 img.doc-screenshot,
 img.doc-diagram {
 	cursor: pointer;
-	transition: box-shadow 0.15s, transform 0.15s;
-}
-
-img.doc-screenshot:hover,
-img.doc-diagram:hover {
-	box-shadow: 0 4px 16px rgba(0,0,0,0.28);
-	transform: scale(1.01);
 }
 
 #lightbox-overlay {
 	display: none;
-	position: fixed;
+	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.82);
 	z-index: 10000;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
+	background-color: #000;
+	filter: alpha(opacity=0);
+	/* filled dynamically by JS to cover full scroll height */
 }
 
-#lightbox-wrapper {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	max-width: 92%;
-	max-height: 92%;
+#lightbox-content {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 10001;
+	text-align: center;
+	padding: 30px 0;
 }
 
 #lightbox-img {
-	max-width: 100%;
-	max-height: 80vh;
-	width: auto;
-	height: auto;
-	border: none;
-	border-radius: 6px;
-	box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+	border: 4px solid #fff;
 	background: #fff;
-	padding: 6px;
-	margin: 0;
+	padding: 4px;
+	margin: 0 auto;
 	cursor: default;
-	object-fit: contain;
+	max-width: 90%;
 }
 
 #lightbox-caption {
-	color: #e0e0e0;
+	color: #fff;
 	font-family: Verdana, Tahoma, sans-serif;
 	font-size: 13px;
 	margin-top: 10px;
 	text-align: center;
-	max-width: 80%;
 }
 
 #lightbox-hint {
-	color: #999;
+	color: #ccc;
 	font-family: Verdana, Tahoma, sans-serif;
 	font-size: 11px;
 	margin-top: 6px;
