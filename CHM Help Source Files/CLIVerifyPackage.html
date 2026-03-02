@@ -26,7 +26,7 @@
 
 <h2>Verification Process</h2>
 <ol>
-  <li>The <code>.hxlibpkg</code> file's <a href="BinaryContainerFormat.html">binary container</a> is validated: magic bytes, HMAC-SHA256and payload length are checked. If the container is corrupted or tampered with, verification fails immediately.</li>
+  <li>The <code>.hxlibpkg</code> file's <a href="BinaryContainerFormat.html">binary container</a> is validated: magic bytes, HMAC-SHA256 and payload length are checked. If the container is corrupted or tampered with, verification fails immediately.</li>
   <li>The container is descrambled to recover the internal ZIP archive</li>
   <li>The tool looks for a <code>signature.json</code> entry inside the internal ZIP</li>
   <li>If no <code>signature.json</code> is found, the package is reported as <b>UNSIGNED</b> (exit code <code>0</code>)</li>

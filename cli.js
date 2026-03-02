@@ -33,7 +33,6 @@ const shared = require('./lib/shared');
 // Re-export shared helpers so the rest of the file can use short names
 const safeZipExtractPath     = shared.safeZipExtractPath;
 const isValidLibraryName     = shared.isValidLibraryName;
-const escapeHtml             = shared.escapeHtml;
 const computeZipEntryHashes  = shared.computeZipEntryHashes;
 const signPackageZip         = shared.signPackageZip;
 const verifyPackageSignature = shared.verifyPackageSignature;
@@ -51,7 +50,6 @@ const unpackContainer        = shared.unpackContainer;
 
 const MIME_MAP = shared.IMAGE_MIME_MAP;
 
-const HASH_EXTENSIONS  = shared.HASH_EXTENSIONS;
 const HSL_METADATA_EXTS = shared.HSL_METADATA_EXTS;
 
 const DEFAULT_LIB_PATH  = 'C:\\Program Files (x86)\\HAMILTON\\Library';
@@ -308,27 +306,6 @@ function buildAuditTrailEntry(eventType, details) {
 // Database helpers
 // ---------------------------------------------------------------------------
 
-/** Local data directory (inside the app's own folder) */
-const DEFAULT_USER_DATA_PATH = LOCAL_DATA_DIR;
-
-/**
- * Connect diskdb to the settings DB (now in local/ directory).
- */
-function connectSettingsDB() {
-    const diskdb = require('diskdb');
-    ensureLocalDataDir(LOCAL_DATA_DIR);
-    return diskdb.connect(LOCAL_DATA_DIR, ['settings']);
-}
-
-/**
- * Connect diskdb to the user data directory.
- * Returns a db object with collections: installed_libs, links, groups, tree.
- */
-function connectUserDB(userDataDir) {
-    const diskdb = require('diskdb');
-    return diskdb.connect(userDataDir, ['installed_libs', 'links', 'groups', 'tree']);
-}
-
 /**
  * Legacy: Connect diskdb to the given directory with all collections.
  * Returns a db object with collections: installed_libs, links, groups, settings, tree.
@@ -431,9 +408,6 @@ function getInstallPaths(db, libDirOverride, metDirOverride) {
 // Integrity hashing
 // ---------------------------------------------------------------------------
 
-// Use shared computeFileHash which handles HSL last-line stripping
-const hashFile = shared.computeFileHash;
-
 /**
  * Parse the Hamilton HSL metadata footer from the last non-empty line of a file.
  * Footer format: // $$author=NAME$$valid=0|1$$time=TIMESTAMP$$checksum=HEX$$length=NNN$$
@@ -456,12 +430,8 @@ const computeLibraryHashes = shared.computeLibraryHashes;
 // Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files
 // ---------------------------------------------------------------------------
 
-const PKG_SIGNING_KEY = shared.PKG_SIGNING_KEY;
-
 // computeZipEntryHashes, signPackageZip, verifyPackageSignature are
 // imported from the shared module above.
-
-// verifyPackageSignature - see shared module import at top of file
 
 // ---------------------------------------------------------------------------
 // HSL function parser - extracts public function signatures from .hsl files
@@ -1700,7 +1670,6 @@ function cmdDeleteLib(args) {
                     { 'method-ids': mids },
                     { multi: false, upsert: false }
                 );
-                break;
             }
         }
     } catch (_) {}
@@ -1802,6 +1771,10 @@ function cmdCreatePackage(args) {
         if (!libName) {
             libName = path.basename(path.dirname(resolvedLibFiles[0])) || 'Unknown';
         }
+    }
+
+    if (!isValidLibraryName(libName)) {
+        die('Invalid library name: "' + libName + '". Library names cannot contain path separators, \'..\', trailing dots/spaces, or reserved characters.');
     }
 
     console.log(`Creating package: ${libName}`);
@@ -2531,9 +2504,14 @@ function cmdVerifyPackage(args) {
 
     if (ext === '.hxlibarch') {
         // Verify each inner .hxlibpkg
-        const rawArchBuf2 = fs.readFileSync(filePath);
-        const outerZipBuf2 = unpackContainer(rawArchBuf2, CONTAINER_MAGIC_ARC);
-        const archiveZip = new AdmZip(outerZipBuf2);
+        let archiveZip;
+        try {
+            const rawArchBuf2 = fs.readFileSync(filePath);
+            const outerZipBuf2 = unpackContainer(rawArchBuf2, CONTAINER_MAGIC_ARC);
+            archiveZip = new AdmZip(outerZipBuf2);
+        } catch (e) {
+            die('Failed to read archive: ' + e.message);
+        }
         const pkgEntries = archiveZip.getEntries().filter(
             e => !e.isDirectory && e.entryName.toLowerCase().endsWith('.hxlibpkg')
         );
@@ -2575,13 +2553,16 @@ function cmdVerifyPackage(args) {
             r.errors.forEach(e   => console.log(`  [ERROR]   ${e}`));
             r.warnings.forEach(w => console.log(`  [WARNING] ${w}`));
         });
-        const allValid = results.every(r => r.valid);
+        const anySigned = results.some(r => r.signed);
         const anyFailed = results.some(r => r.signed && !r.valid);
+        const allSignedValid = anySigned && results.every(r => !r.signed || r.valid);
         if (anyFailed) {
             console.log('\nResult: INTEGRITY CHECK FAILED');
             process.exit(1);
-        } else if (allValid) {
+        } else if (allSignedValid) {
             console.log('\nResult: ALL PACKAGES VERIFIED');
+        } else {
+            console.log('\nResult: NO SIGNED PACKAGES FOUND');
         }
     }
 }

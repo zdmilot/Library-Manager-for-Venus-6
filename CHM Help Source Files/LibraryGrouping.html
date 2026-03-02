@@ -13,18 +13,18 @@
 <p>Library Manager for Venus 6 supports organizing installed libraries into custom groups for easier navigation and management. Groups appear as tabs in the main window, allowing you to filter the library view to show only libraries assigned to a specific group.</p>
 
 <h2>Default Groups (Hardcoded)</h2>
-<p>The application defines six built-in groups that are <b>hardcoded</b> in the application source code via a <code>DEFAULT_GROUPS</code> map. These groups are never stored in <code>groups.json</code> - they are resolved in-memory at runtime. A startup migration automatically strips any stale default-group records from the external JSON file to prevent duplicates.</p>
+<p>The application defines seven built-in groups that are <b>hardcoded</b> in the application source code via a <code>DEFAULT_GROUPS</code> map. These groups are never stored in <code>groups.json</code> - they are resolved in-memory at runtime. A startup migration automatically strips any stale default-group records from the external JSON file to prevent duplicates.</p>
 
 <table>
 <thead><tr><th>ID</th><th>Name</th><th>Icon</th><th>Side</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>gAll</code></td><td>All</td><td><code>fa-th</code></td><td>left</td><td>Shows all installed (non-deleted) libraries</td></tr>
-<tr><td><code>gRecent</code></td><td>Recent</td><td><code>fa-clock</code></td><td>left</td><td>Recently imported libraries</td></tr>
+<tr><td><code>gAll</code></td><td>All</td><td><code>fa-home</code></td><td>left</td><td>Shows all installed (non-deleted) libraries</td></tr>
+<tr><td><code>gRecent</code></td><td>Recent</td><td><code>fa-history</code></td><td>left</td><td>Recently imported libraries</td></tr>
 <tr><td><code>gStarred</code></td><td>Starred</td><td><code>fa-star</code></td><td>left</td><td>Libraries marked as favorites by the user (see <a href="GUIOverview.html">GUI Overview &mdash; Starred Libraries</a>)</td></tr>
 <tr><td><code>gHamilton</code></td><td>Hamilton</td><td><code>fa-check-circle</code> (solid)</td><td>left</td><td>Protected Hamilton-authored libraries</td></tr>
-<tr><td><code>gFolders</code></td><td>Import</td><td><code>fa-file-import</code></td><td>right</td><td>Import workflow tab</td></tr>
-<tr><td><code>gEditors</code></td><td>Export</td><td><code>fa-file-export</code></td><td>right</td><td>Export workflow tab</td></tr>
-<tr><td><code>gHistory</code></td><td>History</td><td><code>fa-history</code></td><td>right</td><td>Action history</td></tr>
+<tr><td><code>gFolders</code></td><td>Import</td><td><code>fa-download</code></td><td>right</td><td>Import workflow tab</td></tr>
+<tr><td><code>gEditors</code></td><td>Export</td><td><code>fa-upload</code></td><td>right</td><td>Export workflow tab</td></tr>
+<tr><td><code>gHistory</code></td><td>History</td><td><code>fa-list</code></td><td>right</td><td>Action history</td></tr>
 </tbody>
 </table>
 

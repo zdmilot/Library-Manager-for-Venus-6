@@ -5036,6 +5036,9 @@
 			//setting - Display: hide system libraries
 			$("#chk_hideSystemLibraries").prop("checked", !!settings["chk_hideSystemLibraries"]);
 
+			//setting - Regulated environment mode (must be resolved before GitHub links & unsigned settings)
+			var regulatedMode = !!settings["chk_regulatedEnvironment"];
+
 			//setting - Display: show GitHub repository links (default on)
 			// In regulated mode, GitHub links are always disabled
 			if (regulatedMode) {
@@ -5048,7 +5051,6 @@
 			}
 
 			//setting - Unsigned libraries
-			var regulatedMode = !!settings["chk_regulatedEnvironment"];
 			var unsignedEnabled = !!settings["chk_includeUnsignedLibs"];
 			// In regulated mode, unsigned files cannot be enabled - all packages must be signed
 			if (regulatedMode && unsignedEnabled) {
@@ -7228,9 +7230,9 @@
 				// COM warning badge
 				var comWarningBadge = "";
 				if (hasComWarning && comDlls.length > 0) {
-					comWarningBadge = '<span class="badge badge-warning ml-2" title="COM registration failed for: ' + comDlls.join(', ') + '. This library may not function correctly."><i class="fas fa-exclamation-triangle mr-1"></i>COM</span>';
+					comWarningBadge = '<span class="badge badge-warning ml-2" title="COM registration failed for: ' + escapeHtml(comDlls.join(', ')) + '. This library may not function correctly."><i class="fas fa-exclamation-triangle mr-1"></i>COM</span>';
 				} else if (comDlls.length > 0) {
-					comWarningBadge = '<span class="badge badge-info ml-2" title="COM registered DLLs: ' + comDlls.join(', ') + '"><i class="fas fa-cog mr-1"></i>COM</span>';
+					comWarningBadge = '<span class="badge badge-info ml-2" title="COM registered DLLs: ' + escapeHtml(comDlls.join(', ')) + '"><i class="fas fa-cog mr-1"></i>COM</span>';
 				}
 
 				// Check for CHM help files
@@ -9196,7 +9198,6 @@
 				// Because the forEach loop is synchronous, we cannot await inside it.
 				// Pre-scan all manifests to see if any package claims a restricted
 				// author or organization.  If so, prompt for the password once now.
-				var archiveHamiltonAuthorized = false;
 				var hasRestrictedPackage = false;
 				for (var pi = 0; pi < pkgEntries.length; pi++) {
 					try {
