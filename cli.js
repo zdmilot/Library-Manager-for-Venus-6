@@ -120,7 +120,11 @@ function isSystemLibraryByName(libName) {
 // Password required to use "Hamilton" (case-insensitive) as author on
 // non-system packages. Prevents spoofing and acts as an additional signing
 // mechanism for first-party libraries.
-const HAMILTON_AUTHOR_PASSWORD = '4970EnergyW@y!';
+//
+// The password is stored as a SHA-256 hash to avoid exposing the plaintext
+// in source control.  Comparison uses crypto.timingSafeEqual to resist
+// timing side-channel analysis.
+const HAMILTON_AUTHOR_PASSWORD_HASH = 'bbdc525497de1c19c57767e36b4f01dadcc05348664eea071ac984fd955bc207';
 
 /**
  * Check if an author name is restricted (i.e. "Hamilton" in any case).
@@ -132,9 +136,17 @@ function isRestrictedAuthor(author) {
 
 /**
  * Validate CLI --author-password against the restricted author password.
+ * Uses SHA-256 hashing and timing-safe comparison.
  */
 function validateAuthorPassword(password) {
-    return password === HAMILTON_AUTHOR_PASSWORD;
+    if (!password || typeof password !== 'string') return false;
+    var inputHash  = crypto.createHash('sha256').update(password).digest();
+    var storedHash = Buffer.from(HAMILTON_AUTHOR_PASSWORD_HASH, 'hex');
+    try {
+        return crypto.timingSafeEqual(inputHash, storedHash);
+    } catch (_) {
+        return false;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1198,10 +1210,11 @@ function cmdImportLib(args) {
     }
 
     // ---- Restricted author check ----
-    // If the package claims "Hamilton" as author but is NOT a known system library,
+    // If the package claims "Hamilton" as author or organization but is NOT a known system library,
     // require --author-password for authorization
     const importAuthor = (manifest.author || '').trim();
-    if (isRestrictedAuthor(importAuthor) && !isSystemLibraryByName(libName)) {
+    const importOrg = (manifest.organization || '').trim();
+    if ((isRestrictedAuthor(importAuthor) || isRestrictedAuthor(importOrg)) && !isSystemLibraryByName(libName)) {
         if (!args['author-password']) {
             die('This package uses the restricted author name "Hamilton". Use --author-password <password> to authorize.');
         }
@@ -1331,7 +1344,8 @@ function cmdImportArchive(args) {
 
             // ---- Restricted author check ----
             const importAuthor = (manifest.author || '').trim();
-            if (isRestrictedAuthor(importAuthor) && !isSystemLibraryByName(libName)) {
+            const importOrg = (manifest.organization || '').trim();
+            if ((isRestrictedAuthor(importAuthor) || isRestrictedAuthor(importOrg)) && !isSystemLibraryByName(libName)) {
                 if (!args['author-password']) {
                     throw new Error(`Package "${libName}" uses restricted author "${importAuthor}". Use --author-password to authorize.`);
                 }
@@ -1743,8 +1757,8 @@ function cmdCreatePackage(args) {
         die('Spec validation failed:\n  ' + validationErrors.join('\n  '));
     }
 
-    // ---- Restricted author check ----
-    if (isRestrictedAuthor(spec.author)) {
+    // ---- Restricted author/organization check ----
+    if (isRestrictedAuthor(spec.author) || isRestrictedAuthor(spec.organization)) {
         if (!args['author-password']) {
             die('The author name "Hamilton" is restricted. Use --author-password <password> to authorize.');
         }

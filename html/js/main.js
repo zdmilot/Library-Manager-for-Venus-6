@@ -1214,7 +1214,11 @@
 		// ---- Restricted Author Protection ----
 		// Password required to use "Hamilton" (case-insensitive) as author on non-system packages.
 		// This prevents spoofing and acts as an additional signing mechanism for first-party libraries.
-		var HAMILTON_AUTHOR_PASSWORD = '4970EnergyW@y!';
+		//
+		// The password is stored as a SHA-256 hash to avoid exposing the plaintext
+		// in source control.  Comparison uses crypto.timingSafeEqual to resist
+		// timing side-channel analysis.
+		var HAMILTON_AUTHOR_PASSWORD_HASH = 'bbdc525497de1c19c57767e36b4f01dadcc05348664eea071ac984fd955bc207';
 
 		/**
 		 * Check if an author name is restricted (i.e. "Hamilton" in any case).
@@ -1228,11 +1232,19 @@
 
 		/**
 		 * Validate the password for using a restricted author name.
+		 * Uses SHA-256 hashing and timing-safe comparison.
 		 * @param {string} password
 		 * @returns {boolean}
 		 */
 		function validateAuthorPassword(password) {
-			return password === HAMILTON_AUTHOR_PASSWORD;
+			if (!password || typeof password !== 'string') return false;
+			var inputHash  = crypto.createHash('sha256').update(password).digest();
+			var storedHash = Buffer.from(HAMILTON_AUTHOR_PASSWORD_HASH, 'hex');
+			try {
+				return crypto.timingSafeEqual(inputHash, storedHash);
+			} catch (_) {
+				return false;
+			}
 		}
 
 		/**
@@ -7947,7 +7959,7 @@
 				}
 
 				var fileHashes = {};
-				try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) {}
+				try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
 				var dbRecord = {
 					library_name: manifest.library_name || "",
@@ -7993,8 +8005,9 @@
 				if (!inGroup) {
 					var targetGroupId = null;
 					var rollbackAuthor = (manifest.author || '').trim();
+					var rollbackOrg = (manifest.organization || '').trim();
 
-					if (isRestrictedAuthor(rollbackAuthor)) {
+					if (isRestrictedAuthor(rollbackAuthor) || isRestrictedAuthor(rollbackOrg)) {
 						// Hamilton author: route to gHamilton group
 						var hamiltonTreeEntry = null;
 						for (var ti = 0; ti < navtree.length; ti++) {
@@ -9136,7 +9149,7 @@
 		//**************************************************************************************
 
 		// Import archive: extract each .hxlibpkg and install sequentially
-		function impArchImportArchive(archivePath) {
+		async function impArchImportArchive(archivePath) {
 			// ---- Access control check ----
 			var accessCheck = canManageLibraries();
 			if (!accessCheck.allowed) {
@@ -9180,6 +9193,44 @@
 				confirmMsg += "\nDo you want to install all " + pkgEntries.length + " libraries?";
 
 				if (!confirm(confirmMsg)) return;
+
+				// ---- Restricted author pre-check (scan all packages) ----
+				// Because the forEach loop is synchronous, we cannot await inside it.
+				// Pre-scan all manifests to see if any package claims a restricted
+				// author or organization.  If so, prompt for the password once now.
+				var archiveHamiltonAuthorized = false;
+				var hasRestrictedPackage = false;
+				for (var pi = 0; pi < pkgEntries.length; pi++) {
+					try {
+						var scanBuf = pkgEntries[pi].getData();
+						var scanZipBuf = unpackContainer(scanBuf, CONTAINER_MAGIC_PKG);
+						var scanZip = new AdmZip(scanZipBuf);
+						var scanManifest = scanZip.getEntry("manifest.json");
+						if (scanManifest) {
+							var scanM = JSON.parse(scanZip.readAsText(scanManifest));
+							var scanAuthor = (scanM.author || '').trim();
+							var scanOrg    = (scanM.organization || '').trim();
+							var scanLibName = scanM.library_name || '';
+							if (isRestrictedAuthor(scanAuthor) || isRestrictedAuthor(scanOrg)) {
+								var scanIsSysLib = systemLibraries.some(function(s) {
+									return s.canonical_name === scanLibName || s.library_name === scanLibName;
+								});
+								if (!scanIsSysLib) {
+									hasRestrictedPackage = true;
+									break;
+								}
+							}
+						}
+					} catch (_) { /* scan failure is non-fatal; will be caught during install */ }
+				}
+				if (hasRestrictedPackage) {
+					var pwOk = await promptAuthorPassword();
+					if (!pwOk) {
+						alert('Import cancelled. One or more packages in this archive use the restricted author/organization name "Hamilton".');
+						return;
+					}
+					archiveHamiltonAuthorized = true;
+				}
 
 				var results = { success: [], failed: [] };
 
@@ -9290,7 +9341,7 @@
 
 						// Compute integrity hashes
 						var fileHashes = {};
-						try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) {}
+						try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
 						var dbRecord = {
 							library_name: manifest.library_name || "",
@@ -9355,8 +9406,9 @@
 							var navtree = db_tree.tree.find();
 							var targetGroupId = null;
 							var archImportAuthor = (manifest.author || '').trim();
+							var archImportOrg = (manifest.organization || '').trim();
 
-							if (isRestrictedAuthor(archImportAuthor)) {
+							if (isRestrictedAuthor(archImportAuthor) || isRestrictedAuthor(archImportOrg)) {
 								// Hamilton author: add to the Hamilton group
 								var hamiltonTreeEntry = null;
 								for (var ti = 0; ti < navtree.length; ti++) {
@@ -9906,11 +9958,12 @@
 					if (!confirm(sigMsg)) { _isImporting = false; return; }
 				}
 
-				// ---- Restricted author check on import ----
-				// If the package claims "Hamilton" as author but is NOT a known system library,
+				// ---- Restricted author/organization check on import ----
+				// If the package claims "Hamilton" as author or organization but is NOT a known system library,
 				// require password authorization before allowing the import.
 				var importAuthor = (manifest.author || '').trim();
-				if (isRestrictedAuthor(importAuthor)) {
+				var importOrg = (manifest.organization || '').trim();
+				if (isRestrictedAuthor(importAuthor) || isRestrictedAuthor(importOrg)) {
 					// Check if this library name matches a known system library
 					var isKnownSysLib = systemLibraries.some(function(s) {
 						return s.canonical_name === manifest.library_name || s.library_name === manifest.library_name;
@@ -9918,7 +9971,7 @@
 					if (!isKnownSysLib) {
 						var pwOk = await promptAuthorPassword();
 						if (!pwOk) {
-							alert('Import cancelled. The package author "Hamilton" requires authorization for non-system libraries.');
+							alert('Import cancelled. The package author/organization "Hamilton" requires authorization for non-system libraries.');
 							_isImporting = false;
 							return;
 						}
@@ -10296,7 +10349,7 @@
 					libFiles,
 					libDestDir,
 					comDlls
-				); } catch(e) {}
+				); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
 				var dbRecord = {
 					library_name: manifest.library_name || "",
@@ -10336,9 +10389,10 @@
 				var navtree = db_tree.tree.find();
 				var targetGroupId = null;
 
-				// If author is Hamilton, auto-assign to the Hamilton group
+				// If author or organization is Hamilton, auto-assign to the Hamilton group
 				var savedAuthor = (manifest.author || '').trim();
-				if (isRestrictedAuthor(savedAuthor)) {
+				var savedOrg = (manifest.organization || '').trim();
+				if (isRestrictedAuthor(savedAuthor) || isRestrictedAuthor(savedOrg)) {
 					// Find or create the Hamilton group entry in the tree
 					var hamiltonTreeEntry = null;
 					for (var ti = 0; ti < navtree.length; ti++) {
@@ -11186,7 +11240,7 @@
 				var libFiles = lib.library_files || [];
 				var comDlls = lib.com_register_dlls || [];
 				var fileHashes = {};
-				try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) {}
+				try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
 				// Update DB record with fresh hashes
 				db_installed_libs.installed_libs.update({ _id: lib._id }, {
@@ -12196,7 +12250,7 @@
 
 				// Compute integrity hashes
 				var fileHashes = {};
-				try { fileHashes = computeLibraryHashes(libFileBasenames, libDestDir, comDlls); } catch(e) {}
+				try { fileHashes = computeLibraryHashes(libFileBasenames, libDestDir, comDlls); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
 				// Build the installed library database record (same schema as import)
 				var dbRecord = {
@@ -12238,7 +12292,8 @@
 				var targetGroupId = null;
 
 				var savedAuthor = (uLib.author || '').trim();
-				if (isRestrictedAuthor(savedAuthor)) {
+				var savedOrg = (uLib.organization || '').trim();
+				if (isRestrictedAuthor(savedAuthor) || isRestrictedAuthor(savedOrg)) {
 					var hamiltonTreeEntry = null;
 					for (var ti = 0; ti < navtree.length; ti++) {
 						if (navtree[ti]["group-id"] === "gHamilton") {
