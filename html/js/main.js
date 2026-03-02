@@ -593,15 +593,15 @@
 		// ---- User Data Path ----
 		// User data (installed libs, groups, tree, links) is stored OUTSIDE the app
 		// in a configurable folder so the app stays portable and lightweight.
-		var DEFAULT_USER_DATA_PATH = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "VenusLibraryManager");
+		var DEFAULT_USER_DATA_PATH = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "LibraryManagerForVenus6");
 
 		function resolveUserDataPath() {
 			var settings = db_settings.settings.find();
 			if (settings && settings.length > 0 && settings[0]["userDataPath"]) {
 				var saved = settings[0]["userDataPath"];
 				// Migrate old hidden dot-folder path to visible name
-				if (saved.indexOf('.VenusLibraryManager') !== -1) {
-					saved = saved.replace('.VenusLibraryManager', 'VenusLibraryManager');
+				if (saved.indexOf('.LibraryManagerForVenus6') !== -1) {
+					saved = saved.replace('.LibraryManagerForVenus6', 'LibraryManagerForVenus6');
 				}
 				return saved;
 			}
@@ -680,8 +680,8 @@
 		var USER_DATA_DIR = resolveUserDataPath();
 		ensureUserDataDir(USER_DATA_DIR);
 
-		// Migrate from old hidden .VenusLibraryManager folder if it exists
-		var OLD_HIDDEN_DIR = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", ".VenusLibraryManager");
+		// Migrate from old hidden .LibraryManagerForVenus6 folder if it exists
+		var OLD_HIDDEN_DIR = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", ".LibraryManagerForVenus6");
 		if (fs.existsSync(OLD_HIDDEN_DIR) && OLD_HIDDEN_DIR !== USER_DATA_DIR) {
 			try {
 				var oldFiles = ['installed_libs.json', 'groups.json', 'tree.json', 'links.json'];
@@ -695,13 +695,13 @@
 						if (dstData === '[]' || JSON.parse(dstData).length === 0) {
 							if (srcData !== '[]' && JSON.parse(srcData).length > 0) {
 								fs.writeFileSync(dst, srcData, 'utf8');
-								console.log('Migrated ' + fname + ' from .VenusLibraryManager');
+								console.log('Migrated ' + fname + ' from .LibraryManagerForVenus6');
 							}
 						}
 					}
 				});
 			} catch(e) {
-				console.warn('Warning migrating from .VenusLibraryManager: ' + e.message);
+				console.warn('Warning migrating from .LibraryManagerForVenus6: ' + e.message);
 			}
 		}
 
@@ -10988,9 +10988,9 @@
 						if (stat.isDirectory()) {
 							// Skip special directories
 							var lowerEntry = entry.toLowerCase();
-							if (lowerEntry === 'venuslibrarymanager' ||
+							if (lowerEntry === 'librarymanagerforvenus6' ||
 								lowerEntry === 'librarypackages' ||
-								lowerEntry === '.venuslibrarymanager' ||
+								lowerEntry === '.librarymanagerforvenus6' ||
 								lowerEntry === 'libraryintegrityaudit') return;
 							scanDir(fullPath, relPath);
 							return;
@@ -11039,7 +11039,7 @@
 						try { stat = fs.statSync(fullPath); } catch(e) { return; }
 						if (stat.isDirectory()) {
 							var lowerEntry = entry.toLowerCase();
-							if (lowerEntry === 'venuslibrarymanager' || lowerEntry === 'librarypackages' || lowerEntry === '.venuslibrarymanager' || lowerEntry === 'libraryintegrityaudit') return;
+							if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
 							// Skip dot-prefixed directories (temp/hidden)
 							if (entry.charAt(0) === '.') return;
 							scanDirFlat(fullPath, relPath, result);

@@ -295,7 +295,7 @@ function buildAuditTrailEntry(eventType, details) {
 // ---------------------------------------------------------------------------
 
 /** Default user data directory (outside the app) */
-const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, 'VenusLibraryManager');
+const DEFAULT_USER_DATA_PATH = path.join(DEFAULT_LIB_PATH, 'LibraryManagerForVenus6');
 
 /**
  * Connect diskdb to the settings DB (always in app's db/ folder).
@@ -2308,7 +2308,7 @@ COMMANDS
 
 GLOBAL OPTIONS
   --db-path <dir>    Path to user data directory (default: from settings.json
-                     or <Hamilton Library>\\VenusLibraryManager)
+                     or <Hamilton Library>\\LibraryManagerForVenus6)
   --store-dir <dir>  Override package store location
                      (default: C:\\Program Files (x86)\\HAMILTON\\Library\\LibraryPackages)
 
