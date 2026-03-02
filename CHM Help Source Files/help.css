@@ -135,6 +135,10 @@ dd {
 img {
 	border: none;
 	margin: 10px;
+	max-width: 100%;
+	max-height: 95vh;
+	height: auto;
+	box-sizing: border-box;
 }
 
 img.ssleft {
