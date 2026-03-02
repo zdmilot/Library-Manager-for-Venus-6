@@ -135,7 +135,7 @@ dd {
 img {
 	border: none;
 	margin: 10px;
-	max-width: 100%;
+	max-width: 50%;
 	height: auto;
 	box-sizing: border-box;
 }
@@ -309,7 +309,7 @@ div.image-placeholder {
 }
 
 img.doc-screenshot {
-	max-width: 100%;
+	max-width: 50%;
 	width: auto;
 	height: auto;
 	object-fit: contain;
@@ -323,7 +323,7 @@ img.doc-screenshot {
 }
 
 img.doc-diagram {
-	max-width: 100%;
+	max-width: 50%;
 	width: auto;
 	height: auto;
 	object-fit: contain;
