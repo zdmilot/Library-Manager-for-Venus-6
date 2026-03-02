@@ -3347,7 +3347,7 @@
 
 		//Settings screen menu navigation
 		//Settings > Installation checkboxes
-		$(document).on("click", "#chk_confirmBeforeInstall, #chk_autoAddToGroup", function(){
+		$(document).on("click", "#chk_confirmBeforeInstall", function(){
 			saveSetting($(this).attr("id"), $(this).prop("checked"));
 		});
 
@@ -5016,7 +5016,6 @@
 					"_id": "0",
 					"recent-max": 20,
 					"chk_confirmBeforeInstall": true,
-					"chk_autoAddToGroup": true,
 					"chk_hideSystemLibraries": false
 				};
 				db_settings.settings.save(defaults);
@@ -5033,7 +5032,6 @@
 
 			//setting - Installation checkboxes
 			$("#chk_confirmBeforeInstall").prop("checked", settings["chk_confirmBeforeInstall"] !== false);
-			$("#chk_autoAddToGroup").prop("checked", settings["chk_autoAddToGroup"] !== false);
 
 			//setting - Display: hide system libraries
 			$("#chk_hideSystemLibraries").prop("checked", !!settings["chk_hideSystemLibraries"]);
@@ -9400,77 +9398,74 @@
 							});
 						}
 
-						// Auto-add to group if setting enabled
-						var settings = db_settings.settings.findOne({"_id":"0"});
-						if (!settings || settings.chk_autoAddToGroup !== false) {
-							var navtree = db_tree.tree.find();
-							var targetGroupId = null;
-							var archImportAuthor = (manifest.author || '').trim();
-							var archImportOrg = (manifest.organization || '').trim();
+						// Auto-add to group
+						var navtree = db_tree.tree.find();
+						var targetGroupId = null;
+						var archImportAuthor = (manifest.author || '').trim();
+						var archImportOrg = (manifest.organization || '').trim();
 
-							if (isRestrictedAuthor(archImportAuthor) || isRestrictedAuthor(archImportOrg)) {
-								// Hamilton author: add to the Hamilton group
-								var hamiltonTreeEntry = null;
-								for (var ti = 0; ti < navtree.length; ti++) {
-									if (navtree[ti]["group-id"] === "gHamilton") {
-										hamiltonTreeEntry = navtree[ti];
+						if (isRestrictedAuthor(archImportAuthor) || isRestrictedAuthor(archImportOrg)) {
+							// Hamilton author: add to the Hamilton group
+							var hamiltonTreeEntry = null;
+							for (var ti = 0; ti < navtree.length; ti++) {
+								if (navtree[ti]["group-id"] === "gHamilton") {
+									hamiltonTreeEntry = navtree[ti];
+									break;
+								}
+							}
+							if (hamiltonTreeEntry) {
+								targetGroupId = "gHamilton";
+								var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
+								existingIds.push(saved._id);
+								var treePath = path.join(USER_DATA_DIR, 'tree.json');
+								var treeData = JSON.parse(fs.readFileSync(treePath, 'utf8'));
+								for (var ui = 0; ui < treeData.length; ui++) {
+									if (treeData[ui]["group-id"] === "gHamilton") {
+										treeData[ui]["method-ids"] = existingIds;
 										break;
 									}
 								}
-								if (hamiltonTreeEntry) {
-									targetGroupId = "gHamilton";
-									var existingIds = (hamiltonTreeEntry["method-ids"] || []).slice();
-									existingIds.push(saved._id);
-									var treePath = path.join(USER_DATA_DIR, 'tree.json');
-									var treeData = JSON.parse(fs.readFileSync(treePath, 'utf8'));
-									for (var ui = 0; ui < treeData.length; ui++) {
-										if (treeData[ui]["group-id"] === "gHamilton") {
-											treeData[ui]["method-ids"] = existingIds;
-											break;
-										}
-									}
-									fs.writeFileSync(treePath, JSON.stringify(treeData), 'utf8');
-									db_tree = db.connect(USER_DATA_DIR, ['tree']);
-								} else {
-									// Hamilton group tree entry missing; create it
-									var treePath2 = path.join(USER_DATA_DIR, 'tree.json');
-									var treeData2 = JSON.parse(fs.readFileSync(treePath2, 'utf8'));
-									treeData2.push({
-										"group-id": "gHamilton",
-										"method-ids": [saved._id],
-										"locked": true
-									});
-									fs.writeFileSync(treePath2, JSON.stringify(treeData2), 'utf8');
-									db_tree = db.connect(USER_DATA_DIR, ['tree']);
-									targetGroupId = "gHamilton";
-								}
+								fs.writeFileSync(treePath, JSON.stringify(treeData), 'utf8');
+								db_tree = db.connect(USER_DATA_DIR, ['tree']);
 							} else {
-								// Non-Hamilton author: add to first custom group
-								for (var ti = 0; ti < navtree.length; ti++) {
-									var gEntry = getGroupById(navtree[ti]["group-id"]);
-									if (gEntry && !gEntry["default"]) {
-										targetGroupId = navtree[ti]["group-id"];
-										var existingIds = (navtree[ti]["method-ids"] || []).slice();
-										existingIds.push(saved._id);
-										db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
-										break;
-									}
+								// Hamilton group tree entry missing; create it
+								var treePath2 = path.join(USER_DATA_DIR, 'tree.json');
+								var treeData2 = JSON.parse(fs.readFileSync(treePath2, 'utf8'));
+								treeData2.push({
+									"group-id": "gHamilton",
+									"method-ids": [saved._id],
+									"locked": true
+								});
+								fs.writeFileSync(treePath2, JSON.stringify(treeData2), 'utf8');
+								db_tree = db.connect(USER_DATA_DIR, ['tree']);
+								targetGroupId = "gHamilton";
+							}
+						} else {
+							// Non-Hamilton author: add to first custom group
+							for (var ti = 0; ti < navtree.length; ti++) {
+								var gEntry = getGroupById(navtree[ti]["group-id"]);
+								if (gEntry && !gEntry["default"]) {
+									targetGroupId = navtree[ti]["group-id"];
+									var existingIds = (navtree[ti]["method-ids"] || []).slice();
+									existingIds.push(saved._id);
+									db_tree.tree.update({"group-id": targetGroupId}, {"method-ids": existingIds}, {multi: false, upsert: false});
+									break;
 								}
 							}
-							if (!targetGroupId) {
-								var newGroup = db_groups.groups.save({
-									"name": "Libraries",
-									"icon-class": "fa-book",
-									"default": false,
-									"navbar": "left",
-									"favorite": true
-								});
-								db_tree.tree.save({
-									"group-id": newGroup._id,
-									"method-ids": [saved._id],
-									"locked": false
-								});
-							}
+						}
+						if (!targetGroupId) {
+							var newGroup = db_groups.groups.save({
+								"name": "Libraries",
+								"icon-class": "fa-book",
+								"default": false,
+								"navbar": "left",
+								"favorite": true
+							});
+							db_tree.tree.save({
+								"group-id": newGroup._id,
+								"method-ids": [saved._id],
+								"locked": false
+							});
 						}
 
 						results.success.push(libName + " (" + extractedCount + " files)");

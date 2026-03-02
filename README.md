@@ -644,7 +644,6 @@ The repository also includes Python desktop tools under `Library Packager/`:
 
 ## Notes on current behavior (important)
 
-- The setting `chk_autoAddToGroup` is actively used during archive import grouping behavior.
 - The settings `chk_confirmBeforeInstall` is stored and surfaced in UI, but current install flow still uses preview/confirmation and explicit overwrite/update handling in code paths reviewed.
 - Deleted libraries are soft-deleted in DB (kept for history state) while files are removed from disk.
 
