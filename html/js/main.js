@@ -1,5 +1,6 @@
 ﻿
-		// main.js v1.4.8 
+		// main.js v1.4.8
+		// Author: Zachary Milot
 
 		var gui = require('nw.gui');
 		var win = gui.Window.get();

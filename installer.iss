@@ -5,8 +5,8 @@
 
 #define MyAppName "Library Manager for Venus 6"
 #define MyAppVersion "1.4.8"
-#define MyAppPublisher "Hamilton Company"
-#define MyAppURL "https://github.com/nicholasgcoles/venus-library-manager"
+#define MyAppPublisher "Zachary Milot"
+#define MyAppURL "https://github.com/zdmilot/Library-Manager-for-Venus-6"
 #define MyAppExeName "Library Manager for Venus 6.exe"
 #define MyAppIcon "LibraryManagerForVenus6.ico"
 

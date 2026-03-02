@@ -3,6 +3,8 @@
  * Library Manager for Venus 6 CLI  v1.4.8
  * Command-line interface for managing Hamilton VENUS libraries.
  *
+ * Author: Zachary Milot
+ *
  * Usage:
  *   node cli.js <command> [options]
  *
