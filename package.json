@@ -14,7 +14,6 @@
     "cli": "node cli.js",
     "list-libs": "node cli.js list-libs",
     "help": "node cli.js help",
-    "test": "node test/test_shared.js",
     "lint": "node --check cli.js lib/shared.js",
     "chm:images:scan": "node scripts/chm-image-placeholders.js scan",
     "chm:images:check": "node scripts/chm-image-placeholders.js check",
@@ -41,8 +40,6 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "pe-library": "^2.0.1",
-    "rcedit": "^5.0.2",
-    "resedit": "^3.0.2"
+    "@mermaid-js/mermaid-cli": "^11.12.0"
   }
 }

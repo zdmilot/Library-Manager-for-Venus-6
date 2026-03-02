@@ -1,0 +1,18 @@
+graph TD
+    classDef header fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef field fill:#2c5f8a,color:#fff,stroke:#1a3d5c
+    classDef payload fill:#e8f4e8,color:#2c6b2c,stroke:#5cb85c,font-weight:bold
+
+    H["48-Byte Binary Header"]:::header
+    F1["Magic<br/><b>8 bytes</b>"]:::field
+    F2["Flags<br/><b>4 bytes</b>"]:::field
+    F3["Payload Length<br/><b>4 bytes</b>"]:::field
+    F4["HMAC-SHA256<br/><b>32 bytes</b>"]:::field
+
+    P["XOR-Scrambled ZIP Payload<br/><b>N bytes</b>"]:::payload
+
+    H --- F1
+    H --- F2
+    H --- F3
+    H --- F4
+    H --> P

@@ -1,0 +1,51 @@
+graph TD
+    classDef titlebar fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef navbar fill:#2c5f8a,color:#fff,stroke:#1a3d5c,font-weight:bold
+    classDef content fill:#f5f5f5,color:#333,stroke:#999
+    classDef card fill:#e8f4fd,color:#2c5f8a,stroke:#7ec8e3
+    classDef search fill:#fff8e1,color:#333,stroke:#f0c040
+
+    TB["Title Bar"]:::titlebar
+
+    NAV["Navigation Bar"]:::navbar
+    NAV_ALL["🏠 All"]:::content
+    NAV_STAR["⭐ Starred"]:::content
+    NAV_REC["🕐 Recent"]:::content
+    NAV_SYS["🔒 System"]:::content
+    NAV_HAM["H Hamilton"]:::content
+    NAV_UNS["⊗ Unsigned"]:::content
+    NAV_GRP["Groups..."]:::content
+    NAV_IMP["Import"]:::content
+    NAV_EXP["Export"]:::content
+    NAV_HIS["History"]:::content
+
+    SB["Search Bar"]:::search
+
+    GRID["Library Card Grid<br/>(varies by selected tab)"]:::content
+    C1["📋 Card"]:::card
+    C2["📋 Card"]:::card
+    C3["📋 Card"]:::card
+    C4["📋 Card"]:::card
+    C5["📋 Card"]:::card
+    C6["📋 Card"]:::card
+
+    TB --- NAV
+    TB --- SB
+    NAV --- NAV_ALL
+    NAV --- NAV_STAR
+    NAV --- NAV_REC
+    NAV --- NAV_SYS
+    NAV --- NAV_HAM
+    NAV --- NAV_UNS
+    NAV --- NAV_GRP
+    NAV --- NAV_IMP
+    NAV --- NAV_EXP
+    NAV --- NAV_HIS
+
+    SB --- GRID
+    GRID --- C1
+    GRID --- C2
+    GRID --- C3
+    GRID --- C4
+    GRID --- C5
+    GRID --- C6

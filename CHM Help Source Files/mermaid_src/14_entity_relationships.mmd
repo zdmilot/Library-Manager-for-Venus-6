@@ -1,0 +1,12 @@
+graph LR
+    classDef entity fill:#2c5f8a,color:#fff,stroke:#1a3d5c,font-weight:bold
+    classDef relation fill:#f5f5f5,color:#333,stroke:#999
+
+    G["Groups"]:::entity
+    T["Tree"]:::entity
+    IL["Installed Libraries"]:::entity
+    AT["Audit Trail"]:::entity
+
+    G -- "1:N" --> T
+    IL -- "N:M<br/>(via method_ids)" --> T
+    IL -- "1:N<br/>(each action generates events)" --> AT

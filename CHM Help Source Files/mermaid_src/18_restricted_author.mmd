@@ -1,0 +1,30 @@
+flowchart TD
+    classDef action fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef process fill:#2c5f8a,color:#fff,stroke:#1a3d5c
+    classDef decision fill:#fff8e1,color:#333,stroke:#f0c040,font-weight:bold
+    classDef allowed fill:#e8f5e9,color:#2c6b2c,stroke:#5cb85c,font-weight:bold
+    classDef denied fill:#fce4ec,color:#c0392b,stroke:#ef5350,font-weight:bold
+    classDef crypto fill:#f0e6ff,color:#5f2c8a,stroke:#8a6bbf
+
+    START["Package Author Field"]:::action
+    IS_HAMILTON{"Author =<br/>'Hamilton'?"}:::decision
+    NO_RESTRICT1["No restriction<br/>(proceed normally)"]:::allowed
+    IS_SYSLIB{"Known system<br/>library?"}:::decision
+    NO_RESTRICT2["No restriction"]:::allowed
+    REQ_PW["Require author password"]:::process
+    HASH["PBKDF2-HMAC-SHA512<br/>(100,000 iterations)"]:::crypto
+    COMPARE["Compare to stored hash"]:::crypto
+    MATCH{"Match?"}:::decision
+    ALLOW["✅ ALLOWED"]:::allowed
+    DENY["❌ DENIED"]:::denied
+
+    START --> IS_HAMILTON
+    IS_HAMILTON -- "No" --> NO_RESTRICT1
+    IS_HAMILTON -- "Yes" --> IS_SYSLIB
+    IS_SYSLIB -- "Yes" --> NO_RESTRICT2
+    IS_SYSLIB -- "No" --> REQ_PW
+    REQ_PW --> HASH
+    HASH --> COMPARE
+    COMPARE --> MATCH
+    MATCH -- "Yes" --> ALLOW
+    MATCH -- "No" --> DENY

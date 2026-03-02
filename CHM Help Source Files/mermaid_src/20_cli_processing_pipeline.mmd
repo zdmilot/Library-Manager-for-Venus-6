@@ -1,0 +1,35 @@
+flowchart TD
+    classDef action fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef process fill:#2c5f8a,color:#fff,stroke:#1a3d5c
+    classDef decision fill:#fff8e1,color:#333,stroke:#f0c040,font-weight:bold
+    classDef allowed fill:#e8f5e9,color:#2c6b2c,stroke:#5cb85c,font-weight:bold
+    classDef denied fill:#fce4ec,color:#c0392b,stroke:#ef5350,font-weight:bold
+
+    START["node cli.js &lt;command&gt; [options]"]:::action
+    PARSE["yargs parses command and options"]:::process
+    IS_AUTH{"Auth-gated<br/>command?"}:::decision
+    AUTH_CHK["canManageLibraries() check"]:::process
+    AUTH_DENIED["Exit with error"]:::denied
+    AUTH_OK["Continue"]:::allowed
+
+    NO_AUTH["Continue"]:::allowed
+
+    LOAD_DB["Load database (diskdb)"]:::process
+    RESOLVE["Resolve file paths<br/>(--lib-dir, --met-dir, etc.)"]:::process
+    EXECUTE["Execute command-specific logic<br/>(calls into lib/shared.js)"]:::process
+    AUDIT["Append audit trail entry"]:::process
+    OUTPUT["Output results (text or --json)"]:::action
+
+    START --> PARSE
+    PARSE --> IS_AUTH
+    IS_AUTH -- "Yes" --> AUTH_CHK
+    AUTH_CHK -- "Denied" --> AUTH_DENIED
+    AUTH_CHK -- "Allowed" --> AUTH_OK
+    IS_AUTH -- "No" --> NO_AUTH
+
+    AUTH_OK --> LOAD_DB
+    NO_AUTH --> LOAD_DB
+    LOAD_DB --> RESOLVE
+    RESOLVE --> EXECUTE
+    EXECUTE --> AUDIT
+    AUDIT --> OUTPUT

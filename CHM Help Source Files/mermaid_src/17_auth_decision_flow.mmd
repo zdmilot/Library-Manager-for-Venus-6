@@ -1,0 +1,26 @@
+flowchart TD
+    classDef action fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef process fill:#2c5f8a,color:#fff,stroke:#1a3d5c
+    classDef decision fill:#fff8e1,color:#333,stroke:#f0c040,font-weight:bold
+    classDef allowed fill:#e8f5e9,color:#2c6b2c,stroke:#5cb85c,font-weight:bold
+    classDef denied fill:#fce4ec,color:#c0392b,stroke:#ef5350,font-weight:bold
+
+    START["Protected Action<br/>(import / delete / rollback)"]:::action
+    GROUPS["getWindowsGroups()<br/>via whoami (cached 15s)"]:::process
+    CHK_ALLOW{"Member of<br/>ALLOW groups?"}:::decision
+    CHK_DENY{"Member of<br/>DENY groups?"}:::decision
+    CHK_STRICT{"Strict mode<br/>enabled?"}:::decision
+
+    ALLOW1["✅ ALLOWED"]:::allowed
+    DENY1["❌ DENIED"]:::denied
+    DENY2["❌ DENIED<br/>(strict_default_deny)"]:::denied
+    ALLOW2["✅ ALLOWED<br/>(compat_default_allow)"]:::allowed
+
+    START --> GROUPS
+    GROUPS --> CHK_ALLOW
+    CHK_ALLOW -- "Yes" --> ALLOW1
+    CHK_ALLOW -- "No" --> CHK_DENY
+    CHK_DENY -- "Yes" --> DENY1
+    CHK_DENY -- "No" --> CHK_STRICT
+    CHK_STRICT -- "Yes" --> DENY2
+    CHK_STRICT -- "No" --> ALLOW2

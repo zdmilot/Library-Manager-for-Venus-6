@@ -1,0 +1,39 @@
+graph TD
+    classDef outer fill:#5f2c8a,color:#fff,stroke:#3d1a5c,font-weight:bold
+    classDef inner fill:#2c5f8a,color:#fff,stroke:#1a3d5c,font-weight:bold
+    classDef meta fill:#f0e6ff,color:#5f2c8a,stroke:#8a6bbf
+    classDef file fill:#f5f5f5,color:#333,stroke:#999
+    classDef scramble fill:#e8f4e8,color:#2c6b2c,stroke:#5cb85c
+
+    ARC["📦 .hxlibarch File"]:::outer
+    ARC_H["Outer Header 48B<br/>HXLARC magic + HMAC"]:::outer
+    ARC_P["XOR-Scrambled Outer ZIP"]:::scramble
+
+    AM["📄 archive_manifest.json"]:::meta
+
+    LIBA["📦 LibraryA.hxlibpkg"]:::inner
+    LIBA_H["Header 48B: HXLPKG + HMAC"]:::inner
+    LIBA_P["XOR-Scrambled Inner ZIP"]:::scramble
+    LIBA_M["📄 manifest.json"]:::file
+    LIBA_S["📄 signature.json"]:::file
+    LIBA_L["📁 library/ (.hsl, .dll, .chm ...)"]:::file
+    LIBA_D["📁 demo_methods/ (.hsl files)"]:::file
+    LIBA_I["📁 icon/ (library image)"]:::file
+
+    LIBB["📦 LibraryB.hxlibpkg<br/><small>(same structure)</small>"]:::inner
+    LIBN["📦 LibraryN.hxlibpkg<br/><small>(same structure)</small>"]:::inner
+
+    ARC --> ARC_H
+    ARC --> ARC_P
+    ARC_P --> AM
+    ARC_P --> LIBA
+    ARC_P --> LIBB
+    ARC_P --> LIBN
+
+    LIBA --> LIBA_H
+    LIBA --> LIBA_P
+    LIBA_P --> LIBA_M
+    LIBA_P --> LIBA_S
+    LIBA_P --> LIBA_L
+    LIBA_P --> LIBA_D
+    LIBA_P --> LIBA_I

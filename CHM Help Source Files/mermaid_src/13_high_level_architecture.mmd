@@ -1,0 +1,101 @@
+graph TD
+    classDef layer fill:#002f5d,color:#fff,stroke:#001a3a,font-weight:bold
+    classDef component fill:#2c5f8a,color:#fff,stroke:#1a3d5c,font-weight:bold
+    classDef detail fill:#f5f5f5,color:#333,stroke:#999
+    classDef external fill:#5a5a5a,color:#fff,stroke:#333,font-weight:bold
+
+    UI["User Interfaces"]:::layer
+
+    GUI["GUI (NW.js)"]:::component
+    GUI_D1["html/index.html"]:::detail
+    GUI_D2["html/js/main.js"]:::detail
+    GUI_D3["jQuery + Bootstrap"]:::detail
+
+    CLI["CLI (Node.js)"]:::component
+    CLI_D1["cli.js"]:::detail
+    CLI_D2["12 commands"]:::detail
+    CLI_D3["yargs-based parsing"]:::detail
+
+    CORE["Shared Core: lib/shared.js"]:::layer
+    CORE_D1["Container pack/unpack"]:::detail
+    CORE_D2["HMAC-SHA256 signing"]:::detail
+    CORE_D3["ZIP entry hashing"]:::detail
+    CORE_D4["Path traversal protection"]:::detail
+    CORE_D5["Library name validation"]:::detail
+    CORE_D6["Tag sanitization"]:::detail
+    CORE_D7["HSL metadata footer"]:::detail
+    CORE_D8["File integrity hashing"]:::detail
+    CORE_D9["GitHub URL validation"]:::detail
+    CORE_D10["Role-based authorization"]:::detail
+
+    DATA["Data Layer (diskdb)"]:::layer
+
+    DB["db/ (shipped defaults)"]:::component
+    DB1["settings.json"]:::detail
+    DB2["links.json"]:::detail
+    DB3["groups.json"]:::detail
+    DB4["system_libraries.json"]:::detail
+    DB5["system_library_hashes"]:::detail
+
+    LOCAL["local/ (per-machine state)"]:::component
+    L1["installed_libs.json"]:::detail
+    L2["groups.json"]:::detail
+    L3["tree.json"]:::detail
+    L4["unsigned_libs.json"]:::detail
+    L5["audit_trail.json"]:::detail
+    L6["publisher_registry.json"]:::detail
+    L7["LibraryPackages/"]:::detail
+
+    EXT["External Systems"]:::external
+    EXT_D1["VENUS Library Folder"]:::detail
+    EXT_D2["VENUS Methods Folder"]:::detail
+    EXT_D3["File System"]:::detail
+    EXT_D4["32-bit RegAsm.exe (COM)"]:::detail
+    EXT_D5["Windows Registry"]:::detail
+    EXT_D6["whoami /groups (auth)"]:::detail
+
+    UI --- GUI
+    UI --- CLI
+    GUI --- GUI_D1
+    GUI --- GUI_D2
+    GUI --- GUI_D3
+    CLI --- CLI_D1
+    CLI --- CLI_D2
+    CLI --- CLI_D3
+
+    GUI --> CORE
+    CLI --> CORE
+    CORE --- CORE_D1
+    CORE --- CORE_D2
+    CORE --- CORE_D3
+    CORE --- CORE_D4
+    CORE --- CORE_D5
+    CORE --- CORE_D6
+    CORE --- CORE_D7
+    CORE --- CORE_D8
+    CORE --- CORE_D9
+    CORE --- CORE_D10
+
+    CORE --> DATA
+    DATA --- DB
+    DATA --- LOCAL
+    DB --- DB1
+    DB --- DB2
+    DB --- DB3
+    DB --- DB4
+    DB --- DB5
+    LOCAL --- L1
+    LOCAL --- L2
+    LOCAL --- L3
+    LOCAL --- L4
+    LOCAL --- L5
+    LOCAL --- L6
+    LOCAL --- L7
+
+    DATA --> EXT
+    EXT --- EXT_D1
+    EXT --- EXT_D2
+    EXT --- EXT_D3
+    EXT --- EXT_D4
+    EXT --- EXT_D5
+    EXT --- EXT_D6
