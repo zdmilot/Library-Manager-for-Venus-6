@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Uninstallation</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Uninstallation</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Uninstallation</div>
+
+<h2>Overview</h2>
+<p>The Library Manager for Venus 6 uninstaller provides a <b>three-tier removal system</b> that lets you choose exactly how much data to remove along with the application. When you launch the uninstaller, a dialog appears with three options before any files are deleted.</p>
+
+<h2>Launching the Uninstaller</h2>
+<p>You can start the uninstall process in any of the following ways:</p>
+<ul>
+  <li><b>Start Menu</b> &mdash; open the <i>Library Manager for Venus 6</i> program group and click <b>Uninstall Library Manager for Venus 6</b></li>
+  <li><b>Windows Settings</b> &mdash; go to <i>Settings &rarr; Apps &rarr; Installed apps</i>, locate <i>Library Manager for Venus 6</i>, and click <b>Uninstall</b></li>
+  <li><b>Control Panel</b> &mdash; open <i>Programs and Features</i>, select <i>Library Manager for Venus 6</i>, and click <b>Uninstall</b></li>
+</ul>
+
+<h2>Removal Mode Selection</h2>
+<p>Before anything is removed, a dialog asks you to choose one of three removal modes:</p>
+
+<h3>1. Application Only <span style="color: gray; font-weight: normal;">(least destructive)</span></h3>
+<p>Removes <b>only the core application files</b>:</p>
+<ul>
+  <li>Executable (<code>Library Manager for Venus 6.exe</code>)</li>
+  <li>Runtime DLLs (<code>nw.dll</code>, <code>node.dll</code>, etc.)</li>
+  <li>Dependencies (<code>node_modules\</code>)</li>
+  <li>UI assets (<code>html\</code>, <code>assets\</code>, <code>icons\</code>, <code>locales\</code>)</li>
+  <li>CLI files, help file, README, and legal documents</li>
+</ul>
+
+<p><b>Keeps all user data</b>, including:</p>
+<ul>
+  <li>Application settings and configuration (<code>local\settings.json</code>)</li>
+  <li>Library registry, groups, and navigation tree</li>
+  <li>Package archives (<code>local\packages\</code>)</li>
+  <li>Exported files (<code>local\exports\</code>)</li>
+  <li>Audit trail (<code>local\audit_trail.json</code>)</li>
+  <li>Publisher registry</li>
+  <li>Database templates and verification hashes (<code>db\</code>)</li>
+</ul>
+
+<p><b>When to use:</b> You plan to reinstall the application later and want to pick up exactly where you left off &mdash; all settings, packages, and history will be restored on reinstall.</p>
+
+<h3>2. Standard</h3>
+<p>Removes the core application files (same as Application Only) <b>plus</b> application settings and configuration files:</p>
+
+<table>
+<thead><tr><th>Removed</th><th>Kept</th></tr></thead>
+<tbody>
+<tr>
+  <td>
+    <ul>
+      <li><code>local\settings.json</code></li>
+      <li><code>local\installed_libs.json</code></li>
+      <li><code>local\groups.json</code></li>
+      <li><code>local\tree.json</code></li>
+      <li><code>local\links.json</code></li>
+      <li><code>local\unsigned_libs.json</code></li>
+      <li><code>local\publisher_registry.json</code></li>
+      <li><code>db\settings.json</code></li>
+      <li><code>db\installed_libs.json</code></li>
+      <li><code>db\groups.json</code></li>
+      <li><code>db\tree.json</code></li>
+      <li><code>db\links.json</code></li>
+      <li><code>db\unsigned_libs.json</code></li>
+    </ul>
+  </td>
+  <td>
+    <ul>
+      <li>Package archives (<code>local\packages\</code>)</li>
+      <li>Exported files (<code>local\exports\</code>)</li>
+      <li>Audit trail (<code>local\audit_trail.json</code>)</li>
+      <li>System library definitions (<code>db\system_libraries.json</code>)</li>
+      <li>File verification hashes (<code>db\system_library_hashes.json</code>)</li>
+    </ul>
+  </td>
+</tr>
+</tbody>
+</table>
+
+<p><b>When to use:</b> You are replacing the application with a different program, but want to keep important records &mdash; package archives, audit logs, event history, and the verification data (hashes) needed to validate retained archives and logs.</p>
+
+<h3>3. Full Removal <span style="color: #800000; font-weight: normal;">(most destructive)</span></h3>
+<p style="color: #800000;"><b>WARNING: Destructive action.</b> This option removes the application and <b>all associated data</b>, including:</p>
+<ul>
+  <li>All audit files, event history, and audit trail logs</li>
+  <li>All archived library packages (<code>local\packages\</code>)</li>
+  <li>All exported files (<code>local\exports\</code>)</li>
+  <li>All backups and retained verification data</li>
+  <li>All settings, configuration, and database files</li>
+</ul>
+
+<p>When you select this option, an additional confirmation dialog appears asking you to verify that you understand the consequences. You must click <b>Yes</b> to proceed.</p>
+
+<p><b>Important:</b> Full Removal does <b>not</b> delete anything in external VENUS directories. Any libraries already installed in the Hamilton <code>Library\</code> or <code>Methods\</code> directories will remain intact and continue to function in VENUS.</p>
+
+<p><b>When to use:</b> You want a completely clean slate with no trace of the application or its data on disk.</p>
+
+<h2>Removal Mode Comparison</h2>
+<table>
+<thead>
+  <tr>
+    <th>Data Category</th>
+    <th>Application Only</th>
+    <th>Standard</th>
+    <th>Full Removal</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>Application binaries &amp; UI</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Start Menu / Desktop shortcuts</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Application settings</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Library registry &amp; groups</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Package archives</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Audit trail &amp; event history</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Exported files</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td></tr>
+  <tr><td>Verification hashes</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td></tr>
+  <tr><td>System library definitions</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:red;">Removed</td></tr>
+  <tr><td>External VENUS libraries</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td><td style="color:green;">Kept</td></tr>
+</tbody>
+</table>
+
+<h2>What Happens During Uninstall</h2>
+<ol>
+  <li>The <b>Removal Mode Selection</b> dialog is displayed. Choose a tier and click <b>Uninstall</b>, or click <b>Cancel</b> to abort.</li>
+  <li>If <b>Full Removal</b> is selected, an additional confirmation dialog warns about the destructive consequences and asks for explicit approval.</li>
+  <li>The built-in Inno Setup uninstaller removes tracked application files (binaries, DLLs, UI assets, runtime dependencies). Data files (in <code>local\</code> and <code>db\</code>) are <b>not</b> removed at this stage because they are flagged for manual control.</li>
+  <li>After the core uninstall completes, a post-uninstall cleanup step runs according to the selected removal mode:
+    <ul>
+      <li><b>Application Only</b> &mdash; no additional cleanup; all data directories remain.</li>
+      <li><b>Standard</b> &mdash; settings and configuration JSON files are deleted from both <code>local\</code> and <code>db\</code>. The <code>db\</code> directory is removed only if it becomes empty (verification hashes and system library definitions may still reside there).</li>
+      <li><b>Full Removal</b> &mdash; the entire <code>local\</code> and <code>db\</code> directory trees are deleted, and the install directory itself is removed if empty.</li>
+    </ul>
+  </li>
+  <li>Start Menu entries and the desktop shortcut (if created) are removed regardless of which tier is selected.</li>
+</ol>
+
+<h2>Residual Files After Uninstall</h2>
+<p>Depending on the removal mode, some files and directories may remain on disk after uninstalling:</p>
+
+<table>
+<thead><tr><th>Mode</th><th>Residual Contents</th></tr></thead>
+<tbody>
+<tr>
+  <td>Application Only</td>
+  <td>The entire <code>local\</code> and <code>db\</code> directories remain intact. The install directory is preserved.</td>
+</tr>
+<tr>
+  <td>Standard</td>
+  <td><code>local\packages\</code>, <code>local\exports\</code>, <code>local\audit_trail.json</code>, and (within <code>db\</code>) <code>system_libraries.json</code> and <code>system_library_hashes.json</code>. The install directory is preserved.</td>
+</tr>
+<tr>
+  <td>Full Removal</td>
+  <td>None. The install directory is removed entirely (assuming no external files were manually placed there).</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Reinstalling After Uninstall</h2>
+<p>If the <b>Application Only</b> or <b>Standard</b> mode was used, reinstalling Library Manager for Venus 6 to the same directory will automatically detect and reuse the retained data files. The application will launch with your preserved packages, audit history, and (in Application Only mode) your settings intact.</p>
+
+<h2>Silent / Unattended Uninstall</h2>
+<p>The uninstaller supports Inno Setup&rsquo;s standard silent switches. In silent mode, the removal mode selection dialog is not shown and the uninstaller defaults to <b>Application Only</b> (least destructive) behavior:</p>
+<div class="code"><pre>unins000.exe /SILENT
+unins000.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
+
+<h2>Related Topics</h2>
+<ul>
+  <li><a href="Installation.html">Installation</a></li>
+  <li><a href="FileStorage.html">File Storage &amp; Data Management</a></li>
+  <li><a href="LibraryAuditLog.html">Library Audit Log</a></li>
+  <li><a href="IntegrityVerification.html">Integrity Verification</a></li>
+  <li><a href="VersionRollback.html">Version Rollback</a></li>
+</ul>
+
+</div>
+<div class="footer">
+<p>Library Manager for Venus 6 Help</p>
+</div>
+<script src="help.js"></script>
+</body>
+</html>

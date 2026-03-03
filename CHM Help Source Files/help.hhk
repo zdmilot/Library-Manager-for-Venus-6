@@ -178,6 +178,30 @@
 		<param name="Local" value="GettingStarted.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="install">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="installation">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="installer">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="setup wizard">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="silent install">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="upgrade">
+		<param name="Local" value="Installation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="grouping">
 		<param name="Local" value="LibraryGrouping.html">
 		</OBJECT>
@@ -484,6 +508,34 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="sign unsigned library">
 		<param name="Local" value="UnsignedLibraries.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="uninstall">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="uninstallation">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="removal mode">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="application only">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="full removal">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="silent uninstall">
+		<param name="Local" value="Uninstallation.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="residual files">
+		<param name="Local" value="Uninstallation.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="user data directory">

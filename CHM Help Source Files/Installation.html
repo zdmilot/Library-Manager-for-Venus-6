@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Installation</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Installation</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Installation</div>
+
+<h2>Overview</h2>
+<p>Library Manager for Venus 6 is distributed as a single Windows installer (<code>LibraryManagerForVenus6_v&lt;version&gt;_Setup.exe</code>) built with Inno Setup. The installer requires <b>administrator privileges</b> and targets <b>64-bit Windows 10 or later</b>.</p>
+
+<h2>System Requirements</h2>
+<table>
+<thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+<tbody>
+<tr><td>Operating System</td><td>Windows 10 or later (64-bit)</td></tr>
+<tr><td>Privileges</td><td>Administrator rights required for installation</td></tr>
+<tr><td>Disk Space</td><td>Approximately 200&nbsp;MB (varies with library content)</td></tr>
+<tr><td>Default Install Path</td><td><code>C:\Program Files (x86)\Library Manager for Venus 6</code></td></tr>
+</tbody>
+</table>
+
+<h2>Installation Wizard Steps</h2>
+<p>The installer walks you through the following pages in order:</p>
+
+<h3>1. Welcome Page</h3>
+<p>Displays the application name and version. Click <b>Next</b> to proceed.</p>
+
+<h3>2. Terms of Use &amp; Privacy Policy</h3>
+<p>The full text of the Terms of Use and Privacy Policy is presented in a scrollable text area. You must check the <b>&ldquo;I accept the Terms of Use and Privacy Policy&rdquo;</b> checkbox before the <b>Next</b> button becomes enabled. Installation cannot proceed without acceptance.</p>
+
+<h3>3. Select Destination Directory</h3>
+<p>Choose the installation folder. The default location is:</p>
+<pre>C:\Program Files (x86)\Library Manager for Venus 6</pre>
+<p>You may change this to any writable directory. The installer will create the folder if it does not exist.</p>
+
+<h3>4. Application Configuration</h3>
+<p>This custom page lets you set initial preferences that are written into the application&rsquo;s settings files on install. The page is divided into three sections:</p>
+
+<h4>Environment Mode</h4>
+<table>
+<thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>Enable Regulated Environment Mode (GxP)</b></td>
+  <td>Off</td>
+  <td>
+    Turns on strict access controls designed for GxP-regulated laboratories. When enabled:
+    <ul>
+      <li>Only users in authorized Windows groups (<i>Lab Method Programmer</i>, <i>Lab Service</i>) or Administrators can manage libraries</li>
+      <li>GitHub repository links are disabled and cannot be re-enabled</li>
+      <li>Unsigned libraries are not permitted &mdash; all packages must be signed</li>
+      <li>A full audit log is maintained for all operations</li>
+      <li>Import/export operations require authorized group membership</li>
+      <li>Action comments and signatures may be enforced</li>
+    </ul>
+    A confirmation dialog is shown before enabling. See <a href="RegulatedEnvironment.html">Regulated Environment Mode</a> for details.
+  </td>
+</tr>
+</tbody>
+</table>
+
+<h4>Appearance</h4>
+<table>
+<thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>Always use dark mode</b></td>
+  <td>Off</td>
+  <td>When checked, the application always launches in dark (night) mode. When unchecked, the theme follows the system setting.</td>
+</tr>
+</tbody>
+</table>
+
+<h4>GitHub Integration</h4>
+<table>
+<thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>Show GitHub Repository Links</b></td>
+  <td>Off</td>
+  <td>When checked, GitHub repository links are displayed in library detail views. This option is automatically disabled and locked when Regulated Environment Mode is enabled.</td>
+</tr>
+</tbody>
+</table>
+
+<h3>5. Additional Tasks</h3>
+<p>Optionally create a desktop shortcut for Library Manager for Venus 6. This is unchecked by default.</p>
+
+<h3>6. Ready to Install</h3>
+<p>Displays a summary of all selected options &mdash; install directory, Start Menu group, and the configuration choices made on the Application Configuration page. If Regulated Environment Mode is enabled, a prominent notice lists the consequences. Review the summary and click <b>Install</b> to begin.</p>
+
+<h3>7. Installation Progress</h3>
+<p>Files are copied to the destination directory. The following post-install steps happen automatically:</p>
+<ul>
+  <li><b>Settings files</b> are generated from your configuration choices and written to both <code>{app}\local\settings.json</code> and <code>{app}\db\settings.json</code>.</li>
+  <li><b>Folder permissions</b> are set on the <code>local\</code> data directory. The installer runs <code>icacls</code> to grant Modify permissions to the <b>Users</b> group so that non-administrator user accounts can read and write application data.</li>
+</ul>
+
+<h3>8. Completion</h3>
+<p>Once installation finishes you may choose to launch Library Manager for Venus 6 immediately.</p>
+
+<h2>What Gets Installed</h2>
+<p>The installer deploys the following components into the chosen directory:</p>
+
+<table>
+<thead><tr><th>Component</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td>Application executable</td><td><code>Library Manager for Venus 6.exe</code>, application icon files</td></tr>
+<tr><td>NW.js runtime</td><td><code>nw.dll</code>, <code>node.dll</code>, <code>nw_elf.dll</code>, DirectX/OpenGL DLLs, resource paks, ICU data, V8 snapshots, notification helper</td></tr>
+<tr><td>SwiftShader</td><td>Software rendering fallback (<code>swiftshader\</code>)</td></tr>
+<tr><td>Locales</td><td>Language resource packs (<code>locales\</code>)</td></tr>
+<tr><td>Application manifest</td><td><code>package.json</code></td></tr>
+<tr><td>CLI</td><td><code>cli.js</code>, <code>cli-schema.json</code>, <code>cli-spec-example.json</code></td></tr>
+<tr><td>Shared library module</td><td><code>lib\</code></td></tr>
+<tr><td>GUI</td><td>HTML, CSS, JavaScript, images, and web fonts (<code>html\</code>)</td></tr>
+<tr><td>Node.js modules</td><td>Production dependencies (<code>node_modules\</code>)</td></tr>
+<tr><td>Assets &amp; icons</td><td>Image resources (<code>assets\</code>, <code>icons\</code>)</td></tr>
+<tr><td>Database templates</td><td>Initial-state JSON files (<code>db\</code>) &mdash; system library definitions, baseline hashes, seed data</td></tr>
+<tr><td>Local data directory</td><td>Mutable application state (<code>local\</code>) &mdash; settings, library registry, groups, tree, links, publisher registry, package store, exports folder</td></tr>
+<tr><td>Help file</td><td><code>Library Manager for Venus 6.chm</code></td></tr>
+<tr><td>Legal documents</td><td><code>README.md</code>, <code>PRIVACY_POLICY.txt</code>, <code>TERMS_OF_USE.txt</code></td></tr>
+</tbody>
+</table>
+
+<h2>Start Menu &amp; Desktop Shortcuts</h2>
+<p>The installer creates a Start Menu group containing:</p>
+<ul>
+  <li><b>Library Manager for Venus 6</b> &mdash; launches the application</li>
+  <li><b>Uninstall Library Manager for Venus 6</b> &mdash; runs the uninstaller</li>
+</ul>
+<p>A desktop shortcut is created only if the corresponding checkbox was selected during installation.</p>
+
+<h2>Silent / Unattended Installation</h2>
+<p>The installer supports Inno Setup&rsquo;s standard silent-install switches:</p>
+<div class="code"><pre>LibraryManagerForVenus6_v1.4.8_Setup.exe /SILENT
+LibraryManagerForVenus6_v1.4.8_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
+<p>In silent mode, default configuration values are used (Regulated Mode off, system theme, GitHub links hidden). To create a desktop shortcut in silent mode, add <code>/TASKS="desktopicon"</code>.</p>
+
+<h2>Upgrading from a Previous Version</h2>
+<p>When reinstalling or upgrading, the installer overwrites application binaries and template files but preserves user data in the <code>local\</code> directory. On first launch after an upgrade, the application automatically migrates data from any legacy storage locations. See <a href="FileStorage.html">File Storage &amp; Data Management</a> for migration details.</p>
+
+<h2>Related Topics</h2>
+<ul>
+  <li><a href="Uninstallation.html">Uninstallation</a></li>
+  <li><a href="GettingStarted.html">Getting Started</a></li>
+  <li><a href="FileStorage.html">File Storage &amp; Data Management</a></li>
+  <li><a href="RegulatedEnvironment.html">Regulated Environment Mode</a></li>
+  <li><a href="SystemArchitecture.html">System Architecture</a></li>
+</ul>
+
+</div>
+<div class="footer">
+<p>Library Manager for Venus 6 Help</p>
+</div>
+<script src="help.js"></script>
+</body>
+</html>

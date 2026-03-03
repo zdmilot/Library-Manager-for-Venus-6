@@ -18,6 +18,14 @@
 			<param name="Local" value="Overview.html">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Installation">
+			<param name="Local" value="Installation.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Uninstallation">
+			<param name="Local" value="Uninstallation.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Getting Started">
 			<param name="Local" value="GettingStarted.html">
 			</OBJECT>
