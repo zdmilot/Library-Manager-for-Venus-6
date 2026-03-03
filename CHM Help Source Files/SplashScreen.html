@@ -51,8 +51,8 @@
     <td>A tiny inline <code>&lt;script&gt;</code> placed immediately after the splash <code>&lt;div&gt;</code> uses a double <code>requestAnimationFrame</code> to ensure the splash has actually composited before making the window visible.</td>
 </tr>
 <tr>
-    <td><b>Maximize before show</b></td>
-    <td>If the user&rsquo;s last session was maximized (<code>windowMaximized: true</code> in <code>settings.json</code>), the inline script calls <code>win.maximize()</code> <i>before</i> <code>win.show()</code>. This eliminates the visible &ldquo;resize flash&rdquo; where the window would briefly appear at 1280&times;800 and then snap to full screen. The setting is read directly from the JSON file via <code>fs.readFileSync</code> so that the value is available before the main application scripts load.</td>
+    <td><b>Pre-size &amp; maximize before show</b></td>
+    <td>If the user&rsquo;s last session was maximized, the inline script pre-sizes the hidden window to the available screen dimensions (<code>win.moveTo</code> + <code>win.resizeTo</code>) <i>before</i> calling <code>win.show()</code>, then immediately calls <code>win.maximize()</code>. Because the window is already full-screen sized when it becomes visible, the maximize is invisible&mdash;eliminating the &ldquo;resize flash&rdquo;. The maximized flag is read from <code>localStorage</code> (instant, no file path ambiguity) with a fallback to <code>settings.json</code> on first launch.</td>
 </tr>
 <tr>
     <td><b><code>html, body</code> background color</b></td>
@@ -94,7 +94,7 @@
     <td>1</td>
     <td>Main</td>
     <td><code>Initializing...</code></td>
-    <td>NW.js creates the hidden window. Inline splash styles + inline SVG render. Before making the window visible, the inline script reads the persisted <code>windowMaximized</code> flag from <code>settings.json</code>; if <code>true</code>, <code>win.maximize()</code> is called while the window is still hidden. Then <code>win.show()</code> fires after first paint, so a maximized window appears instantly at full size. External CSS begins preloading in the background.</td>
+    <td>NW.js creates the hidden window. Inline splash styles + inline SVG render. The inline script reads the persisted maximized flag from <code>localStorage</code> (falling back to <code>settings.json</code> on first install). If the window should be maximized, its dimensions are set to <code>screen.availWidth &times; screen.availHeight</code> while still hidden. After the double-<code>requestAnimationFrame</code> gate, <code>win.show()</code> reveals the already-full-size window, followed immediately by <code>win.maximize()</code> (invisible). External CSS begins preloading in the background.</td>
 </tr>
 <tr>
     <td>2</td>

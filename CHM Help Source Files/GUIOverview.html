@@ -268,13 +268,13 @@
 <p>When cleanup runs, a progress bar appears in the navigation bar showing "Cleaning up run logs" with a percentage. After completion, the message changes to "Run log cleanup completed!" and fades out after a few seconds.</p>
 
 <h2>Window State</h2>
-<p>The application saves and restores its <b>maximized state</b> across sessions. When you close the window, the current maximized/restored state is persisted to the <code>windowMaximized</code> setting in <a href="DataModel.html">settings.json</a>.</p>
+<p>The application saves and restores its <b>maximized state</b> across sessions. When you close the window, the current state is dual-written to <code>localStorage</code> (primary) and the <code>windowMaximized</code> key in <a href="DataModel.html">settings.json</a> (secondary).</p>
 <ul>
 <li><b>Default on install:</b> The window opens <b>maximized</b> (<code>windowMaximized</code> defaults to <code>true</code>).</li>
 <li><b>Restore / un-maximize:</b> If you restore the window to its normal size before closing, the next launch will open at the default dimensions of 1280 &times; 800 pixels (minimum 800 &times; 700).</li>
 <li><b>Maximize again:</b> If you maximize the window before closing, the next launch will open maximized.</li>
 </ul>
-<p>To avoid a visible &ldquo;resize flash&rdquo; when the window should open maximized, the application reads the <code>windowMaximized</code> flag directly from <code>settings.json</code> <em>before</em> making the window visible. This means a maximized launch appears instantly at full screen rather than briefly showing at the smaller default size and then expanding.</p>
+<p>To avoid a visible &ldquo;resize flash,&rdquo; the inline startup script reads <code>localStorage</code> (falling back to <code>settings.json</code> on first run) and, when maximized, <b>pre-sizes the hidden window to match the available screen dimensions</b> using <code>win.moveTo</code>/<code>win.resizeTo</code> before calling <code>win.show()</code>. Because the window is already screen-sized when it becomes visible, the subsequent <code>win.maximize()</code> call is invisible to the user.</p>
 <p>Window position (x,&nbsp;y coordinates) is not persisted.</p>
 </div>
 <div class="footer">
