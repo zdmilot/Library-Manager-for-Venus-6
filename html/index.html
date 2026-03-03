@@ -30,7 +30,7 @@
 
 </head>
 
-<body bgcolor="#002e48">
+<body>
 	<!-- Splash screen overlay -->
 	<div id="splash-screen">
 		<div class="splash-content">
@@ -1439,7 +1439,16 @@
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Display <span class="settings-admin-badge" style="display:none;" title="You have access to this setting as a Windows Administrator"><i class="fas fa-unlock text-success ml-1" style="font-size:0.85em;"></i></span></h6>
-							<small class="text-muted d-block mb-2">Use the <i class="fas fa-moon" style="font-size:0.85em;"></i> / <i class="fas fa-sun" style="font-size:0.85em;"></i> button in the toolbar to switch between light and dark mode. On first launch the app follows your Windows theme. Your choice is remembered between sessions.</small>
+							<div class="custom-control custom-checkbox">
+								<input type="checkbox" class="custom-control-input" id="chk_useSystemTheme">
+								<label class="custom-control-label" for="chk_useSystemTheme">Use system theme (follows your Windows light/dark setting)</label>
+							</div>
+							<small class="text-muted ml-4 d-block mb-2">Automatically match the operating system's light or dark appearance. When enabled, the manual day/night toggle is hidden.</small>
+							<div class="custom-control custom-checkbox mt-2 chk-darkMode-wrap">
+								<input type="checkbox" class="custom-control-input" id="chk_darkMode">
+								<label class="custom-control-label" for="chk_darkMode">Enable night mode (dark theme)</label>
+							</div>
+							<small class="text-muted ml-4 d-block mb-2 chk-darkMode-wrap">Switch between day (light) and night (dark) interface themes. This preference is retained between sessions.</small>
 							<div class="custom-control custom-checkbox mt-2">
 								<input type="checkbox" class="custom-control-input" id="chk_hideSystemLibraries">
 								<label class="custom-control-label" for="chk_hideSystemLibraries">Hide system libraries on the front page</label>
