@@ -58,6 +58,7 @@ var
   TermsPage: TWizardPage;
   TermsMemo: TNewMemo;
   AcceptCheckbox: TNewCheckBox;
+  UninstallMode: Integer;
 
 procedure AcceptCheckboxClick(Sender: TObject);
 begin
@@ -382,6 +383,246 @@ begin
   end;
 end;
 
+// =========================================================================
+// UNINSTALLER - Three-tier removal
+// =========================================================================
+//   Tier 1 - Application Only: removes binaries/UI; keeps all user data.
+//   Tier 2 - Standard: also removes settings; keeps packages, audit log,
+//            exports, and verification hashes.
+//   Tier 3 - Full Removal: deletes everything under {app}.
+// =========================================================================
+
+function InitializeUninstall(): Boolean;
+var
+  Form: TSetupForm;
+  OKButton, CancelButton: TNewButton;
+  RadioAppOnly, RadioStandard, RadioFull: TNewRadioButton;
+  HeaderLabel, Desc1, Desc2, Desc3: TNewStaticText;
+  Bevel1, Bevel2: TBevel;
+begin
+  Result := False;
+  UninstallMode := 1;
+
+  Form := CreateCustomForm();
+  try
+    Form.ClientWidth := ScaleX(510);
+    Form.ClientHeight := ScaleY(400);
+    Form.Caption := 'Uninstall - Select Removal Mode';
+    Form.Position := poScreenCenter;
+
+    // --- Header ---
+    HeaderLabel := TNewStaticText.Create(Form);
+    HeaderLabel.Parent := Form;
+    HeaderLabel.Left := ScaleX(16);
+    HeaderLabel.Top := ScaleY(12);
+    HeaderLabel.Width := Form.ClientWidth - ScaleX(32);
+    HeaderLabel.WordWrap := True;
+    HeaderLabel.Caption := 'Choose how much data to remove along with the application:';
+    HeaderLabel.Font.Style := [fsBold];
+    HeaderLabel.Font.Size := 9;
+
+    // --- Option 1: Application Only ---
+    RadioAppOnly := TNewRadioButton.Create(Form);
+    RadioAppOnly.Parent := Form;
+    RadioAppOnly.Left := ScaleX(20);
+    RadioAppOnly.Top := HeaderLabel.Top + HeaderLabel.Height + ScaleY(16);
+    RadioAppOnly.Width := Form.ClientWidth - ScaleX(40);
+    RadioAppOnly.Caption := 'Application Only  (least destructive)';
+    RadioAppOnly.Checked := True;
+    RadioAppOnly.Font.Style := [fsBold];
+
+    Desc1 := TNewStaticText.Create(Form);
+    Desc1.Parent := Form;
+    Desc1.Left := ScaleX(38);
+    Desc1.Top := RadioAppOnly.Top + RadioAppOnly.Height + ScaleY(2);
+    Desc1.Width := Form.ClientWidth - ScaleX(54);
+    Desc1.WordWrap := True;
+    Desc1.Caption :=
+      'Removes only the core application files (EXE, DLLs, dependencies, ' +
+      'UI assets). Keeps all user data, including package archives and ' +
+      'application settings, so the app can be reinstalled without losing anything.';
+    Desc1.Font.Color := clGray;
+    Desc1.Font.Size := 8;
+
+    // --- Divider 1 ---
+    Bevel1 := TBevel.Create(Form);
+    Bevel1.Parent := Form;
+    Bevel1.Left := ScaleX(16);
+    Bevel1.Top := Desc1.Top + Desc1.Height + ScaleY(10);
+    Bevel1.Width := Form.ClientWidth - ScaleX(32);
+    Bevel1.Height := 2;
+    Bevel1.Shape := bsBottomLine;
+
+    // --- Option 2: Standard ---
+    RadioStandard := TNewRadioButton.Create(Form);
+    RadioStandard.Parent := Form;
+    RadioStandard.Left := ScaleX(20);
+    RadioStandard.Top := Bevel1.Top + Bevel1.Height + ScaleY(10);
+    RadioStandard.Width := Form.ClientWidth - ScaleX(40);
+    RadioStandard.Caption := 'Standard';
+    RadioStandard.Font.Style := [fsBold];
+
+    Desc2 := TNewStaticText.Create(Form);
+    Desc2.Parent := Form;
+    Desc2.Left := ScaleX(38);
+    Desc2.Top := RadioStandard.Top + RadioStandard.Height + ScaleY(2);
+    Desc2.Width := Form.ClientWidth - ScaleX(54);
+    Desc2.WordWrap := True;
+    Desc2.Caption :=
+      'Removes the application files and deletes application settings/' +
+      'configuration. Keeps package archives, audit logs/history, and ' +
+      'file verification data (hashes) required to validate retained ' +
+      'archives and logs.';
+    Desc2.Font.Color := clGray;
+    Desc2.Font.Size := 8;
+
+    // --- Divider 2 ---
+    Bevel2 := TBevel.Create(Form);
+    Bevel2.Parent := Form;
+    Bevel2.Left := ScaleX(16);
+    Bevel2.Top := Desc2.Top + Desc2.Height + ScaleY(10);
+    Bevel2.Width := Form.ClientWidth - ScaleX(32);
+    Bevel2.Height := 2;
+    Bevel2.Shape := bsBottomLine;
+
+    // --- Option 3: Full Removal ---
+    RadioFull := TNewRadioButton.Create(Form);
+    RadioFull.Parent := Form;
+    RadioFull.Left := ScaleX(20);
+    RadioFull.Top := Bevel2.Top + Bevel2.Height + ScaleY(10);
+    RadioFull.Width := Form.ClientWidth - ScaleX(40);
+    RadioFull.Caption := 'Full Removal  (most destructive)';
+    RadioFull.Font.Style := [fsBold];
+
+    Desc3 := TNewStaticText.Create(Form);
+    Desc3.Parent := Form;
+    Desc3.Left := ScaleX(38);
+    Desc3.Top := RadioFull.Top + RadioFull.Height + ScaleY(2);
+    Desc3.Width := Form.ClientWidth - ScaleX(54);
+    Desc3.WordWrap := True;
+    Desc3.Caption :=
+      'WARNING: Destructive action. Removes the application and ALL ' +
+      'associated data, including audit files, event history, package ' +
+      'archives, backups, and verification data. Libraries already ' +
+      'installed in external VENUS directories will not be affected.';
+    Desc3.Font.Color := $000080;  // Dark red (BGR format)
+    Desc3.Font.Size := 8;
+
+    // --- Buttons ---
+    CancelButton := TNewButton.Create(Form);
+    CancelButton.Parent := Form;
+    CancelButton.Width := ScaleX(80);
+    CancelButton.Height := ScaleY(26);
+    CancelButton.Left := Form.ClientWidth - CancelButton.Width - ScaleX(16);
+    CancelButton.Top := Form.ClientHeight - CancelButton.Height - ScaleY(12);
+    CancelButton.Caption := 'Cancel';
+    CancelButton.ModalResult := mrCancel;
+    CancelButton.Cancel := True;
+
+    OKButton := TNewButton.Create(Form);
+    OKButton.Parent := Form;
+    OKButton.Width := ScaleX(80);
+    OKButton.Height := ScaleY(26);
+    OKButton.Left := CancelButton.Left - OKButton.Width - ScaleX(8);
+    OKButton.Top := CancelButton.Top;
+    OKButton.Caption := 'Uninstall';
+    OKButton.ModalResult := mrOK;
+    OKButton.Default := True;
+
+    Form.ActiveControl := OKButton;
+
+    if Form.ShowModal() = mrOK then
+    begin
+      if RadioFull.Checked then
+      begin
+        // Extra confirmation for destructive full removal
+        if MsgBox(
+          'Are you sure you want to perform a FULL removal?' + #13#10 + #13#10 +
+          'This will permanently delete:' + #13#10 +
+          '  - All audit files and event history' + #13#10 +
+          '  - All archived library packages' + #13#10 +
+          '  - All backups and verification data' + #13#10 + #13#10 +
+          'This action cannot be undone.',
+          mbConfirmation, MB_YESNO) = IDYES then
+        begin
+          UninstallMode := 3;
+          Result := True;
+        end;
+      end
+      else if RadioStandard.Checked then
+      begin
+        UninstallMode := 2;
+        Result := True;
+      end
+      else
+      begin
+        UninstallMode := 1;
+        Result := True;
+      end;
+    end;
+  finally
+    Form.Free();
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  AppDir: String;
+begin
+  if CurUninstallStep <> usPostUninstall then
+    Exit;
+
+  AppDir := ExpandConstant('{app}');
+
+  case UninstallMode of
+    // -- Tier 1: Application Only ----------------------------------------
+    // The built-in uninstaller already removed tracked app files.
+    // All local/ and db/ data is preserved (uninsneveruninstall flag).
+    1:
+    begin
+      // Nothing extra to do - data stays for a future reinstall.
+    end;
+
+    // -- Tier 2: Standard ------------------------------------------------
+    // Remove settings & configuration; keep packages, audit, hashes.
+    2:
+    begin
+      // --- local/ settings & config ---
+      DeleteFile(AppDir + '\local\settings.json');
+      DeleteFile(AppDir + '\local\installed_libs.json');
+      DeleteFile(AppDir + '\local\groups.json');
+      DeleteFile(AppDir + '\local\tree.json');
+      DeleteFile(AppDir + '\local\links.json');
+      DeleteFile(AppDir + '\local\unsigned_libs.json');
+      DeleteFile(AppDir + '\local\publisher_registry.json');
+
+      // --- db/ settings & config ---
+      // Keep system_library_hashes.json and system_libraries.json
+      // (verification data required to validate retained archives/logs).
+      DeleteFile(AppDir + '\db\settings.json');
+      DeleteFile(AppDir + '\db\installed_libs.json');
+      DeleteFile(AppDir + '\db\groups.json');
+      DeleteFile(AppDir + '\db\tree.json');
+      DeleteFile(AppDir + '\db\links.json');
+      DeleteFile(AppDir + '\db\unsigned_libs.json');
+
+      // Remove db/ only if it is now empty (hashes/system_libraries remain)
+      RemoveDir(AppDir + '\db');
+      // local/ intentionally kept (packages/, exports/, audit_trail.json)
+    end;
+
+    // -- Tier 3: Full Removal --------------------------------------------
+    // Nuke every remaining file under {app}.
+    3:
+    begin
+      DelTree(AppDir + '\local', True, True, True);
+      DelTree(AppDir + '\db', True, True, True);
+      // Attempt to remove the now-empty install directory
+      RemoveDir(AppDir);
+    end;
+  end;
+end;
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -439,25 +680,27 @@ Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion recursesubdirs
 
 ; Database template files (initial state)
-Source: "db\groups.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\installed_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\links.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\system_libraries.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\system_library_hashes.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\tree.json"; DestDir: "{app}\db"; Flags: ignoreversion
-Source: "db\unsigned_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion
+; Marked uninsneveruninstall so the three-tier uninstaller controls removal.
+Source: "db\groups.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\installed_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\links.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\system_libraries.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\system_library_hashes.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\tree.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
+Source: "db\unsigned_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
 ; db\settings.json is written by the [Code] section post-install
 
 ; Local data directory deployed to {app}\local and shared across all users.
 ; The installer grants write permissions to the Users group via icacls
 ; so that non-admin users can read/write application data.
-Source: "local\installed_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\groups.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\settings.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\tree.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\links.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\unsigned_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\publisher_registry.json"; DestDir: "{app}\local"; Flags: ignoreversion
+; Marked uninsneveruninstall so the three-tier uninstaller controls removal.
+Source: "local\installed_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\groups.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\settings.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\tree.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\links.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\unsigned_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
+Source: "local\publisher_registry.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
 
 ; Help file
 Source: "Library Manager for Venus 6.chm"; DestDir: "{app}"; Flags: ignoreversion
