@@ -3629,21 +3629,17 @@
 		function applyDarkMode(enabled) {
 			if (enabled) {
 				$("body").addClass("dark-mode");
-				$(".dark-mode-label").text("Day Mode");
 			} else {
 				$("body").removeClass("dark-mode");
-				$(".dark-mode-label").text("Night Mode");
 			}
 		}
 
-		/** Show or hide the manual dark-mode controls based on system-theme setting */
+		/** Show or hide the manual dark-mode toolbar toggle based on system-theme setting */
 		function applySystemThemeVisibility(useSystem) {
 			if (useSystem) {
 				$(".btn-dark-mode-toggle").hide();
-				$(".chk-darkMode-wrap").hide();
 			} else {
 				$(".btn-dark-mode-toggle").show();
-				$(".chk-darkMode-wrap").show();
 			}
 		}
 
@@ -3652,7 +3648,6 @@
 			if (window.matchMedia) {
 				var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 				applyDarkMode(prefersDark);
-				$("#chk_darkMode").prop("checked", prefersDark);
 			}
 		}
 
@@ -3661,7 +3656,6 @@
 			window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
 				if ($("#chk_useSystemTheme").is(":checked")) {
 					applyDarkMode(e.matches);
-					$("#chk_darkMode").prop("checked", e.matches);
 				}
 			});
 		}
@@ -3673,21 +3667,18 @@
 			applySystemThemeVisibility(useSystem);
 			if (useSystem) {
 				applySystemTheme();
+			} else {
+				// Restore the persisted manual dark-mode preference
+				var settings = db_settings.settings.find()[0] || {};
+				var darkEnabled = !!settings["chk_darkMode"];
+				applyDarkMode(darkEnabled);
 			}
 		});
 
-		// Overflow menu toggle (moon/sun icon)
+		// Toolbar toggle (moon/sun icon) — only visible when system theme is off
 		$(document).on("click", ".btn-dark-mode-toggle", function(e) {
 			e.preventDefault();
 			var isNowDark = !$("body").hasClass("dark-mode");
-			applyDarkMode(isNowDark);
-			$("#chk_darkMode").prop("checked", isNowDark);
-			saveSetting("chk_darkMode", isNowDark);
-		});
-
-		// Settings checkbox toggle
-		$(document).on("change", "#chk_darkMode", function() {
-			var isNowDark = $(this).is(":checked");
 			applyDarkMode(isNowDark);
 			saveSetting("chk_darkMode", isNowDark);
 		});
@@ -5261,8 +5252,8 @@
 			//setting - Data Location (read-only, always local/)
 			$(".txt-localDataPath").val(LOCAL_DATA_DIR);
 
-			//setting - Use System Theme
-			var useSystem = !!settings["chk_useSystemTheme"];
+			//setting - Use System Theme (default: true for out-of-box behaviour)
+			var useSystem = settings["chk_useSystemTheme"] !== false;
 			$("#chk_useSystemTheme").prop("checked", useSystem);
 			applySystemThemeVisibility(useSystem);
 
@@ -5271,7 +5262,6 @@
 				applySystemTheme();
 			} else {
 				var darkEnabled = !!settings["chk_darkMode"];
-				$("#chk_darkMode").prop("checked", darkEnabled);
 				applyDarkMode(darkEnabled);
 			}
 
