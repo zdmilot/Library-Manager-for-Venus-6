@@ -6,7 +6,7 @@ flowchart TD
     classDef denied fill:#fce4ec,color:#c0392b,stroke:#ef5350,font-weight:bold
 
     START["node cli.js &lt;command&gt; [options]"]:::action
-    PARSE["yargs parses command and options"]:::process
+    PARSE["parseArgs() parses command and options"]:::process
     IS_AUTH{"Auth-gated<br/>command?"}:::decision
     AUTH_CHK["canManageLibraries() check"]:::process
     AUTH_DENIED["Exit with error"]:::denied

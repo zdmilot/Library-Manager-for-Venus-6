@@ -1249,8 +1249,7 @@ function cmdImportLib(args) {
     // Cache the package file for repair & rollback
     if (!args['no-cache']) {
         try {
-            const pkgBuffer = fs.readFileSync(filePath);
-            const cachedPath = cachePackage(pkgBuffer, libName, manifest.version, args);
+            const cachedPath = cachePackage(rawPkgBuf, libName, manifest.version, args);
             console.log(`  Package cached -> ${cachedPath}`);
         } catch (e) {
             process.stderr.write('  Warning: could not cache package: ' + e.message + '\n');
@@ -2374,6 +2373,7 @@ COMMANDS
   rollback-lib       Reinstall a previously cached version of a library
   generate-syslib-hashes   Generate integrity baseline for system libraries
   verify-syslib-hashes     Verify system libraries against baseline
+  verify-package     Verify integrity signature of a .hxlibpkg or .hxlibarch
   help               Show this help text
 
 GLOBAL OPTIONS

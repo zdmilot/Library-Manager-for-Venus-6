@@ -67,7 +67,7 @@
 <thead><tr><th>Component</th><th>Technology</th><th>Source File(s)</th><th>Responsibilities</th></tr></thead>
 <tbody>
 <tr><td><b>GUI</b></td><td>NW.js (Chromium + Node.js)</td><td>html/index.html, html/js/main.js</td><td>Desktop UI for all library operations: import, export, create, delete, rollback, search, group management, settings, event history</td></tr>
-<tr><td><b>CLI</b></td><td>Node.js + yargs</td><td>cli.js</td><td>12 scriptable commands for headless/CI operation: list-libs, import-lib, import-archive, export-lib, export-archive, delete-lib, create-package, list-versions, rollback-lib, generate-syslib-hashes, verify-syslib-hashes, verify-package</td></tr>
+<tr><td><b>CLI</b></td><td>Node.js + custom argument parser</td><td>cli.js</td><td>12 scriptable commands for headless/CI operation: list-libs, import-lib, import-archive, export-lib, export-archive, delete-lib, create-package, list-versions, rollback-lib, generate-syslib-hashes, verify-syslib-hashes, verify-package</td></tr>
 <tr><td><b>Shared Core</b></td><td>Node.js module</td><td>lib/shared.js</td><td>All cryptographic, validation, container, and authorization logic shared between GUI and CLI</td></tr>
 <tr><td><b>Data Layer</b></td><td>diskdb (JSON files)</td><td>local/*.json, db/*.json</td><td>Persistent state: all mutable data in <code>local/</code> (settings, installed libraries, groups, tree, audit trail, package cache, publisher registry). Read-only reference data in <code>db/</code> (system library definitions, hashes).</td></tr>
 <tr><td><b>Integrity Worker</b></td><td>Node.js child process</td><td>html/js/syscheck-worker.js</td><td>Background startup task: file integrity checks, missing package detection, backup prompts. Reports results to GUI via IPC.</td></tr>
@@ -828,7 +828,7 @@
 </div>
 
 <h3>CLI Processing Pipeline</h3>
-<img src="images/diagram-cli-processing-pipeline.png" alt="CLI processing pipeline: yargs parsing, auth check, database load, path resolution, command execution, audit trail, output" class="doc-diagram">
+<img src="images/diagram-cli-processing-pipeline.png" alt="CLI processing pipeline: argument parsing, auth check, database load, path resolution, command execution, audit trail, output" class="doc-diagram">
 
 </div>
 <div class="footer">

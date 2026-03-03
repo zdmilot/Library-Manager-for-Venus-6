@@ -1,5 +1,5 @@
 
-		// main.js v1.4.8
+		// main.js v1.5.3
 		// Author: Zachary Milot
 
 		var gui = require('nw.gui');
@@ -9485,6 +9485,7 @@
 				return;
 			}
 			_isImporting = true;
+			var archiveOemAuthorized = false;
 			try {
 				if (!fs.existsSync(archivePath)) {
 					alert("Archive file not found:\n" + archivePath);
