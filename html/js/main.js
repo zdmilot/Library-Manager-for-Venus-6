@@ -3621,72 +3621,79 @@
 			}
 		});
 
-		// ---- Dark Mode / Night Mode ----
+		// ---- Light / Dark Mode ----
 		/** Apply or remove dark mode from the document body */
 		function applyDarkMode(enabled) {
 			if (enabled) {
 				$("body").addClass("dark-mode");
-				$(".dark-mode-label").text("Day Mode");
+				$(".dark-mode-label").text("Light Mode");
 			} else {
 				$("body").removeClass("dark-mode");
-				$(".dark-mode-label").text("Night Mode");
+				$(".dark-mode-label").text("Dark Mode");
 			}
 		}
 
-		/** Show or hide the manual dark-mode controls based on system-theme setting */
-		function applySystemThemeVisibility(useSystem) {
-			if (useSystem) {
+		/** Return the current theme mode from settings ("system", "light", or "dark") */
+		function getThemeMode() {
+			var mode = getSettingValue("themeMode");
+			if (mode === "light" || mode === "dark") return mode;
+			return "system"; // default
+		}
+
+		/** Show or hide the toolbar dark-mode toggle based on theme mode */
+		function applyThemeToggleVisibility(mode) {
+			if (mode === "system") {
 				$(".btn-dark-mode-toggle").hide();
-				$(".chk-darkMode-wrap").hide();
 			} else {
 				$(".btn-dark-mode-toggle").show();
-				$(".chk-darkMode-wrap").show();
 			}
 		}
 
-		/** Follow the OS dark/light preference */
-		function applySystemTheme() {
-			if (window.matchMedia) {
-				var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-				applyDarkMode(prefersDark);
-				$("#chk_darkMode").prop("checked", prefersDark);
+		/** Apply theme according to the selected mode */
+		function applyThemeFromMode(mode) {
+			if (mode === "system") {
+				if (window.matchMedia) {
+					applyDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+				} else {
+					applyDarkMode(false);
+				}
+			} else if (mode === "dark") {
+				applyDarkMode(true);
+			} else {
+				applyDarkMode(false);
 			}
+			applyThemeToggleVisibility(mode);
 		}
 
 		// Listen for OS theme changes while the app is running
 		if (window.matchMedia) {
 			window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-				if ($("#chk_useSystemTheme").is(":checked")) {
+				if (getThemeMode() === "system") {
 					applyDarkMode(e.matches);
-					$("#chk_darkMode").prop("checked", e.matches);
 				}
 			});
 		}
 
-		// Settings checkbox toggle – use system theme
-		$(document).on("change", "#chk_useSystemTheme", function() {
-			var useSystem = $(this).is(":checked");
-			saveSetting("chk_useSystemTheme", useSystem);
-			applySystemThemeVisibility(useSystem);
-			if (useSystem) {
-				applySystemTheme();
-			}
+		// Settings radio change – theme mode
+		$(document).on("change", "input[name='themeMode']", function() {
+			var mode = $(this).val();
+			saveSetting("themeMode", mode);
+			applyThemeFromMode(mode);
 		});
 
-		// Overflow menu toggle (moon/sun icon)
+		// Toolbar toggle (moon/sun icon) – only visible in light/dark mode
 		$(document).on("click", ".btn-dark-mode-toggle", function(e) {
 			e.preventDefault();
-			var isNowDark = !$("body").hasClass("dark-mode");
-			applyDarkMode(isNowDark);
-			$("#chk_darkMode").prop("checked", isNowDark);
-			saveSetting("chk_darkMode", isNowDark);
-		});
-
-		// Settings checkbox toggle
-		$(document).on("change", "#chk_darkMode", function() {
-			var isNowDark = $(this).is(":checked");
-			applyDarkMode(isNowDark);
-			saveSetting("chk_darkMode", isNowDark);
+			var currentMode = getThemeMode();
+			if (currentMode === "light") {
+				saveSetting("themeMode", "dark");
+				$("#radio_themeDark").prop("checked", true);
+				applyThemeFromMode("dark");
+			} else if (currentMode === "dark") {
+				saveSetting("themeMode", "light");
+				$("#radio_themeLight").prop("checked", true);
+				applyThemeFromMode("light");
+			}
 		});
 
 		$(document).on("click", ".btn-clearRecentList", function () {
@@ -5258,19 +5265,22 @@
 			//setting - Data Location (read-only, always local/)
 			$(".txt-localDataPath").val(LOCAL_DATA_DIR);
 
-			//setting - Use System Theme
-			var useSystem = !!settings["chk_useSystemTheme"];
-			$("#chk_useSystemTheme").prop("checked", useSystem);
-			applySystemThemeVisibility(useSystem);
-
-			//setting - Dark Mode / Night Mode (persisted between sessions)
-			if (useSystem) {
-				applySystemTheme();
-			} else {
-				var darkEnabled = !!settings["chk_darkMode"];
-				$("#chk_darkMode").prop("checked", darkEnabled);
-				applyDarkMode(darkEnabled);
+			//setting - Theme Mode (system / light / dark)
+			var themeMode = settings["themeMode"];
+			if (themeMode !== "light" && themeMode !== "dark") themeMode = "system";
+			// Migrate legacy chk_darkMode / chk_useSystemTheme if themeMode not yet set
+			if (!settings["themeMode"]) {
+				if (settings["chk_useSystemTheme"]) {
+					themeMode = "system";
+				} else if (settings["chk_darkMode"]) {
+					themeMode = "dark";
+				} else {
+					themeMode = "system";
+				}
+				saveSetting("themeMode", themeMode);
 			}
+			$("#radio_theme" + themeMode.charAt(0).toUpperCase() + themeMode.slice(1)).prop("checked", true);
+			applyThemeFromMode(themeMode);
 
 			//reset nav bar and hide overflowing nav bar items
 			fitNavBarItems();

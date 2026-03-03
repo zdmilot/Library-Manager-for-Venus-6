@@ -165,7 +165,7 @@ begin
 
   DarkModeCheckbox := TNewCheckBox.Create(WizardForm);
   DarkModeCheckbox.Parent := ConfigPage.Surface;
-  DarkModeCheckbox.Caption := 'Enable Dark Mode (Night theme)';
+  DarkModeCheckbox.Caption := 'Always use dark mode (otherwise follows system setting)';
   DarkModeCheckbox.Top := SectionLabel.Top + SectionLabel.Height + 8;
   DarkModeCheckbox.Left := 8;
   DarkModeCheckbox.Width := ConfigPage.SurfaceWidth - 16;
@@ -224,9 +224,9 @@ begin
 
   Memo := Memo + Space + 'Theme: ';
   if DarkModeCheckbox.Checked then
-    Memo := Memo + 'Dark Mode (Night)' + NewLine
+    Memo := Memo + 'Always Dark Mode' + NewLine
   else
-    Memo := Memo + 'Light Mode (Day)' + NewLine;
+    Memo := Memo + 'Use System Setting' + NewLine;
 
   Memo := Memo + Space + 'GitHub Repository Links: ';
   if GithubLinksCheckbox.Checked then
@@ -262,9 +262,9 @@ begin
     RegVal := 'false';
 
   if DarkModeCheckbox.Checked then
-    DarkVal := 'true'
+    DarkVal := 'dark'
   else
-    DarkVal := 'false';
+    DarkVal := 'system';
 
   if GithubLinksCheckbox.Checked then
     GithubVal := 'true'
@@ -283,7 +283,7 @@ begin
     '"chk_requireActionComment":true,' +
     '"chk_requireActionSignature":false,' +
     '"chk_regulatedEnvironment":' + RegVal + ',' +
-    '"chk_darkMode":' + DarkVal + ',' +
+    '"themeMode":"' + DarkVal + '",' +
     '"chk_showGitHubLinks":' + GithubVal +
     '}]';
 
