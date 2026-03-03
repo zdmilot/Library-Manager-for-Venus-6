@@ -797,26 +797,16 @@
 
 		var APP_ROOT = (typeof nw !== 'undefined' && nw.__dirname) ? nw.__dirname : __dirname;
 
-		/** Resolve the local data directory path (prefer writable per-user location) */
+		/** Resolve the local data directory path.
+		 *  Data is stored inside the application install directory (APP_ROOT/local)
+		 *  so that it is shared across all Windows users on the machine.
+		 *  The installer grants write permissions to the Users group on this folder.
+		 *  An override is available via the LMV6_DATA_DIR environment variable.
+		 */
 		function resolveDefaultLocalDataDir() {
 			try {
 				if (typeof process !== 'undefined' && process.env && process.env.LMV6_DATA_DIR && process.env.LMV6_DATA_DIR.trim()) {
 					return path.resolve(process.env.LMV6_DATA_DIR.trim());
-				}
-			} catch(_) {}
-
-			try {
-				if (typeof nw !== 'undefined' && nw.App && typeof nw.App.dataPath === 'string' && nw.App.dataPath.trim()) {
-					return path.join(nw.App.dataPath, 'local');
-				}
-			} catch(_) {}
-
-			try {
-				var profileRoot = (typeof process !== 'undefined' && process.env)
-					? (process.env.LOCALAPPDATA || process.env.APPDATA || '')
-					: '';
-				if (profileRoot) {
-					return path.join(profileRoot, 'Library Manager for Venus 6', 'local');
 				}
 			} catch(_) {}
 
@@ -863,18 +853,33 @@
 		var db_settings = db.connect(LOCAL_DATA_DIR, ['settings']);
 
 		// ---- Legacy Migration ----
-		// Migrate data from old locations to the new local/ directory:
+		// Migrate data from old locations to the app-local directory:
 		//   1. Old app-root db/ folder (pre-restructure)
-		//   2. Old app-root local/ folder (legacy install-folder storage)
+		//   2. Old per-user %LOCALAPPDATA% location (prior AppData-based storage)
 		//   3. Old HAMILTON\Library\LibraryManagerForVenus6 folder
 		//   4. Old HAMILTON\Library\.LibraryManagerForVenus6 hidden folder
+		//   5. Old NW.js per-user dataPath location
 		(function migrateToLocalDir() {
+			var perUserLocations = [];
+			try {
+				var profileRoot = (typeof process !== 'undefined' && process.env)
+					? (process.env.LOCALAPPDATA || process.env.APPDATA || '')
+					: '';
+				if (profileRoot) {
+					perUserLocations.push(path.join(profileRoot, 'Library Manager for Venus 6', 'local'));
+				}
+			} catch(_) {}
+			try {
+				if (typeof nw !== 'undefined' && nw.App && typeof nw.App.dataPath === 'string' && nw.App.dataPath.trim()) {
+					perUserLocations.push(path.join(nw.App.dataPath, 'local'));
+				}
+			} catch(_) {}
 			var oldLocations = [
-				path.join(APP_ROOT, 'db'),
-				LEGACY_APP_LOCAL_DIR,
+				path.join(APP_ROOT, 'db')
+			].concat(perUserLocations).concat([
 				path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "LibraryManagerForVenus6"),
 				path.join("C:\\Program Files (x86)\\HAMILTON\\Library", ".LibraryManagerForVenus6")
-			];
+			]);
 			var filesToMigrate = ['installed_libs.json', 'groups.json', 'tree.json', 'links.json', 'settings.json', 'audit_trail.json', 'publisher_registry.json'];
 			oldLocations.forEach(function(oldDir) {
 				if (!fs.existsSync(oldDir) || oldDir === LOCAL_DATA_DIR) return;
@@ -921,30 +926,32 @@
 					}
 				});
 			});
-			// Migrate cached packages from legacy install-folder local/packages/ to new user data dir
-			var legacyPkgStore = path.join(LEGACY_APP_LOCAL_DIR, 'packages');
+			// Migrate cached packages from per-user AppData locations to app-local packages/
 			var newPkgStore = path.join(LOCAL_DATA_DIR, 'packages');
-			if (fs.existsSync(legacyPkgStore) && legacyPkgStore !== newPkgStore) {
-				try {
-					var legacyLibDirs = fs.readdirSync(legacyPkgStore);
-					legacyLibDirs.forEach(function(libDir) {
-						var srcLib = path.join(legacyPkgStore, libDir);
-						if (!fs.statSync(srcLib).isDirectory()) return;
-						var dstLib = path.join(newPkgStore, libDir);
-						if (!fs.existsSync(dstLib)) fs.mkdirSync(dstLib, { recursive: true });
-						fs.readdirSync(srcLib).forEach(function(pkgFile) {
-							var srcPkg = path.join(srcLib, pkgFile);
-							var dstPkg = path.join(dstLib, pkgFile);
-							if (!fs.existsSync(dstPkg) && pkgFile.toLowerCase().endsWith('.hxlibpkg')) {
-								fs.copyFileSync(srcPkg, dstPkg);
-								console.log('Migrated package from install dir: ' + libDir + '/' + pkgFile);
-							}
+			perUserLocations.forEach(function(legacyDir) {
+				var legacyPkgStore = path.join(legacyDir, 'packages');
+				if (fs.existsSync(legacyPkgStore) && legacyPkgStore !== newPkgStore) {
+					try {
+						var legacyLibDirs = fs.readdirSync(legacyPkgStore);
+						legacyLibDirs.forEach(function(libDir) {
+							var srcLib = path.join(legacyPkgStore, libDir);
+							if (!fs.statSync(srcLib).isDirectory()) return;
+							var dstLib = path.join(newPkgStore, libDir);
+							if (!fs.existsSync(dstLib)) fs.mkdirSync(dstLib, { recursive: true });
+							fs.readdirSync(srcLib).forEach(function(pkgFile) {
+								var srcPkg = path.join(srcLib, pkgFile);
+								var dstPkg = path.join(dstLib, pkgFile);
+								if (!fs.existsSync(dstPkg) && pkgFile.toLowerCase().endsWith('.hxlibpkg')) {
+									fs.copyFileSync(srcPkg, dstPkg);
+									console.log('Migrated package from user profile: ' + libDir + '/' + pkgFile);
+								}
+							});
 						});
-					});
-				} catch(e) {
-					console.warn('Legacy install-dir package migration warning: ' + e.message);
+					} catch(e) {
+						console.warn('Per-user package migration warning: ' + e.message);
+					}
 				}
-			}
+			});
 			// Migrate old LibraryPackages from HAMILTON\Library to local/packages/
 			var oldPkgStore = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "LibraryPackages");
 			if (fs.existsSync(oldPkgStore) && oldPkgStore !== newPkgStore) {

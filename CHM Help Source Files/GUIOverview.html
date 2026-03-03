@@ -268,7 +268,14 @@
 <p>When cleanup runs, a progress bar appears in the navigation bar showing "Cleaning up run logs" with a percentage. After completion, the message changes to "Run log cleanup completed!" and fades out after a few seconds.</p>
 
 <h2>Window State</h2>
-<p>The application saves and restores its <b>maximized state</b> across sessions. If you close the window while maximized, it reopens maximized. The initial non-maximized dimensions are 1280 &times; 800 pixels (minimum 800 &times; 700). Window position (x, y coordinates) is not persisted.</p>
+<p>The application saves and restores its <b>maximized state</b> across sessions. When you close the window, the current maximized/restored state is persisted to the <code>windowMaximized</code> setting in <a href="DataModel.html">settings.json</a>.</p>
+<ul>
+<li><b>Default on install:</b> The window opens <b>maximized</b> (<code>windowMaximized</code> defaults to <code>true</code>).</li>
+<li><b>Restore / un-maximize:</b> If you restore the window to its normal size before closing, the next launch will open at the default dimensions of 1280 &times; 800 pixels (minimum 800 &times; 700).</li>
+<li><b>Maximize again:</b> If you maximize the window before closing, the next launch will open maximized.</li>
+</ul>
+<p>To avoid a visible &ldquo;resize flash&rdquo; when the window should open maximized, the application reads the <code>windowMaximized</code> flag directly from <code>settings.json</code> <em>before</em> making the window visible. This means a maximized launch appears instantly at full screen rather than briefly showing at the smaller default size and then expanding.</p>
+<p>Window position (x,&nbsp;y coordinates) is not persisted.</p>
 </div>
 <div class="footer">
 <p>Library Manager for Venus 6 Help</p>

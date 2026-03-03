@@ -251,7 +251,7 @@
 <tr><td><code>chk_includeUnsignedLibs</code></td><td>boolean</td><td>Enable unsigned library scanning and display (see <a href="UnsignedLibraries.html">Unsigned Libraries</a>)</td></tr>
 <tr><td><code>chk_scanUnsignedOnLaunch</code></td><td>boolean</td><td>Automatically scan for new unsigned libraries each time the application launches</td></tr>
 <tr><td><code>userDataPath</code></td><td>string</td><td>Legacy field (no longer used). All mutable data is now stored in the <code>local/</code> directory within the application install folder.</td></tr>
-<tr><td><code>windowMaximized</code></td><td>boolean</td><td>Whether the main window should start maximized</td></tr>
+<tr><td><code>windowMaximized</code></td><td>boolean</td><td>Whether the main window should open maximized. Defaults to <code>true</code> on first install. Automatically updated when the window is closed&mdash;set to <code>true</code> if the window was maximized, <code>false</code> if it was in its normal (restored) size. The value is read before the window becomes visible so that a maximized launch appears instantly without a resize flash.</td></tr>
 <tr><td><code>starred_libs</code></td><td>string[]</td><td>Array of library <code>_id</code> values that the user has starred (favorited)</td></tr>
 <tr><td><code>chk_settingHistoryCleanup</code></td><td>boolean</td><td>Enable automatic VENUS run log cleanup at startup</td></tr>
 <tr><td><code>history-days</code></td><td>number</td><td>Days threshold for run log cleanup (files older than this are processed)</td></tr>
