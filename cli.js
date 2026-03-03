@@ -158,7 +158,7 @@ const RESTRICTED_AUTHOR_KEYWORDS = [
     'opentrons',
     'biosero',
     'greenbuttongo',
-    'liconic',
+    'liconic','sony',
     'azenta', 'brooksautomation',
     'slas', 'societyforlaboratoryautomationandscreening',
     'highresbio',
