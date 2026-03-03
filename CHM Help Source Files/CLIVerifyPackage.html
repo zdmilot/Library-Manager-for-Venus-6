@@ -37,7 +37,7 @@
       <li>The HMAC-SHA256 is recomputed from the file hash map and compared against the stored HMAC</li>
     </ul>
   </li>
-  <li>If all hashes and the HMAC match, the result is <b>VERIFIED</b> (exit code <code>0</code>)</li>
+  <li>If all hashes and the HMAC match, the result is <b>VALID</b> (exit code <code>0</code>)</li>
   <li>If any hash or the HMAC does not match, the result is <b>FAILED</b> (exit code <code>1</code>)</li>
 </ol>
 
@@ -45,7 +45,7 @@
 <table>
 <thead><tr><th>Result</th><th>Exit Code</th><th>Meaning</th></tr></thead>
 <tbody>
-<tr><td><b>VERIFIED</b></td><td><code>0</code></td><td>Signature is present and valid - all file hashes match and the HMAC is correct</td></tr>
+<tr><td><b>VALID</b></td><td><code>0</code></td><td>Signature is present and valid - all file hashes match and the HMAC is correct</td></tr>
 <tr><td><b>UNSIGNED</b></td><td><code>0</code></td><td>No <code>signature.json</code> found - the package is a legacy or third-party package created before signing was implemented</td></tr>
 <tr><td><b>FAILED</b></td><td><code>1</code></td><td>One or more file hashes do not match, or the HMAC is invalid - the package may be corrupt or tampered with</td></tr>
 </tbody>
@@ -62,14 +62,26 @@ node cli.js verify-package --file MyLibrary.hxlibpkg --json
 node cli.js verify-package --file "\\server\share\packages\LibraryA.hxlibpkg"</pre></div>
 
 <h2>JSON Output Format</h2>
-<p>When <code>--json</code> is specified, the output is a JSON object:</p>
-<div class="code"><pre>{
-  "file": "MyLibrary.hxlibpkg",
-  "status": "VERIFIED",
-  "algorithm": "HMAC-SHA256",
-  "fileCount": 5,
-  "signed_date": "2026-01-15T10:30:00.000Z"
-}</pre></div>
+<p>When <code>--json</code> is specified, the output is a JSON array of result objects (one per package; a single <code>.hxlibpkg</code> produces a one-element array):</p>
+<div class="code"><pre>[
+  {
+    "package": "MyLibrary.hxlibpkg",
+    "signed": true,
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  }
+]</pre></div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>package</code></td><td>string</td><td>Filename (or entry name for archives) of the package</td></tr>
+<tr><td><code>signed</code></td><td>boolean</td><td><code>true</code> if a <code>signature.json</code> was found</td></tr>
+<tr><td><code>valid</code></td><td>boolean</td><td><code>true</code> if all hashes and the HMAC matched</td></tr>
+<tr><td><code>errors</code></td><td>string[]</td><td>Error messages (e.g., hash mismatches, read failures)</td></tr>
+<tr><td><code>warnings</code></td><td>string[]</td><td>Non-fatal warnings</td></tr>
+</tbody>
+</table>
 
 <h2>Signature Format</h2>
 <p>The <code>signature.json</code> entry inside a signed <code>.hxlibpkg</code> contains:</p>

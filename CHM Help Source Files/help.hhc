@@ -129,14 +129,16 @@
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Unsigned Libraries">
 				<param name="Local" value="UnsignedLibraries.html">
-				</OBJECT>		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="Regulated Environment Mode">
-			<param name="Local" value="RegulatedEnvironment.html">
-			</OBJECT>
-		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="File Storage &amp; Data Management">
-			<param name="Local" value="FileStorage.html">
-			</OBJECT>		</UL>
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Regulated Environment Mode">
+				<param name="Local" value="RegulatedEnvironment.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="File Storage &amp; Data Management">
+				<param name="Local" value="FileStorage.html">
+				</OBJECT>
+		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="CLI Reference">
 			<param name="Local" value="CLIReference.html">

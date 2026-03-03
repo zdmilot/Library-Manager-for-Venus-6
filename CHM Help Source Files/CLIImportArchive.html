@@ -40,7 +40,6 @@
     <ul>
       <li>The inner ZIP is opened in memory and its HMAC-SHA256 signature is verified (failed packages are skipped)</li>
       <li>The inner ZIP's <code>manifest.json</code> is read</li>
-      <li>A version mismatch check is performed &mdash; if the package's <code>app_version</code> differs from the running Library Manager version, a warning is logged to the console</li>
       <li>If a library with the same name exists without <code>--force</code>, that entry is skipped as an error</li>
       <li>Files are extracted, hashes computed, functions parsed, and the database record created (including <code>app_version</code>, <code>format_version</code>, <code>windows_version</code>, <code>venus_version</code>, <code>package_lineage</code>, and any forward-compatible fields)</li>
       <li>The inner package is cached in the package store</li>

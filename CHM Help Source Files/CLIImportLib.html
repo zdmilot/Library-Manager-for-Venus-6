@@ -73,6 +73,12 @@ node cli.js import-lib --file MyLibrary.hxlibpkg --no-cache</pre></div>
   <li>File does not exist -> error</li>
   <li>Invalid package (no <code>manifest.json</code>) -> error</li>
   <li>Library already installed without <code>--force</code> -> error</li>
+  <li>Signature verification failed without <code>--force</code> -> error</li>
+  <li>Invalid library name (path separators, reserved characters, <code>..</code>, trailing dots/spaces) -> error</li>
+  <li>Author name shorter than 3 or longer than 29 characters -> error</li>
+  <li>Organization name shorter than 3 or longer than 29 characters (if provided) -> error</li>
+  <li>Restricted OEM author/organization without <code>--author-password</code> -> error</li>
+  <li>Incorrect <code>--author-password</code> for restricted author -> error</li>
 </ul>
 
 <h2>Related</h2>

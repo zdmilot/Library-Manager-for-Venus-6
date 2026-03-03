@@ -52,7 +52,8 @@
 <tr><td><code>version</code></td><td>string</td><td>Version string</td></tr>
 <tr><td><code>venus_compatibility</code></td><td>string</td><td>VENUS version compatibility</td></tr>
 <tr><td><code>description</code></td><td>string</td><td>Library description text</td></tr>
-<tr><td><code>tags</code></td><td>string[]</td><td>Searchable keyword tags. The values <code>"System"</code> and <code>"Hamilton"</code> are reserved and rejected during package creation (case-insensitive).</td></tr>
+<tr><td><code>github_url</code></td><td>string</td><td>GitHub repository URL for the library (optional; displayed in the GUI when <code>chk_showGitHubLinks</code> is enabled)</td></tr>
+<tr><td><code>tags</code></td><td>string[]</td><td>Searchable keyword tags. Over 60 tag keywords are reserved (case-insensitive) and rejected during package creation, including OEM and laboratory automation company names. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the complete reserved list.</td></tr>
 <tr><td><code>created_date</code></td><td>string (ISO 8601)</td><td>Date the package was originally created</td></tr>
 <tr><td><code>format_version</code></td><td>string</td><td>Package format version from the manifest (e.g., <code>"2.0"</code>)</td></tr>
 <tr><td><code>app_version</code></td><td>string</td><td>Version of Library Manager for Venus 6 that created the package</td></tr>
@@ -161,12 +162,13 @@
 <p>Defines the navigation groups (tabs) shown in the GUI. The application uses a <b>two-tier group architecture</b>:</p>
 
 <h3>Default Groups (Hardcoded)</h3>
-<p>Six built-in groups are defined in a <code>DEFAULT_GROUPS</code> map in the application source code. These are <b>never stored</b> in <code>groups.json</code> - they are resolved in-memory at runtime. A startup migration automatically strips any stale default-group records from the JSON file to prevent duplicates.</p>
+<p>Seven built-in groups are defined in a <code>DEFAULT_GROUPS</code> map in the application source code. These are <b>never stored</b> in <code>groups.json</code> - they are resolved in-memory at runtime. A startup migration automatically strips any stale default-group records from the JSON file to prevent duplicates.</p>
 
 <table>
 <thead><tr><th>ID</th><th>Name</th><th>Icon</th><th>Side</th><th>Purpose</th></tr></thead>
 <tbody>
 <tr><td><code>gAll</code></td><td>All</td><td><code>fa-home</code></td><td>left</td><td>Shows all installed libraries</td></tr>
+<tr><td><code>gStarred</code></td><td>Starred</td><td><code>fa-star</code></td><td>left</td><td>User-starred (favorited) libraries. Protected &mdash; cannot be deleted or renamed.</td></tr>
 <tr><td><code>gRecent</code></td><td>Recent</td><td><code>fa-history</code></td><td>left</td><td>Recently accessed libraries</td></tr>
 <tr><td><code>gOEM</code></td><td>OEM</td><td><code>fa-check-circle</code> (solid)</td><td>left</td><td>Protected OEM-authored libraries</td></tr>
 <tr><td><code>gFolders</code></td><td>Import</td><td><code>fa-download</code></td><td>right</td><td>Import workflow tab</td></tr>
@@ -264,6 +266,9 @@
 <tr><td><code>chk_regulatedEnvironment</code></td><td>boolean</td><td>Enable Regulated Environment Mode for Windows group-based authorization (see <a href="RegulatedEnvironment.html">Regulated Environment</a>)</td></tr>
 <tr><td><code>chk_darkMode</code></td><td>boolean</td><td>Night mode (dark theme) &mdash; retained between sessions</td></tr>
 <tr><td><code>sysLibBackupComplete</code></td><td>boolean</td><td>Whether the first-run system library backup has been completed</td></tr>
+<tr><td><code>chk_useSystemTheme</code></td><td>boolean</td><td>Follow the Windows system light/dark theme instead of using the manual dark mode toggle</td></tr>
+<tr><td><code>sysLibMetadataComplete</code></td><td>boolean</td><td>Internal flag indicating system library metadata scan has been completed</td></tr>
+<tr><td><code>themeMode</code></td><td>string</td><td>Active theme mode (<code>"light"</code> or <code>"dark"</code>) &mdash; computed from <code>chk_darkMode</code> or system theme</td></tr>
 </tbody>
 </table>
 

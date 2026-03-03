@@ -81,7 +81,7 @@
   <td><code>tags</code></td>
   <td>string[]</td>
   <td>uniqueItems: true</td>
-  <td>Searchable keyword tags. The keywords <code>"System"</code> and <code>"Hamilton"</code> are <b>reserved</b> (case-insensitive) and must not be used - see note below.</td>
+  <td>Searchable keyword tags. Over 60 tag keywords are <b>reserved</b> (case-insensitive) and must not be used &mdash; see the Reserved Tag Keywords section below for the complete list.</td>
 </tr>
 <tr>
   <td><code>library_image</code></td>
@@ -116,6 +116,8 @@
 <h2>Reserved Tag Keywords</h2>
 <div class="warning">
 <p><b>Reserved Tags:</b> The following tag keywords are reserved for internal system use and <b>cannot</b> be used in the <code>tags</code> array (comparison is <b>case-insensitive</b>):</p>
+
+<h4>Core Reserved Tags</h4>
 <ul>
   <li><code>system</code></li>
   <li><code>hamilton</code></li>
@@ -128,6 +130,36 @@
   <li><code>registered</code></li>
   <li><code>unregistered</code></li>
 </ul>
+
+<h4>OEM &amp; Laboratory Automation Company Names</h4>
+<ul>
+  <li><code>tecan</code></li>
+  <li><code>thermofisher</code>, <code>thermo-fisher</code>, <code>thermoscientific</code>, <code>thermo-scientific</code>, <code>fisherscientific</code>, <code>fisher-scientific</code></li>
+  <li><code>danaher</code></li>
+  <li><code>beckmancoulter</code>, <code>beckman-coulter</code></li>
+  <li><code>roche</code>, <code>rochediagnostics</code>, <code>roche-diagnostics</code></li>
+  <li><code>siemens</code>, <code>healthineers</code></li>
+  <li><code>inheco</code></li>
+  <li><code>agilent</code></li>
+  <li><code>revvity</code>, <code>perkinelmer</code>, <code>perkin-elmer</code></li>
+  <li><code>biorad</code>, <code>bio-rad</code></li>
+  <li><code>qiagen</code></li>
+  <li><code>hudsonrobotics</code>, <code>hudson-robotics</code></li>
+  <li><code>sptlabtech</code>, <code>spt-labtech</code>, <code>ttplabtech</code>, <code>ttp-labtech</code></li>
+  <li><code>swisslog</code></li>
+  <li><code>bectondickinson</code>, <code>becton-dickinson</code>, <code>bdbiosciences</code>, <code>bd-biosciences</code>, <code>bdkiestra</code>, <code>bd-kiestra</code></li>
+  <li><code>labvantage</code>, <code>labware</code></li>
+  <li><code>automata</code>, <code>opentrons</code>, <code>biosero</code></li>
+  <li><code>greenbuttongo</code>, <code>green-button-go</code>, <code>gbg</code></li>
+  <li><code>liconic</code>, <code>sony</code>, <code>azenta</code>, <code>brooksautomation</code>, <code>brooks-automation</code></li>
+  <li><code>slas</code>, <code>highresbio</code>, <code>highres-bio</code></li>
+  <li><code>moleculardevices</code>, <code>molecular-devices</code>, <code>moldev</code></li>
+  <li><code>bmglabtech</code>, <code>bmg-labtech</code></li>
+  <li><code>aurorabiomed</code>, <code>aurora-biomed</code></li>
+  <li><code>abcontrols</code>, <code>ab-controls</code></li>
+  <li><code>biotek</code>, <code>bioteck</code></li>
+</ul>
+
 <p><b>Important:</b> Reserved words are blocked even when they appear as part of a longer tag (substring match).</p>
 <p><b>GUI behavior:</b> If a user enters a restricted tag in the Library Packager or the Unsigned Library editor, an error is shown and the tag is blocked.</p>
 <p><b>CLI behavior:</b> If the <code>tags</code> array in a package spec file contains a reserved keyword, the <code>create-package</code> command will exit with a validation error.</p>

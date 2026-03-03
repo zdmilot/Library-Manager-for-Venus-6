@@ -46,11 +46,12 @@
 <tbody>
 <tr><td><code>library_name</code></td><td>string</td><td>Override library name. Auto-detected from <code>.hsl</code>/<code>.hs_</code>/<code>.smt</code> if omitted</td></tr>
 <tr><td><code>organization</code></td><td>string</td><td>Author's organization</td></tr>
-<tr><td><code>tags</code></td><td>string[]</td><td>Searchable keyword tags. The values <code>"System"</code> and <code>"Hamilton"</code> are <b>reserved</b> and will cause the command to fail with an error (case-insensitive).</td></tr>
+<tr><td><code>tags</code></td><td>string[]</td><td>Searchable keyword tags. Over 60 tag keywords are <b>reserved</b> (case-insensitive) and will cause the command to fail with an error, including OEM and laboratory automation company names. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the complete reserved list.</td></tr>
 <tr><td><code>library_image</code></td><td>string</td><td>Path to icon/image file. Falls back to matching <code>.bmp</code> if omitted</td></tr>
 <tr><td><code>demo_method_files</code></td><td>string[]</td><td>Paths to demo/example method files</td></tr>
 <tr><td><code>help_files</code></td><td>string[]</td><td>Basenames of <code>.chm</code> help files</td></tr>
 <tr><td><code>com_register_dlls</code></td><td>string[]</td><td>Basenames of DLLs requiring COM registration</td></tr>
+<tr><td><code>github_url</code></td><td>string</td><td>URL to the library's GitHub repository. Must point to a valid <code>/{owner}/{repo}</code> path. See <a href="GitHubRepository.html">GitHub Repository Link</a> for details.</td></tr>
 </tbody>
 </table>
 
@@ -77,11 +78,18 @@ node cli.js create-package --spec specs/proj.json --output dist/proj.hxlibpkg</p
 <h2>Validation</h2>
 <p>The command validates before building:</p>
 <ul>
-  <li><code>author</code> is present</li>
-  <li><code>version</code> is present</li>
-  <li><code>library_files</code> has at least one entry</li>
-  <li>All referenced files exist on disk</li>
-  <li>All referenced help files exist on disk</li>
+  <li><code>author</code> is required</li>
+  <li><code>author</code> length must be between 3 and 29 characters</li>
+  <li><code>organization</code> length (if provided) must be between 3 and 29 characters</li>
+  <li><code>version</code> is required</li>
+  <li><code>venus_compatibility</code> is required</li>
+  <li><code>description</code> is required</li>
+  <li><code>library_files</code> must contain at least one entry</li>
+  <li>All referenced library files must exist on disk</li>
+  <li>All referenced help files must exist on disk</li>
+  <li>Restricted OEM author or organization names require <code>--author-password</code></li>
+  <li>Tags must not contain any of the 60+ reserved keywords (case-insensitive substring match). See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the full reserved list.</li>
+  <li>Library name (explicit or auto-detected) must be valid (no path separators, reserved characters, <code>..</code>, trailing dots/spaces)</li>
 </ul>
 <p>If any validation fails, the command prints a descriptive error and exits.</p>
 
