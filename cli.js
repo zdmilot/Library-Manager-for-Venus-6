@@ -938,8 +938,25 @@ function installPackage(manifest, zip, libDestDir, demoDestDir, sourceName, db, 
         source_package:      sourceName,
         file_hashes:         fileHashes,
         public_functions:    publicFunctions,
-        required_dependencies: requiredDependencies
+        required_dependencies: requiredDependencies,
+        app_version:         manifest.app_version         || '',
+        format_version:      manifest.format_version      || '1.0',
+        windows_version:     manifest.windows_version     || '',
+        venus_version:       manifest.venus_version       || '',
+        package_lineage:     manifest.package_lineage     || []
     };
+
+    // Preserve any unknown manifest fields for forward compatibility
+    var knownManifestKeys = ['format_version','library_name','author','organization','version',
+        'venus_compatibility','description','github_url','tags','created_date','library_image',
+        'library_image_base64','library_image_mime','library_files','demo_method_files',
+        'help_files','com_register_dlls','app_version','windows_version','venus_version',
+        'package_lineage','is_system_backup'];
+    Object.keys(manifest).forEach(function(k) {
+        if (knownManifestKeys.indexOf(k) === -1 && !(k in dbRecord)) {
+            dbRecord[k] = manifest[k];
+        }
+    });
 
     const saved = db.installed_libs.save(dbRecord);
 
@@ -1168,6 +1185,26 @@ function cmdImportLib(args) {
         }
     } else {
         console.log('  Signature: unsigned (legacy package)');
+    }
+
+    // ---- Version compatibility warnings ----
+    var pkgAppVersion = manifest.app_version || '';
+    var pkgFormatVersion = manifest.format_version || '1.0';
+    var currentAppVersion = shared.getAppVersion();
+    if (pkgAppVersion && currentAppVersion && pkgAppVersion !== currentAppVersion) {
+        console.log('  NOTE: Package was created with Library Manager v' + pkgAppVersion +
+            ' (you are running v' + currentAppVersion + ').');
+        // Simple semver major comparison
+        var pkgMajor = parseInt(pkgAppVersion.split('.')[0], 10) || 0;
+        var curMajor = parseInt(currentAppVersion.split('.')[0], 10) || 0;
+        if (pkgMajor > curMajor) {
+            console.log('  WARNING: Package is from a NEWER major version. Some fields or features may not be recognized.');
+        } else if (pkgMajor < curMajor) {
+            console.log('  WARNING: Package is from an OLDER major version. Some fields may be missing.');
+        }
+    }
+    if (!pkgAppVersion && pkgFormatVersion === '1.0') {
+        console.log('  NOTE: Legacy v1.0 format package (no app version stamp). Lineage and extended metadata will not be available.');
     }
 
     const libName = manifest.library_name || 'Unknown';
@@ -1412,7 +1449,7 @@ function cmdExportLib(args) {
     console.log(`Exporting: ${lib.library_name}`);
 
     const manifest = {
-        format_version:      '1.0',
+        format_version:      shared.FORMAT_VERSION,
         library_name:        lib.library_name        || '',
         author:              lib.author               || '',
         organization:        lib.organization         || '',
@@ -1428,8 +1465,31 @@ function cmdExportLib(args) {
         library_files:       libraryFiles.concat(helpFiles),
         demo_method_files:   demoFiles.slice(),
         help_files:          helpFiles.slice(),
-        com_register_dlls:   (lib.com_register_dlls   || []).slice()
+        com_register_dlls:   (lib.com_register_dlls   || []).slice(),
+        app_version:         shared.getAppVersion(),
+        windows_version:     getWindowsVersion(),
+        venus_version:       getVENUSVersion() || '',
+        package_lineage:     (lib.package_lineage || []).concat([shared.buildLineageEvent('exported', {
+            username:        getWindowsUsername(),
+            hostname:        os.hostname(),
+            windowsVersion:  getWindowsVersion(),
+            venusVersion:    getVENUSVersion() || ''
+        })])
     };
+
+    // Preserve any extra DB fields for forward compatibility
+    var knownLibKeys = ['_id','library_name','author','organization','version','venus_compatibility',
+        'description','github_url','tags','created_date','library_image','library_image_base64',
+        'library_image_mime','library_files','demo_method_files','help_files','com_register_dlls',
+        'com_warning','lib_install_path','demo_install_path','installed_date','installed_by',
+        'source_package','file_hashes','public_functions','required_dependencies','deleted',
+        'deleted_date','app_version','format_version','windows_version','venus_version',
+        'package_lineage','is_system_backup'];
+    Object.keys(lib).forEach(function(k) {
+        if (knownLibKeys.indexOf(k) === -1 && !(k in manifest)) {
+            manifest[k] = lib[k];
+        }
+    });
 
     const zip = new AdmZip();
     zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2), 'utf8'));
@@ -1514,7 +1574,7 @@ function cmdExportArchive(args) {
             const comDlls      = lib.com_register_dlls  || [];
 
             const manifest = {
-                format_version:      '1.0',
+                format_version:      shared.FORMAT_VERSION,
                 library_name:        lib.library_name        || '',
                 author:              lib.author               || '',
                 organization:        lib.organization         || '',
@@ -1530,8 +1590,31 @@ function cmdExportArchive(args) {
                 library_files:       libraryFiles.concat(helpFiles),
                 demo_method_files:   demoFiles.slice(),
                 help_files:          helpFiles.slice(),
-                com_register_dlls:   comDlls.slice()
+                com_register_dlls:   comDlls.slice(),
+                app_version:         shared.getAppVersion(),
+                windows_version:     getWindowsVersion(),
+                venus_version:       getVENUSVersion() || '',
+                package_lineage:     (lib.package_lineage || []).concat([shared.buildLineageEvent('exported', {
+                    username:        getWindowsUsername(),
+                    hostname:        os.hostname(),
+                    windowsVersion:  getWindowsVersion(),
+                    venusVersion:    getVENUSVersion() || ''
+                })])
             };
+
+            // Preserve extra DB fields for forward compatibility
+            var knownLibKeys = ['_id','library_name','author','organization','version','venus_compatibility',
+                'description','github_url','tags','created_date','library_image','library_image_base64',
+                'library_image_mime','library_files','demo_method_files','help_files','com_register_dlls',
+                'com_warning','lib_install_path','demo_install_path','installed_date','installed_by',
+                'source_package','file_hashes','public_functions','required_dependencies','deleted',
+                'deleted_date','app_version','format_version','windows_version','venus_version',
+                'package_lineage','is_system_backup'];
+            Object.keys(lib).forEach(function(k) {
+                if (knownLibKeys.indexOf(k) === -1 && !(k in manifest)) {
+                    manifest[k] = lib[k];
+                }
+            });
 
             const innerZip = new AdmZip();
             innerZip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2), 'utf8'));
@@ -1562,11 +1645,14 @@ function cmdExportArchive(args) {
 
     // Embed archive manifest
     const archManifest = {
-        format_version: '1.0',
+        format_version: shared.FORMAT_VERSION,
         archive_type:   'hxlibarch',
         created_date:   new Date().toISOString(),
         library_count:  exportedLibs.length,
-        libraries:      exportedLibs.map(l => l.name)
+        libraries:      exportedLibs.map(l => l.name),
+        app_version:    shared.getAppVersion(),
+        windows_version: getWindowsVersion(),
+        venus_version:  getVENUSVersion() || ''
     };
     archiveZip.addFile(
         'archive_manifest.json',
@@ -1836,7 +1922,7 @@ function cmdCreatePackage(args) {
     });
 
     const manifest = {
-        format_version:      '1.0',
+        format_version:      shared.FORMAT_VERSION,
         library_name:        libName,
         author:              spec.author              || '',
         organization:        spec.organization         || '',
@@ -1852,8 +1938,27 @@ function cmdCreatePackage(args) {
         library_files:       manifestLibFiles,
         demo_method_files:   resolvedDemoFiles.map(f => path.basename(f)),
         help_files:          helpBasenames,
-        com_register_dlls:   comDlls
+        com_register_dlls:   comDlls,
+        app_version:         shared.getAppVersion(),
+        windows_version:     getWindowsVersion(),
+        venus_version:       getVENUSVersion() || '',
+        package_lineage:     [shared.buildLineageEvent('created', {
+            username:        getWindowsUsername(),
+            hostname:        os.hostname(),
+            windowsVersion:  getWindowsVersion(),
+            venusVersion:    getVENUSVersion() || ''
+        })]
     };
+
+    // Preserve any extra user-supplied spec fields for forward compatibility
+    var knownSpecKeys = ['library_name','author','organization','version','venus_compatibility',
+        'description','github_url','tags','library_image','library_files','demo_method_files',
+        'help_files','com_register_dlls','$schema','_comment_paths','_comment'];
+    Object.keys(spec).forEach(function(k) {
+        if (knownSpecKeys.indexOf(k) === -1 && !(k in manifest)) {
+            manifest[k] = spec[k];
+        }
+    });
 
     const zip = new AdmZip();
     zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2), 'utf8'));

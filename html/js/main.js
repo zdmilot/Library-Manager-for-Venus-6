@@ -1512,7 +1512,7 @@
 
 				// Build manifest
 				var manifest = {
-					format_version: "1.0",
+					format_version: shared.FORMAT_VERSION,
 					library_name: libName,
 					author: sLib.author || "Hamilton",
 					organization: sLib.organization || "Hamilton",
@@ -1528,7 +1528,16 @@
 					demo_method_files: [],
 					help_files: helpFiles.slice(),
 					com_register_dlls: [],
-					is_system_backup: true
+					is_system_backup: true,
+					app_version: shared.getAppVersion(),
+					windows_version: getWindowsVersion(),
+					venus_version: _cachedVENUSVersion || '',
+					package_lineage: [shared.buildLineageEvent('created', {
+						username: getWindowsUsername(),
+						hostname: os.hostname(),
+						windowsVersion: getWindowsVersion(),
+						venusVersion: _cachedVENUSVersion || ''
+					})]
 				};
 
 				// Create ZIP package
@@ -6461,7 +6470,7 @@
 				// Build manifest JSON (matches C# HxLibPkgManifest.ToJson() format)
 				// Manifest stores the RAW library image - no overlay
 				var manifest = {
-					format_version: "1.0",
+					format_version: shared.FORMAT_VERSION,
 					library_name: libName,
 					author: author,
 					organization: organization,
@@ -6475,7 +6484,16 @@
 					library_image_mime: libImageMime,
 					library_files: pkg_libraryFiles.map(function(f) { return path.basename(f); }),
 					demo_method_files: pkg_demoMethodFiles.map(function(f) { return path.basename(f); }),
-					com_register_dlls: pkg_comRegisterDlls.slice()
+					com_register_dlls: pkg_comRegisterDlls.slice(),
+					app_version: shared.getAppVersion(),
+					windows_version: getWindowsVersion(),
+					venus_version: _cachedVENUSVersion || '',
+					package_lineage: [shared.buildLineageEvent('created', {
+						username: getWindowsUsername(),
+						hostname: os.hostname(),
+						windowsVersion: getWindowsVersion(),
+						venusVersion: _cachedVENUSVersion || ''
+					})]
 				};
 				if (githubUrl) manifest.github_url = githubUrl;
 

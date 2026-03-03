@@ -10,18 +10,23 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Installation</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 is distributed as a single Windows installer (<code>LibraryManagerForVenus6_v&lt;version&gt;_Setup.exe</code>) built with Inno Setup. The installer requires <b>administrator privileges</b> and targets <b>64-bit Windows 10 or later</b>.</p>
+<p>Library Manager for Venus 6 is distributed as a single Windows installer (<code>LibraryManagerForVenus6_v&lt;version&gt;_Setup.exe</code>) built with Inno Setup. The installer requires <b>administrator privileges</b> and targets <b>64-bit Windows 10 or later</b>. A working installation of <b>Hamilton VENUS version 6 or later</b> is a mandatory prerequisite &mdash; the installer will refuse to run if VENUS 6+ is not detected on the system.</p>
 
 <h2>System Requirements</h2>
 <table>
 <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
 <tbody>
+<tr><td>Hamilton VENUS</td><td><b>Version 6 or later</b> must be installed. The installer checks for an existing Hamilton VENUS 6+ installation via the Windows registry and will not proceed if one is not found.</td></tr>
 <tr><td>Operating System</td><td>Windows 10 or later (64-bit)</td></tr>
 <tr><td>Privileges</td><td>Administrator rights required for installation</td></tr>
 <tr><td>Disk Space</td><td>Approximately 200&nbsp;MB (varies with library content)</td></tr>
 <tr><td>Default Install Path</td><td><code>C:\Program Files (x86)\Library Manager for Venus 6</code></td></tr>
 </tbody>
 </table>
+
+<div class="note" style="border-left:4px solid #c00; background:#fff4f4; padding:8px 12px; margin:12px 0;">
+<b>Important:</b> If Hamilton VENUS 6 (or later) is not detected on the target machine, the installer will display an error message and exit immediately. This applies to both interactive and silent installation modes. You must install Hamilton VENUS 6 or a newer version before installing Library Manager for Venus 6.
+</div>
 
 <h2>Installation Wizard Steps</h2>
 <p>The installer walks you through the following pages in order:</p>
@@ -139,6 +144,7 @@
 <div class="code"><pre>LibraryManagerForVenus6_v1.5.3_Setup.exe /SILENT
 LibraryManagerForVenus6_v1.5.3_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
 <p>In silent mode, default configuration values are used (Regulated Mode off, system theme, GitHub links hidden). To create a desktop shortcut in silent mode, add <code>/TASKS="desktopicon"</code>.</p>
+<p><b>Note:</b> The Hamilton VENUS 6+ prerequisite check runs in both interactive and silent modes. If VENUS 6 or later is not installed, the silent installer will exit with a non-zero return code without installing anything.</p>
 
 <h2>Upgrading from a Previous Version</h2>
 <p>When reinstalling or upgrading, the installer overwrites application binaries and template files but preserves user data in the <code>local\</code> directory. On first launch after an upgrade, the application automatically migrates data from any legacy storage locations. See <a href="FileStorage.html">File Storage &amp; Data Management</a> for migration details.</p>

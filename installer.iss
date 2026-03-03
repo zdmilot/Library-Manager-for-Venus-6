@@ -63,6 +63,99 @@ var
   RegulatedAcceptCheckbox: TNewCheckBox;
   UninstallMode: Integer;
 
+// -----------------------------------------------------------------------
+// Hamilton VENUS 6+ prerequisite check
+// -----------------------------------------------------------------------
+
+{ Extract the major version number that follows "VENUS" in a DisplayName
+  string.  Returns 0 when no version can be parsed. }
+function ExtractVenusVersion(const DisplayName: String): Integer;
+var
+  P, I: Integer;
+  UpName, VersionStr: String;
+begin
+  Result := 0;
+  UpName := Uppercase(DisplayName);
+  P := Pos('VENUS', UpName);
+  if P = 0 then Exit;
+
+  I := P + 5; { skip past "VENUS" }
+  { skip whitespace }
+  while (I <= Length(UpName)) and (UpName[I] = ' ') do
+    I := I + 1;
+
+  { read consecutive digits }
+  VersionStr := '';
+  while (I <= Length(UpName)) and (UpName[I] >= '0') and (UpName[I] <= '9') do
+  begin
+    VersionStr := VersionStr + UpName[I];
+    I := I + 1;
+  end;
+
+  if VersionStr <> '' then
+    Result := StrToIntDef(VersionStr, 0);
+end;
+
+{ Scan the Windows Uninstall registry for a "Hamilton VENUS <N>" entry
+  where <N> >= 6.  Checks both native and WOW6432Node paths. }
+function IsVenus6OrLaterInstalled(): Boolean;
+var
+  SubKeys: TArrayOfString;
+  DisplayName: String;
+  I, J, Ver: Integer;
+  UninstallKey: String;
+begin
+  Result := False;
+
+  for I := 0 to 1 do
+  begin
+    if I = 0 then
+      UninstallKey := 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
+    else
+      UninstallKey := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall';
+
+    if RegGetSubkeyNames(HKEY_LOCAL_MACHINE, UninstallKey, SubKeys) then
+    begin
+      for J := 0 to GetArrayLength(SubKeys) - 1 do
+      begin
+        if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+            UninstallKey + '\' + SubKeys[J], 'DisplayName', DisplayName) then
+        begin
+          Ver := ExtractVenusVersion(DisplayName);
+          if Ver >= 6 then
+          begin
+            Result := True;
+            Exit;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+{ InitializeSetup is called before the wizard is shown.  Returning False
+  cancels the installation immediately. }
+function InitializeSetup(): Boolean;
+begin
+  if not IsVenus6OrLaterInstalled() then
+  begin
+    MsgBox(
+      'Hamilton VENUS version 6 or later is required to install ' +
+      'Library Manager for Venus 6.' + #13#10 + #13#10 +
+      'The installer could not detect a Hamilton VENUS 6 (or later) ' +
+      'installation on this computer.' + #13#10 + #13#10 +
+      'Please install Hamilton VENUS 6 or a newer version and then ' +
+      'run this installer again.' + #13#10 + #13#10 +
+      'Setup will now exit.',
+      mbCriticalError, MB_OK);
+    Result := False;
+  end
+  else
+    Result := True;
+end;
+
+// -----------------------------------------------------------------------
+
 procedure AcceptCheckboxClick(Sender: TObject);
 begin
   WizardForm.NextButton.Enabled := AcceptCheckbox.Checked;
