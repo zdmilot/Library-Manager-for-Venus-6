@@ -6182,6 +6182,26 @@
 				$("#pkg-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
 				return;
 			}
+			if (author.length < shared.AUTHOR_MIN_LENGTH) {
+				alert("Author Name must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+				$("#pkg-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (author.length > shared.AUTHOR_MAX_LENGTH) {
+				alert("Author Name cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+				$("#pkg-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (organization && organization.length < shared.AUTHOR_MIN_LENGTH) {
+				alert("Organization must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+				$("#pkg-organization").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (organization && organization.length > shared.AUTHOR_MAX_LENGTH) {
+				alert("Organization cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+				$("#pkg-organization").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
 			if (!version) {
 				alert("Library Version Number is required.");
 				$("#pkg-version").focus().css({"border": "1px solid red", "background": "#FFCECE"});
@@ -10162,11 +10182,33 @@
 					if (!confirm(sigMsg)) { _isImporting = false; return; }
 				}
 
+				// ---- Author/organization length validation on import ----
+				var importAuthor = (manifest.author || '').trim();
+				var importOrg = (manifest.organization || '').trim();
+				if (importAuthor && importAuthor.length < shared.AUTHOR_MIN_LENGTH) {
+					alert("Invalid package: author must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+					_isImporting = false;
+					return;
+				}
+				if (importAuthor && importAuthor.length > shared.AUTHOR_MAX_LENGTH) {
+					alert("Invalid package: author cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+					_isImporting = false;
+					return;
+				}
+				if (importOrg && importOrg.length < shared.AUTHOR_MIN_LENGTH) {
+					alert("Invalid package: organization must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+					_isImporting = false;
+					return;
+				}
+				if (importOrg && importOrg.length > shared.AUTHOR_MAX_LENGTH) {
+					alert("Invalid package: organization cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+					_isImporting = false;
+					return;
+				}
+
 				// ---- Restricted author/organization check on import ----
 				// If the package uses a restricted OEM author or organization but is NOT a known system library,
 				// require password authorization before allowing the import.
-				var importAuthor = (manifest.author || '').trim();
-				var importOrg = (manifest.organization || '').trim();
 				if (isRestrictedAuthor(importAuthor) || isRestrictedAuthor(importOrg)) {
 					// Check if this library name matches a known system library
 					var isKnownSysLib = systemLibraries.some(function(s) {
@@ -12245,6 +12287,28 @@
 
 			var author = $("#ulib-author").val().trim();
 			var organization = $("#ulib-organization").val().trim();
+
+			// Validate author/organization length
+			if (author && author.length < shared.AUTHOR_MIN_LENGTH) {
+				alert("Author Name must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+				$("#ulib-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (author && author.length > shared.AUTHOR_MAX_LENGTH) {
+				alert("Author Name cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+				$("#ulib-author").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (organization && organization.length < shared.AUTHOR_MIN_LENGTH) {
+				alert("Organization must be at least " + shared.AUTHOR_MIN_LENGTH + " characters.");
+				$("#ulib-organization").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
+			if (organization && organization.length > shared.AUTHOR_MAX_LENGTH) {
+				alert("Organization cannot exceed " + shared.AUTHOR_MAX_LENGTH + " characters.");
+				$("#ulib-organization").focus().css({"border": "1px solid red", "background": "#FFCECE"});
+				return;
+			}
 
 			// Check restricted OEM author on save
 			if (isRestrictedAuthor(author) || isRestrictedAuthor(organization)) {

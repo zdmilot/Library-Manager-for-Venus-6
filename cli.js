@@ -1232,11 +1232,21 @@ function cmdImportLib(args) {
         die('Invalid library name: "' + libName + '". Library names cannot contain path separators, \'..\', trailing dots/spaces, or reserved characters.');
     }
 
+    // ---- Author/organization length validation ----
+    const importAuthor = (manifest.author || '').trim();
+    const importOrg = (manifest.organization || '').trim();
+    if (importAuthor && importAuthor.length < shared.AUTHOR_MIN_LENGTH)
+        die('Invalid package: author must be at least ' + shared.AUTHOR_MIN_LENGTH + ' characters.');
+    if (importAuthor && importAuthor.length > shared.AUTHOR_MAX_LENGTH)
+        die('Invalid package: author cannot exceed ' + shared.AUTHOR_MAX_LENGTH + ' characters.');
+    if (importOrg && importOrg.length < shared.AUTHOR_MIN_LENGTH)
+        die('Invalid package: organization must be at least ' + shared.AUTHOR_MIN_LENGTH + ' characters.');
+    if (importOrg && importOrg.length > shared.AUTHOR_MAX_LENGTH)
+        die('Invalid package: organization cannot exceed ' + shared.AUTHOR_MAX_LENGTH + ' characters.');
+
     // ---- Restricted author check ----
     // If the package claims a restricted OEM name as author or organization but is NOT a known system library,
     // require --author-password for authorization
-    const importAuthor = (manifest.author || '').trim();
-    const importOrg = (manifest.organization || '').trim();
     if ((isRestrictedAuthor(importAuthor) || isRestrictedAuthor(importOrg)) && !isSystemLibraryByName(libName)) {
         if (!args['author-password']) {
             die('This package uses a restricted OEM author/organization name. Use --author-password <password> to authorize.');
@@ -1770,6 +1780,14 @@ function cmdCreatePackage(args) {
     // ---- Validate required fields ----
     const validationErrors = [];
     if (!spec.author)                              validationErrors.push('"author" is required');
+    if (spec.author && spec.author.trim().length < shared.AUTHOR_MIN_LENGTH)
+                                                   validationErrors.push('"author" must be at least ' + shared.AUTHOR_MIN_LENGTH + ' characters');
+    if (spec.author && spec.author.trim().length > shared.AUTHOR_MAX_LENGTH)
+                                                   validationErrors.push('"author" cannot exceed ' + shared.AUTHOR_MAX_LENGTH + ' characters');
+    if (spec.organization && spec.organization.trim().length > 0 && spec.organization.trim().length < shared.AUTHOR_MIN_LENGTH)
+                                                   validationErrors.push('"organization" must be at least ' + shared.AUTHOR_MIN_LENGTH + ' characters');
+    if (spec.organization && spec.organization.trim().length > shared.AUTHOR_MAX_LENGTH)
+                                                   validationErrors.push('"organization" cannot exceed ' + shared.AUTHOR_MAX_LENGTH + ' characters');
     if (!spec.version)                             validationErrors.push('"version" is required');
     if (!spec.venus_compatibility)                 validationErrors.push('"venus_compatibility" is required');
     if (!spec.description)                         validationErrors.push('"description" is required');
