@@ -1,5 +1,5 @@
 
-		// main.js v1.5.3
+		// main.js v1.4.8
 		// Author: Zachary Milot
 
 		var gui = require('nw.gui');
@@ -2058,6 +2058,39 @@
 				appVersion = '';
 			}
 			$(".about-version").text(appVersion ? "Version " + appVersion : "");
+
+			// Populate Windows version
+			try {
+				var winRelease = os.release(); // e.g. "10.0.19045"
+				var winVersion = 'Windows ' + winRelease;
+				// Try to get a friendly name from the registry (e.g. "Windows 11 Pro")
+				try {
+					var execSync = require('child_process').execSync;
+					var prodName = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion" /v ProductName', { encoding: 'utf8', timeout: 5000 });
+					var pnMatch = prodName.match(/ProductName\s+REG_SZ\s+(.+)/i);
+					if (pnMatch) {
+						var buildMatch = prodName.match(/CurrentBuild\s+REG_SZ\s+(\d+)/i);
+						winVersion = pnMatch[1].trim() + ' (Build ' + winRelease + ')';
+					}
+				} catch (_) { /* use fallback */ }
+				$(".about-windows-version").text(winVersion);
+			} catch (_) {
+				$(".about-windows-version").text('N/A');
+			}
+
+			// Populate VENUS version
+			try {
+				var venusVer = _cachedVENUSVersion;
+				if (!venusVer) {
+					var vInfo = getVENUSInstallInfo();
+					venusVer = vInfo.version || '';
+					if (venusVer) _cachedVENUSVersion = venusVer;
+				}
+				$(".about-venus-version").text(venusVer || 'Not detected');
+			} catch (_) {
+				$(".about-venus-version").text('Not detected');
+			}
+
 			$("#aboutModal").modal("show");
 		});
 
