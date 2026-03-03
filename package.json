@@ -17,7 +17,7 @@
     "help": "node cli.js help",
     "lint": "node --check cli.js lib/shared.js"
   },
-  "chromium-args": "--disable-logging --enable-logging=stderr --log-level=3 --disable-crash-reporter",
+  "chromium-args": "--disable-logging --enable-logging=stderr --log-level=3 --disable-crash-reporter --default-background-color=002e48",
   "window": {
     "title": "Library Manager for Venus 6",
     "icon": "/LibraryManagerForVenus6.png",

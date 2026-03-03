@@ -3625,69 +3625,53 @@
 		});
 
 		// ---- Dark Mode / Night Mode ----
+		// Simple approach: on first launch, inherit the OS light/dark preference.
+		// A toolbar toggle (moon/sun icon) is always visible for manual override.
+		// The choice is persisted as "chk_darkMode" between sessions.
+
 		/** Apply or remove dark mode from the document body */
 		function applyDarkMode(enabled) {
 			if (enabled) {
 				$("body").addClass("dark-mode");
-				$(".dark-mode-label").text("Day Mode");
 			} else {
 				$("body").removeClass("dark-mode");
-				$(".dark-mode-label").text("Night Mode");
 			}
 		}
 
-		/** Show or hide the manual dark-mode controls based on system-theme setting */
-		function applySystemThemeVisibility(useSystem) {
-			if (useSystem) {
-				$(".btn-dark-mode-toggle").hide();
-				$(".chk-darkMode-wrap").hide();
-			} else {
-				$(".btn-dark-mode-toggle").show();
-				$(".chk-darkMode-wrap").show();
+		/**
+		 * Resolve the initial dark-mode state.
+		 * If the user has previously toggled, honour the persisted value.
+		 * Otherwise fall back to the operating system preference.
+		 */
+		function resolveInitialDarkMode() {
+			var settings = db_settings.settings.find()[0] || {};
+			// chk_darkMode is explicitly true/false once the user has toggled;
+			// it will be undefined on a clean install.
+			if (typeof settings["chk_darkMode"] === "boolean") {
+				return settings["chk_darkMode"];
 			}
-		}
-
-		/** Follow the OS dark/light preference */
-		function applySystemTheme() {
+			// First launch – follow the OS preference
 			if (window.matchMedia) {
-				var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-				applyDarkMode(prefersDark);
-				$("#chk_darkMode").prop("checked", prefersDark);
+				return window.matchMedia("(prefers-color-scheme: dark)").matches;
 			}
+			return false; // default to light
 		}
 
-		// Listen for OS theme changes while the app is running
+		// Listen for OS theme changes while the app is running.
+		// Only auto-follow when the user has never explicitly toggled.
 		if (window.matchMedia) {
 			window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-				if ($("#chk_useSystemTheme").is(":checked")) {
+				var settings = db_settings.settings.find()[0] || {};
+				if (typeof settings["chk_darkMode"] !== "boolean") {
 					applyDarkMode(e.matches);
-					$("#chk_darkMode").prop("checked", e.matches);
 				}
 			});
 		}
 
-		// Settings checkbox toggle – use system theme
-		$(document).on("change", "#chk_useSystemTheme", function() {
-			var useSystem = $(this).is(":checked");
-			saveSetting("chk_useSystemTheme", useSystem);
-			applySystemThemeVisibility(useSystem);
-			if (useSystem) {
-				applySystemTheme();
-			}
-		});
-
-		// Overflow menu toggle (moon/sun icon)
+		// Toolbar toggle (moon/sun icon) – always visible
 		$(document).on("click", ".btn-dark-mode-toggle", function(e) {
 			e.preventDefault();
 			var isNowDark = !$("body").hasClass("dark-mode");
-			applyDarkMode(isNowDark);
-			$("#chk_darkMode").prop("checked", isNowDark);
-			saveSetting("chk_darkMode", isNowDark);
-		});
-
-		// Settings checkbox toggle
-		$(document).on("change", "#chk_darkMode", function() {
-			var isNowDark = $(this).is(":checked");
 			applyDarkMode(isNowDark);
 			saveSetting("chk_darkMode", isNowDark);
 		});
@@ -5261,19 +5245,8 @@
 			//setting - Data Location (read-only, always local/)
 			$(".txt-localDataPath").val(LOCAL_DATA_DIR);
 
-			//setting - Use System Theme
-			var useSystem = !!settings["chk_useSystemTheme"];
-			$("#chk_useSystemTheme").prop("checked", useSystem);
-			applySystemThemeVisibility(useSystem);
-
-			//setting - Dark Mode / Night Mode (persisted between sessions)
-			if (useSystem) {
-				applySystemTheme();
-			} else {
-				var darkEnabled = !!settings["chk_darkMode"];
-				$("#chk_darkMode").prop("checked", darkEnabled);
-				applyDarkMode(darkEnabled);
-			}
+			//setting - Dark Mode (persisted between sessions; defaults to OS preference)
+			applyDarkMode(resolveInitialDarkMode());
 
 			//reset nav bar and hide overflowing nav bar items
 			fitNavBarItems();
