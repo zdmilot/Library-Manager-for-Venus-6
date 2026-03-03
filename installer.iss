@@ -287,7 +287,7 @@ begin
     '"chk_showGitHubLinks":' + GithubVal +
     '}]';
 
-  // Ensure the parent directory exists (needed for the %LOCALAPPDATA% path)
+  // Ensure the parent directory exists
   ForceDirectories(ExtractFileDir(SettingsPath));
   SaveStringToFile(SettingsPath, Json, False);
 end;

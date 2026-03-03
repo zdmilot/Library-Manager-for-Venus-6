@@ -778,11 +778,13 @@
 		// LOCAL DATA DIRECTORY
 		// ================================================================
 		// All persistent application data lives under a single writable "local/"
-		// directory in the current user's profile (AppData), with legacy fallback
-		// to the app install folder if no profile path can be resolved.
+		// directory within the application install folder (Program Files).
+		// This location is shared across all Windows users on the machine.
+		// The installer grants the Users group Modify permissions on this
+		// directory so that non-admin users can read and write data.
 		//
 		// Directory layout:
-		//   <user_profile_data>/Library Manager for Venus 6/local/
+		//   <app_install_dir>/local/
 		//     settings.json        – application settings (singleton record)
 		//     installed_libs.json  – installed library registry
 		//     groups.json          – custom user groups
