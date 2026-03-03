@@ -1754,6 +1754,8 @@
 
 				function dismissSplashIfReady() {
 					if (!_splashAnimDone || !_splashInitDone) return;
+					// Set window title bar to full name, taskbar to short name
+					win.title = 'Library Manager for Venus 6';
 					// Restore scrolling now that splash is leaving
 					document.documentElement.style.overflow = '';
 					document.body.style.overflow = '';
@@ -9855,11 +9857,11 @@
 			});
 		}
 
-		// ---- Show regulated mode confirmation modal (requires typing "i accept") ----
+		// ---- Show regulated mode confirmation modal (requires typing "I Accept") ----
 		function showRegulatedModeConfirmModal(enabling) {
 			return new Promise(function(resolve) {
 				var $modal = $("#regulatedModeConfirmModal");
-				var expectedText = "i accept";
+				var expectedText = "I Accept";
 				var resolved = false;
 
 				// Set modal content based on enable/disable
@@ -9901,7 +9903,7 @@
 
 				// Enable/disable the confirm button based on typed input
 				$modal.find(".reg-confirm-input").off("input.regConfirm").on("input.regConfirm", function() {
-					var typed = $(this).val().trim().toLowerCase();
+					var typed = $(this).val().trim();
 					$modal.find(".reg-confirm-btn").prop("disabled", typed !== expectedText);
 				});
 
