@@ -921,9 +921,32 @@
 					}
 				});
 			});
+			// Migrate cached packages from legacy install-folder local/packages/ to new user data dir
+			var legacyPkgStore = path.join(LEGACY_APP_LOCAL_DIR, 'packages');
+			var newPkgStore = path.join(LOCAL_DATA_DIR, 'packages');
+			if (fs.existsSync(legacyPkgStore) && legacyPkgStore !== newPkgStore) {
+				try {
+					var legacyLibDirs = fs.readdirSync(legacyPkgStore);
+					legacyLibDirs.forEach(function(libDir) {
+						var srcLib = path.join(legacyPkgStore, libDir);
+						if (!fs.statSync(srcLib).isDirectory()) return;
+						var dstLib = path.join(newPkgStore, libDir);
+						if (!fs.existsSync(dstLib)) fs.mkdirSync(dstLib, { recursive: true });
+						fs.readdirSync(srcLib).forEach(function(pkgFile) {
+							var srcPkg = path.join(srcLib, pkgFile);
+							var dstPkg = path.join(dstLib, pkgFile);
+							if (!fs.existsSync(dstPkg) && pkgFile.toLowerCase().endsWith('.hxlibpkg')) {
+								fs.copyFileSync(srcPkg, dstPkg);
+								console.log('Migrated package from install dir: ' + libDir + '/' + pkgFile);
+							}
+						});
+					});
+				} catch(e) {
+					console.warn('Legacy install-dir package migration warning: ' + e.message);
+				}
+			}
 			// Migrate old LibraryPackages from HAMILTON\Library to local/packages/
 			var oldPkgStore = path.join("C:\\Program Files (x86)\\HAMILTON\\Library", "LibraryPackages");
-			var newPkgStore = path.join(LOCAL_DATA_DIR, 'packages');
 			if (fs.existsSync(oldPkgStore) && oldPkgStore !== newPkgStore) {
 				try {
 					var libDirs = fs.readdirSync(oldPkgStore);
@@ -1993,6 +2016,37 @@
 			} else {
 				alert('Help file not found: ' + chmPath);
 			}
+		});
+
+		//Click "About" from overflow menu.
+		$(document).on("click", ".overflow-about", function (e) {
+			e.preventDefault();
+			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
+			$(".btn-overflow-toggle").attr("aria-expanded", "false");
+			// Populate version from package.json
+			try {
+				var pkgPath = path.join(path.dirname(process.execPath), 'package.json');
+				var pkgData = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+				$(".about-version").text("Version " + pkgData.version);
+			} catch (ex) {
+				$(".about-version").text("");
+			}
+			$("#aboutModal").modal("show");
+		});
+
+		//Click privacy policy link inside About modal.
+		$(document).on("click", ".about-privacy-link", function (e) {
+			e.preventDefault();
+			$("#aboutModal").modal("hide");
+			// Load privacy policy text from file
+			try {
+				var policyPath = path.join(path.dirname(process.execPath), 'PRIVACY_POLICY.txt');
+				var policyText = fs.readFileSync(policyPath, 'utf8');
+				$(".privacy-policy-text").text(policyText);
+			} catch (ex) {
+				$(".privacy-policy-text").text("Privacy policy file not found.");
+			}
+			$("#privacyPolicyModal").modal("show");
 		});
 
 		//Click "Library Groups" from overflow menu.

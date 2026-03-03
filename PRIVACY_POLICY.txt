@@ -1,0 +1,31 @@
+Privacy Policy
+Effective date: March 1, 2026
+
+Library Manager For Venus 6 ("the App") is a desktop application for managing Hamilton VENUS library packages and related files.
+
+1) Data we process
+The App processes files and metadata that you choose to open, import, export, create, or delete, including package files, library files, demo method files, settings, and audit/history records.
+
+2) Local-only storage
+The App stores operational data locally on your device (for example, installed library records, settings, group assignments, package cache, and audit trail). Data is not sent to our servers by default.
+
+3) Network use
+The App does not require a cloud account and does not include built-in analytics, advertising SDKs, or telemetry collection services.
+
+4) Device and system access
+The App may access local file paths and system locations needed for library management workflows. Some COM-related operations may require administrator privileges, based on your actions.
+
+5) Data sharing
+We do not sell or broker your data. The App does not intentionally transmit your library content to third parties as part of core functionality.
+
+6) Data retention and deletion
+Data remains on your device until you remove it, uninstall the App, or choose cleanup options provided by the uninstaller.
+
+7) Security
+The App includes integrity and signature verification features for package workflows, but you remain responsible for endpoint security, access control, and backups in your environment.
+
+8) Children
+The App is intended for professional/enterprise use and is not directed to children.
+
+9) Changes to this policy
+We may update this policy from time to time. The latest version will be provided in product documentation or the Store listing.

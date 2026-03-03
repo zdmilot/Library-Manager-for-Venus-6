@@ -287,6 +287,8 @@ begin
     '"chk_showGitHubLinks":' + GithubVal +
     '}]';
 
+  // Ensure the parent directory exists (needed for the %LOCALAPPDATA% path)
+  ForceDirectories(ExtractFileDir(SettingsPath));
   SaveStringToFile(SettingsPath, Json, False);
 end;
 
@@ -294,8 +296,10 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    // Write configured settings to both local and db settings files
-    WriteSettingsFile(ExpandConstant('{app}\local\settings.json'));
+    // Write configured settings to the per-user local data directory and the
+    // bundled db/ reference copy. The app will migrate from db/ on first launch
+    // if the per-user directory is empty.
+    WriteSettingsFile(ExpandConstant('{localappdata}\Library Manager for Venus 6\local\settings.json'));
     WriteSettingsFile(ExpandConstant('{app}\db\settings.json'));
   end;
 end;
@@ -366,15 +370,10 @@ Source: "db\tree.json"; DestDir: "{app}\db"; Flags: ignoreversion
 Source: "db\unsigned_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion
 ; db\settings.json is written by the [Code] section post-install
 
-; Local data template files (initial state)
-Source: "local\groups.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\installed_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\links.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\publisher_registry.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\tree.json"; DestDir: "{app}\local"; Flags: ignoreversion
-Source: "local\unsigned_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion
-; local\settings.json is written by the [Code] section post-install
-; local\exports and local\packages are empty directories created by [Dirs] section
+; Local data template files are no longer deployed to {app}\local.
+; The application creates and manages its mutable data directory in
+; %LOCALAPPDATA%\Library Manager for Venus 6\local\ at first launch.
+; Legacy data in {app}\local\ is automatically migrated on startup.
 
 ; Help file
 Source: "Library Manager for Venus 6.chm"; DestDir: "{app}"; Flags: ignoreversion
@@ -383,9 +382,8 @@ Source: "Library Manager for Venus 6.chm"; DestDir: "{app}"; Flags: ignoreversio
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Dirs]
-; Ensure local export and package directories exist even if empty
-Name: "{app}\local\exports"
-Name: "{app}\local\packages"
+; Local data directories are created automatically by the application
+; under %LOCALAPPDATA%\Library Manager for Venus 6\local\ at first launch.
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIcon}"

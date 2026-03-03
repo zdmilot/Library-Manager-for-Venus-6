@@ -2393,6 +2393,60 @@ body {
 }
 
 /* ================================================================
+   ABOUT & PRIVACY POLICY MODALS
+   ================================================================ */
+
+.about-modal-body {
+	padding: 28px 24px;
+	background: var(--method-background);
+	text-align: left;
+}
+
+.about-info p {
+	font-size: 0.95rem;
+}
+
+.about-privacy-link {
+	color: #0275d8;
+	font-weight: 500;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.about-privacy-link:hover {
+	color: #025aa5;
+	text-decoration: underline;
+}
+
+.privacy-modal-body {
+	padding: 24px;
+	background: var(--method-background);
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.privacy-policy-text {
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 0.76rem;
+	line-height: 1.55;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+	color: inherit;
+}
+
+body.dark-mode .about-privacy-link {
+	color: #5ba3e6;
+}
+
+body.dark-mode .about-privacy-link:hover {
+	color: #7bbbf5;
+}
+
+/* ================================================================
    DARK MODE / NIGHT MODE
    ================================================================
    Applied when <body> has the class "dark-mode".

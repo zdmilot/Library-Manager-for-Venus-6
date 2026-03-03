@@ -1988,7 +1988,7 @@ function cmdGenerateSyslibHashes(args) {
     });
 
     // Write the baseline file
-    const outputPath = args['output'] || path.join(__dirname, 'db', 'system_library_hashes.json');
+    const outputPath = args['output'] || path.join(LOCAL_DATA_DIR, 'system_library_hashes.json');
     ensureOutDir(outputPath);
     fs.writeFileSync(outputPath, JSON.stringify(baselineData, null, 2), 'utf8');
 
@@ -2010,8 +2010,15 @@ function cmdGenerateSyslibHashes(args) {
 // COMMAND: verify-syslib-hashes
 // ===========================================================================
 function cmdVerifySyslibHashes(args) {
-    // Load the baseline file
-    const hashFilePath = args['hash-file'] || path.join(__dirname, 'db', 'system_library_hashes.json');
+    // Load the baseline file — check user data dir first, then bundled db/
+    let hashFilePath;
+    if (args['hash-file']) {
+        hashFilePath = path.resolve(args['hash-file']);
+    } else {
+        const userCopy = path.join(LOCAL_DATA_DIR, 'system_library_hashes.json');
+        const bundledCopy = path.join(__dirname, 'db', 'system_library_hashes.json');
+        hashFilePath = fs.existsSync(userCopy) ? userCopy : bundledCopy;
+    }
     if (!fs.existsSync(hashFilePath)) {
         die('System library baseline file not found: ' + hashFilePath
           + '\nRun  generate-syslib-hashes  first to create it.');
