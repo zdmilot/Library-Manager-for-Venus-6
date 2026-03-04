@@ -24,8 +24,8 @@ This tool is ideal for:
 - Quality teams enforcing library integrity in regulated environments
 - System integrators packaging and distributing libraries across instruments
 
-Version 1.5.5 includes security improvements, regulated mode enhancements, and numerous bug fixes."
-WhatsNew,Text,"Version 1.5.5 - Security and stability improvements: enhanced password hashing for regulated mode, fixed organization enforcement bypass, improved system library integrity verification, and over 10 bug fixes across import/export and CLI operations."
+Version 1.6.5 includes security improvements, regulated mode enhancements, and numerous bug fixes."
+WhatsNew,Text,"Version 1.6.5 - Security and stability improvements: enhanced password hashing for regulated mode, fixed organization enforcement bypass, improved system library integrity verification, and over 10 bug fixes across import/export and CLI operations."
 ProductFeatures1,Text,Import and export Hamilton VENUS HSL libraries with version tracking
 ProductFeatures2,Text,Create signed library packages (.hxlibpkg) for secure distribution
 ProductFeatures3,Text,Bundle libraries into archive files (.hxlibarch) for bulk deployment

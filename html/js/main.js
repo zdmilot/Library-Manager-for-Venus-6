@@ -1,5 +1,5 @@
 ﻿
-		// main.js v1.5.5
+		// main.js v1.6.5
 		// Author: Zachary Milot
 
 		var gui = require('nw.gui');

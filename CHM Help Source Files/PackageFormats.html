@@ -37,7 +37,7 @@
 <tr><td><code>description</code></td><td>string</td><td>No</td><td>Human-readable description of the library</td></tr>
 <tr><td><code>tags</code></td><td>string[]</td><td>No</td><td>Searchable keyword tags. Over 60 tag keywords are reserved (case-insensitive) and cannot be used, including OEM and laboratory automation company names. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the complete reserved list.</td></tr>
 <tr><td><code>created_date</code></td><td>string</td><td>No</td><td>ISO 8601 timestamp of package creation</td></tr>
-<tr><td><code>app_version</code></td><td>string</td><td>No</td><td>Version of Library Manager for Venus 6 that created or last exported the package (e.g., <code>"1.5.5"</code>). Used for version mismatch detection on import.</td></tr>
+<tr><td><code>app_version</code></td><td>string</td><td>No</td><td>Version of Library Manager for Venus 6 that created or last exported the package (e.g., <code>"1.6.5"</code>). Used for version mismatch detection on import.</td></tr>
 <tr><td><code>windows_version</code></td><td>string</td><td>No</td><td>Windows OS version of the machine that created or last exported the package (e.g., <code>"Windows_NT 10.0.19045 (x64)"</code>)</td></tr>
 <tr><td><code>venus_version</code></td><td>string</td><td>No</td><td>Hamilton VENUS version installed on the machine that created or last exported the package</td></tr>
 <tr><td><code>package_lineage</code></td><td>object[]</td><td>No</td><td>Ordered array of lifecycle events that have occurred to this package. Each event records who performed the action, when, on what system, and which application/format version was used. See <b>Package Lineage</b> below.</td></tr>
@@ -66,14 +66,14 @@
   "description": "High-level pipetting helpers for the ML600.",
   "tags": ["pipetting", "ML600"],
   "created_date": "2026-01-15T10:30:00.000Z",
-  "app_version": "1.5.5",
+  "app_version": "1.6.5",
   "windows_version": "Windows_NT 10.0.19045 (x64)",
   "venus_version": "4.11.0.8717",
   "package_lineage": [
     {
       "event": "created",
       "timestamp": "2026-01-15T10:30:00.000Z",
-      "app_version": "1.5.5",
+      "app_version": "1.6.5",
       "format_version": "2.0",
       "username": "jsmith",
       "hostname": "LAB-PC-01",
