@@ -1280,15 +1280,16 @@
 
 		/**
 		 * Build the OEM verified blue checkmark badge HTML for a given author name.
-		 * Returns an empty string if the author is not a restricted OEM name.
-		 * When a publisher_cert object is provided, the badge shows a hover tooltip
-		 * with certificate details (publisher, key ID, fingerprint, issuing authority, etc.)
+		 * Returns an empty string unless the library has a valid code-signing
+		 * publisher certificate AND the author is a restricted OEM name.
+		 * Only codesigned packages receive the blue checkmark badge.
 		 * @param {string} author - Author or organization name
 		 * @param {boolean} [large=false] - Use the larger variant for detail modals
 		 * @param {Object} [cert=null] - Publisher certificate object (from DB or sigResult)
 		 * @returns {string} HTML string
 		 */
 		function buildOemVerifiedBadge(author, large, cert) {
+			if (!cert || !cert.publisher) return '';
 			if (!isRestrictedAuthor(author)) return '';
 			var sizeClass = large ? ' oem-verified-badge-lg' : '';
 			var tooltipHtml = '';
@@ -7279,34 +7280,38 @@
 		 */
 		function refreshSigningUI() {
 			var info = getSigningDisplayInfo();
+
+			if (!info) {
+				// Hide entire code signing sections when no key pair is configured
+				$(".export-signing-section").hide();
+				$(".archive-signing-section").hide();
+				$("#chk-pkg-sign").closest(".exporter-card").hide();
+				// Uncheck signing toggles and hide their detail panels
+				$(".chk-export-sign").prop("checked", false);
+				$(".export-signing-detail, .pkg-signing-detail").hide();
+				return;
+			}
+
+			// Show code signing sections when key pair is configured
+			$(".export-signing-section").show();
+			$(".archive-signing-section").show();
+			$("#chk-pkg-sign").closest(".exporter-card").show();
+
 			// Export Choice modal
-			if (info) {
-				$(".export-signing-configured").show();
-				$(".export-signing-not-configured").hide();
-				$(".export-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
-				$(".export-signing-key-id").text(info.keyId);
-			} else {
-				$(".export-signing-configured").hide();
-				$(".export-signing-not-configured").show();
-			}
+			$(".export-signing-configured").show();
+			$(".export-signing-not-configured").hide();
+			$(".export-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
+			$(".export-signing-key-id").text(info.keyId);
+
 			// Archive signing inline
-			if (info) {
-				$(".archive-signing-publisher").text(info.publisher).show();
-				$(".archive-signing-not-configured").hide();
-			} else {
-				$(".archive-signing-publisher").hide();
-				$(".archive-signing-not-configured").show();
-			}
+			$(".archive-signing-publisher").text(info.publisher).show();
+			$(".archive-signing-not-configured").hide();
+
 			// Create Package form
-			if (info) {
-				$(".pkg-signing-configured").show();
-				$(".pkg-signing-not-configured").hide();
-				$(".pkg-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
-				$(".pkg-signing-key-id").text(info.keyId);
-			} else {
-				$(".pkg-signing-configured").hide();
-				$(".pkg-signing-not-configured").show();
-			}
+			$(".pkg-signing-configured").show();
+			$(".pkg-signing-not-configured").hide();
+			$(".pkg-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
+			$(".pkg-signing-key-id").text(info.keyId);
 		}
 
 		/**

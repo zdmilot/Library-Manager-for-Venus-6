@@ -216,7 +216,6 @@ The **OEM** group (`gOEM`) is a special protected group that ships with the appl
   - HSL Editor
   - System Configuration Editor
   - Run Control / Version / core VENUS directories
-- Supports simulation mode toggle through helper interop (`GetSimulation` / `SetSimulation`).
 - Supports user/auth role display and function-protection handling integration through helper calls.
 
 ## 12) Help and UX support

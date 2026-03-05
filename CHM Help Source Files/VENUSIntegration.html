@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; VENUS Integration</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 integrates with the Hamilton VENUS software ecosystem by providing quick-launch shortcuts to VENUS editors and tools, dynamically resolving VENUS installation paths, and supporting simulation mode toggling.</p>
+<p>Library Manager for Venus 6 integrates with the Hamilton VENUS software ecosystem by providing quick-launch shortcuts to VENUS editors and tools and dynamically resolving VENUS installation paths.</p>
 
 <h2>VENUS Tool Shortcuts</h2>
 <p>The sidebar provides launch shortcuts to the following Hamilton VENUS applications. These paths are resolved dynamically from the system registry and stored in the links database.</p>
@@ -42,13 +42,6 @@
 <tr><td><b>Methods</b></td><td>VENUS method files</td><td><code>C:\Program Files (x86)\Hamilton\Methods</code></td></tr>
 </tbody>
 </table>
-
-<h2>Simulation Mode</h2>
-<p>Library Manager for Venus 6 can toggle the VENUS simulation mode through a helper DLL interop. This allows you to switch between simulation and live instrument modes without opening the VENUS System Configuration Editor.</p>
-<ul>
-  <li><b>GetSimulation</b> - Read current simulation mode state</li>
-  <li><b>SetSimulation</b> - Enable or disable simulation mode</li>
-</ul>
 
 <h2>Path Resolution</h2>
 <p>VENUS installation paths are resolved dynamically from the Windows registry using a helper DLL. The resolved paths are stored in the links database and updated when the application detects path changes. The following paths are tracked:</p>
