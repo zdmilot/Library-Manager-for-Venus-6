@@ -37,6 +37,8 @@ LicenseFile=
 DisableWelcomePage=no
 ; Show the "Ready to Install" summary page
 DisableReadyPage=no
+; Notify Windows shell of file association changes
+ChangesAssociations=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -800,6 +802,9 @@ Source: "Library Manager for Venus 6.exe"; DestDir: "{app}"; Flags: ignoreversio
 Source: "LibraryManagerForVenus6.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LibraryManagerForVenus6.png"; DestDir: "{app}"; Flags: ignoreversion
 
+; File type association icon (greyscale - separate from internal app icons)
+Source: "hxlib_filetype.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 ; NW.js runtime DLLs and resources
 Source: "nw.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "node.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -889,6 +894,24 @@ Source: "PRIVACY_POLICY.txt"; Flags: dontcopy
 Name: "{app}\local"; Permissions: users-modify
 Name: "{app}\local\packages"; Permissions: users-modify
 Name: "{app}\local\exports"; Permissions: users-modify
+
+[Registry]
+; --------------------------------------------------------------------------
+; File type associations for .hxlibpkg and .hxlibarch
+; Uses the greyscale icon (hxlib_filetype.ico) which is intentionally
+; separate from the coloured icons used inside the application UI.
+; --------------------------------------------------------------------------
+; .hxlibpkg  ->  HxLibPkg file type
+Root: HKLM; Subkey: "Software\Classes\.hxlibpkg"; ValueType: string; ValueName: ""; ValueData: "HxLibPkg"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Classes\HxLibPkg"; ValueType: string; ValueName: ""; ValueData: "Venus Library Package"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\HxLibPkg\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\hxlib_filetype.ico,0"
+Root: HKLM; Subkey: "Software\Classes\HxLibPkg\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+
+; .hxlibarch  ->  HxLibArch file type
+Root: HKLM; Subkey: "Software\Classes\.hxlibarch"; ValueType: string; ValueName: ""; ValueData: "HxLibArch"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Classes\HxLibArch"; ValueType: string; ValueName: ""; ValueData: "Venus Library Archive"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\HxLibArch\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\hxlib_filetype.ico,0"
+Root: HKLM; Subkey: "Software\Classes\HxLibArch\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIcon}"
