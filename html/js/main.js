@@ -1306,14 +1306,6 @@
 		}
 
 		/**
-		 * Get a map of trusted publisher certificates (fingerprint → cert).
-		 * Used for code signing verification during import.
-		 */
-		function getTrustedCertificates() {
-			return loadTrustedCertificates(_publisherRegistryPath);
-		}
-
-		/**
 		 * Rebuild the publisher registry by scanning all installed + system libraries.
 		 * Called once at startup and after any import/registration.
 		 */
@@ -7488,7 +7480,6 @@
 		var signPackageZip        = shared.signPackageZip;
 		var signPackageZipWithCert = shared.signPackageZipWithCert;
 		var verifyPackageSignature = shared.verifyPackageSignature;
-		var loadTrustedCertificates = shared.loadTrustedCertificates;
 		var validatePublisherCertificate = shared.validatePublisherCertificate;
 		var generateSigningKeyPair      = shared.generateSigningKeyPair;
 		var buildPublisherCertificate   = shared.buildPublisherCertificate;
@@ -8855,7 +8846,7 @@
 
 				// Verify signature on cached package for publisher_cert
 				var rollbackSig = null;
-				try { rollbackSig = verifyPackageSignature(zip, getTrustedCertificates()); } catch(e) { console.warn('Could not verify rollback package signature: ' + e.message); }
+				try { rollbackSig = verifyPackageSignature(zip); } catch(e) { console.warn('Could not verify rollback package signature: ' + e.message); }
 
 				var dbRecord = {
 					library_name: manifest.library_name || "",
@@ -10232,7 +10223,7 @@
 						}
 
 						// Verify inner package signature
-						var innerSig = verifyPackageSignature(innerZip, getTrustedCertificates());
+						var innerSig = verifyPackageSignature(innerZip);
 						if (innerSig.signed && !innerSig.valid) {
 							results.failed.push(libName + ": signature verification FAILED (" + innerSig.errors.join("; ") + ")");
 							return;
@@ -10900,8 +10891,7 @@
 				var manifest = JSON.parse(manifestJson);
 
 				// ---- Verify package signature ----
-				var trustedCerts = getTrustedCertificates();
-				var sigResult = verifyPackageSignature(zip, trustedCerts);
+				var sigResult = verifyPackageSignature(zip);
 				if (sigResult.signed && !sigResult.valid) {
 					var sigMsg = "WARNING: Package signature verification FAILED!\n\n";
 					sigResult.errors.forEach(function(e) { sigMsg += "  \u274C " + e + "\n"; });
@@ -11147,20 +11137,10 @@
 						var pubName = escapeHtml(sigResult.publisher_cert.publisher);
 						var pubOrg = sigResult.publisher_cert.organization ? ' (' + escapeHtml(sigResult.publisher_cert.organization) + ')' : '';
 						var keyId = escapeHtml(sigResult.publisher_cert.key_id);
-						var trustIcon, trustLabel, trustClass;
-						if (sigResult.trust_status === 'trusted') {
-							trustIcon = 'fa-certificate';
-							trustLabel = 'Trusted publisher';
-							trustClass = 'text-success';
-						} else {
-							trustIcon = 'fa-question-circle';
-							trustLabel = 'Untrusted publisher';
-							trustClass = 'text-warning';
-						}
-						var certHtml = '<div class="d-flex align-items-center ' + trustClass + '">' +
-							'<i class="fas ' + trustIcon + ' mr-2"></i>' +
+						var certHtml = '<div class="d-flex align-items-center text-success">' +
+							'<i class="fas fa-certificate mr-2"></i>' +
 							'<span>Code signed by <strong>' + pubName + '</strong>' + pubOrg + '</span></div>' +
-							'<div class="text-sm ml-4 mt-1 text-muted">Key ID: ' + keyId + ' &mdash; ' + trustLabel + '</div>';
+							'<div class="text-sm ml-4 mt-1 text-muted">Key ID: ' + keyId + '</div>';
 						$sigStatus.html(certHtml);
 						$modal.find(".imp-preview-signature-section").removeClass("d-none");
 					} else if (sigResult.signed && sigResult.valid) {
@@ -11534,7 +11514,7 @@
 					if (sigData && sigData.code_signed && sigData.publisher_cert) {
 						auditEntry.code_signing_publisher = sigData.publisher_cert.publisher;
 						auditEntry.code_signing_key_id = sigData.publisher_cert.key_id;
-						auditEntry.code_signing_trust = sigData.trust_status;
+						auditEntry.code_signing_oem = sigData.oem_verified;
 					}
 					appendAuditTrailEntry(buildAuditTrailEntry('library_imported', auditEntry));
 				} catch(_) { /* non-critical */ }

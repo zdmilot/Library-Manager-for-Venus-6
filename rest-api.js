@@ -113,7 +113,7 @@ var openApiSpec = {
         { name: 'Packages',            description: 'Package creation and verification' },
         { name: 'Archives',            description: 'Multi-library archive operations' },
         { name: 'Versions',            description: 'Cached version management and rollback' },
-        { name: 'Publishers',          description: 'Code signing and publisher trust' },
+        { name: 'Publishers',          description: 'Code signing and publisher certificates' },
         { name: 'System Libraries',    description: 'Hamilton system library integrity' },
         { name: 'Audit',               description: 'Audit trail access' },
         { name: 'Settings',            description: 'Application settings' },
@@ -183,7 +183,7 @@ var openApiSpec = {
                     valid:          { type: 'boolean' },
                     code_signed:    { type: 'boolean' },
                     publisher_cert: { type: 'object', nullable: true },
-                    trust_status:   { type: 'string' },
+                    oem_verified:   { type: 'boolean' },
                     errors:         { type: 'array', items: { type: 'string' } },
                     warnings:       { type: 'array', items: { type: 'string' } }
                 }
@@ -245,7 +245,6 @@ var openApiSpec = {
                             organization: { type: 'string' },
                             key_id:       { type: 'string' },
                             fingerprint:  { type: 'string' },
-                            trusted:      { type: 'boolean' },
                             created_date: { type: 'string', format: 'date-time' }
                         }
                     }}
@@ -337,8 +336,7 @@ var openApiSpec = {
                         force:          { type: 'string', enum: ['true', 'false'], description: 'Overwrite existing library' },
                         noGroup:        { type: 'string', enum: ['true', 'false'], description: 'Skip group assignment' },
                         noCache:        { type: 'string', enum: ['true', 'false'], description: 'Skip package caching' },
-                        authorPassword: { type: 'string', description: 'OEM author password' },
-                        requireTrust:   { type: 'string', enum: ['true', 'false'], description: 'Require trusted publisher' }
+                        authorPassword: { type: 'string', description: 'OEM author password' }
                     }
                 }}}},
                 responses: {
@@ -690,8 +688,7 @@ app.post('/api/libraries/import', upload.single('package'), function(req, res) {
                 force:          req.body.force === 'true',
                 noGroup:        req.body.noGroup === 'true',
                 noCache:        req.body.noCache === 'true',
-                authorPassword: req.body.authorPassword || null,
-                requireTrust:   req.body.requireTrust === 'true'
+                authorPassword: req.body.authorPassword || null
             });
             // Clean up uploaded file
             try { fs.unlinkSync(req.file.path); } catch(_){}
@@ -864,7 +861,6 @@ app.post('/api/publishers/generate-keypair', function(req, res) {
                 organization:   body.organization,
                 outputDir:      body.outputDir,
                 force:          body.force === true,
-                noTrust:        true,
                 authorPassword: body.authorPassword
             });
             releaseMutex();

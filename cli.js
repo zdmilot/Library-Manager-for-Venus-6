@@ -50,7 +50,6 @@ const parseHslMetadataFooter = shared.parseHslMetadataFooter;
 const generateSigningKeyPair       = shared.generateSigningKeyPair;
 const buildPublisherCertificate    = shared.buildPublisherCertificate;
 const validatePublisherCertificate = shared.validatePublisherCertificate;
-const loadTrustedCertificates      = shared.loadTrustedCertificates;
 
 // Binary container format helpers
 const CONTAINER_MAGIC_PKG    = shared.CONTAINER_MAGIC_PKG;
@@ -908,8 +907,7 @@ function cmdImportLib(args) {
     }
 
     // ---- Verify package signature ----
-    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
-    const sigResult = verifyPackageSignature(zip, trustedCerts);
+    const sigResult = verifyPackageSignature(zip);
     if (sigResult.signed) {
         if (sigResult.valid) {
             console.log('  Signature: VALID');
@@ -917,13 +915,8 @@ function cmdImportLib(args) {
                 console.log('  Code signed by: ' + sigResult.publisher_cert.publisher +
                     (sigResult.publisher_cert.organization ? ' (' + sigResult.publisher_cert.organization + ')' : '') +
                     ' [key ' + sigResult.publisher_cert.key_id + ']');
-                if (sigResult.trust_status === 'trusted') {
-                    console.log('  Publisher trust: TRUSTED');
-                } else {
-                    console.log('  Publisher trust: UNTRUSTED (publisher not in trusted registry)');
-                    if (!args['force'] && args['require-trust']) {
-                        die('Package publisher is not trusted. Use --force to import anyway, or trust the publisher in Settings.');
-                    }
+                if (sigResult.oem_verified) {
+                    console.log('  OEM Verified: YES');
                 }
             }
         } else {
@@ -1087,9 +1080,6 @@ function cmdImportArchive(args) {
 
     const results = { success: [], failed: [] };
 
-    // Load trusted publisher certificates for signature verification
-    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
-
     pkgEntries.forEach(function (pkgEntry) {
         const label = pkgEntry.entryName;
         try {
@@ -1107,7 +1097,7 @@ function cmdImportArchive(args) {
             }
 
             // Verify inner package signature
-            const sigResult = verifyPackageSignature(innerZip, trustedCerts);
+            const sigResult = verifyPackageSignature(innerZip);
             if (sigResult.signed && !sigResult.valid) {
                 console.log(`  ! ${libName}: signature verification FAILED`);
                 sigResult.errors.forEach(e => process.stderr.write('      ' + e + '\n'));
@@ -2198,8 +2188,7 @@ function cmdRollbackLib(args) {
     }
 
     // ---- Signature verification ----
-    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
-    const sigResult = verifyPackageSignature(zip, trustedCerts);
+    const sigResult = verifyPackageSignature(zip);
     if (sigResult.signed && !sigResult.valid) {
         die('Cached package signature verification FAILED:\n  ' + sigResult.errors.join('\n  ') + '\nRollback aborted.');
     }
@@ -2515,7 +2504,7 @@ generate-keypair
 
 ──────────────────────────────────────────────────────────────────────────────
 list-publishers
-  List all registered publisher certificates and their trust status.
+  List all registered publisher certificates.
 
   --json          Output raw JSON
 
@@ -2538,7 +2527,6 @@ function cmdVerifyPackage(args) {
 
     const ext = path.extname(filePath).toLowerCase();
     const results = [];
-    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
 
     if (ext === '.hxlibarch') {
         // Verify each inner .hxlibpkg
@@ -2559,19 +2547,19 @@ function cmdVerifyPackage(args) {
             try {
                 const innerZipBuf2 = unpackContainer(pkgEntry.getData(), CONTAINER_MAGIC_PKG);
                 const innerZip = new AdmZip(innerZipBuf2);
-                const sigResult = verifyPackageSignature(innerZip, trustedCerts);
+                const sigResult = verifyPackageSignature(innerZip);
                 results.push({
                     package: pkgEntry.entryName,
                     signed: sigResult.signed,
                     valid: sigResult.valid,
                     code_signed: sigResult.code_signed,
                     publisher_cert: sigResult.publisher_cert,
-                    trust_status: sigResult.trust_status,
+                    oem_verified: sigResult.oem_verified,
                     errors: sigResult.errors,
                     warnings: sigResult.warnings
                 });
             } catch (e) {
-                results.push({ package: pkgEntry.entryName, signed: false, valid: false, code_signed: false, publisher_cert: null, trust_status: 'none', errors: ['Failed to read: ' + e.message], warnings: [] });
+                results.push({ package: pkgEntry.entryName, signed: false, valid: false, code_signed: false, publisher_cert: null, oem_verified: false, errors: ['Failed to read: ' + e.message], warnings: [] });
             }
         });
     } else {
@@ -2580,14 +2568,14 @@ function cmdVerifyPackage(args) {
             const rawPkgBuf2 = fs.readFileSync(filePath);
             const zipBuf2 = unpackContainer(rawPkgBuf2, CONTAINER_MAGIC_PKG);
             const zip = new AdmZip(zipBuf2);
-            const sigResult = verifyPackageSignature(zip, trustedCerts);
+            const sigResult = verifyPackageSignature(zip);
             results.push({
                 package: path.basename(filePath),
                 signed: sigResult.signed,
                 valid: sigResult.valid,
                 code_signed: sigResult.code_signed,
                 publisher_cert: sigResult.publisher_cert,
-                trust_status: sigResult.trust_status,
+                oem_verified: sigResult.oem_verified,
                 errors: sigResult.errors,
                 warnings: sigResult.warnings
             });
@@ -2611,7 +2599,7 @@ function cmdVerifyPackage(args) {
                 console.log(`  Publisher  : ${r.publisher_cert.publisher}${r.publisher_cert.organization ? ' (' + r.publisher_cert.organization + ')' : ''}`);
                 console.log(`  Key ID     : ${r.publisher_cert.key_id}`);
                 console.log(`  Fingerprint: ${r.publisher_cert.fingerprint}`);
-                console.log(`  Trust      : ${r.trust_status.toUpperCase()}`);
+                console.log(`  OEM Verified: ${r.oem_verified ? 'YES' : 'NO'}`);
             }
             r.errors.forEach(e   => console.log(`  [ERROR]   ${e}`));
             r.warnings.forEach(w => console.log(`  [WARNING] ${w}`));
@@ -2789,16 +2777,14 @@ function cmdListPublishers(args) {
 
     if (publishersWithCerts.length === 0) {
         console.log('No publishers with signing certificates registered.');
-        console.log('Use "generate-keypair" to create a signing key pair, then');
-        console.log('trust the certificate in Settings.');
+        console.log('Use "generate-keypair" to create a signing key pair.');
         return;
     }
 
     console.log('Registered publisher certificates:\n');
     publishersWithCerts.forEach(function(pub) {
         (pub.certificates || []).forEach(function(cert) {
-            const trustBadge = cert.trusted ? '[TRUSTED]' : '[REVOKED]';
-            console.log('  ' + trustBadge + '  ' + (cert.publisher || pub.name));
+            console.log('  ' + (cert.publisher || pub.name));
             if (cert.organization) console.log('           Org: ' + cert.organization);
             console.log('           Key ID: ' + (cert.key_id || '?'));
             console.log('           Fingerprint: ' + (cert.fingerprint || '?'));
