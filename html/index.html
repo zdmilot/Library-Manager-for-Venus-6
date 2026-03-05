@@ -1534,6 +1534,26 @@
 							<small class="text-muted ml-4 d-block github-links-regulated-status"></small>
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>REST API Server</h6>
+							<small class="text-muted d-block mb-2">Run an Express-based REST API server that exposes all library management operations over HTTP. When enabled, a background process is started and a system tray icon appears in the Windows notification area. The API includes an interactive Swagger UI for testing.</small>
+							<div class="custom-control custom-checkbox">
+								<input type="checkbox" class="custom-control-input" id="chk_enableRestApi">
+								<label class="custom-control-label" for="chk_enableRestApi">Enable REST API server</label>
+							</div>
+							<div class="rest-api-options mt-2 ml-4" style="display:none;">
+								<div class="form-group row mb-2">
+									<label class="col-sm-3 col-form-label col-form-label-sm">Port</label>
+									<div class="col-sm-3">
+										<input type="number" class="form-control form-control-sm" id="txt_restApiPort" value="5555" min="1024" max="65535" style="max-width:100px;">
+									</div>
+								</div>
+								<div class="rest-api-status mt-1">
+									<span class="badge badge-secondary rest-api-status-badge"><i class="fas fa-circle mr-1" style="font-size:0.6em;vertical-align:middle;"></i>Stopped</span>
+									<a href="#" class="rest-api-swagger-link ml-2 text-sm" style="display:none;" target="_blank"><i class="fas fa-external-link-alt mr-1"></i>Open Swagger UI</a>
+								</div>
+							</div>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Data Location</h6>
 							<small class="text-muted d-block mb-2">All application data (settings, library registry, audit trail, package backups, exports) is stored in the <code>local/</code> directory within the application's install folder. This location is globally accessible to all users on this PC.</small>
 							<div class="input-group input-group-sm">

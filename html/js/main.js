@@ -8,6 +8,16 @@
 		var spawn = require('child_process').spawn; 
 
 		// ---------------------------------------------------------------------------
+		// REST API child process & System tray icon globals
+		// ---------------------------------------------------------------------------
+		/** @type {import('child_process').ChildProcess|null} The REST API server child process */
+		var _restApiProcess = null;
+		/** @type {boolean} Whether the REST API server is currently running */
+		var _restApiRunning = false;
+		/** @type {nw.Tray|null} The system tray icon instance */
+		var _tray = null;
+
+		// ---------------------------------------------------------------------------
 		// Global error boundary - catch unhandled errors to prevent silent failures
 		// ---------------------------------------------------------------------------
 		window.onerror = function(message, source, lineno, colno, error) {
@@ -19,6 +29,214 @@
 			console.error('Unhandled promise rejection:', event.reason);
 			try { _isImporting = false; } catch(_) {}
 		});
+
+		// ---------------------------------------------------------------------------
+		// REST API Server - Lifecycle Management
+		// ---------------------------------------------------------------------------
+
+		/**
+		 * Start the REST API server as a detached child process.
+		 * Spawns `node rest-api.js` with the configured port number.
+		 * Updates the UI status badge and Swagger link.
+		 * @param {number} [port=5555] - The port number to listen on.
+		 */
+		function startRestApi(port) {
+			if (_restApiRunning && _restApiProcess) {
+				console.log('REST API server is already running.');
+				return;
+			}
+			port = parseInt(port, 10) || 5555;
+			var restApiPath = path.join(path.dirname(process.execPath), 'rest-api.js');
+			// Fall back: if not found next to executable, try app root
+			if (!fs.existsSync(restApiPath)) {
+				restApiPath = path.resolve(__dirname, '..', '..', 'rest-api.js');
+			}
+			if (!fs.existsSync(restApiPath)) {
+				console.error('REST API script not found at: ' + restApiPath);
+				updateRestApiStatus(false);
+				return;
+			}
+			try {
+				_restApiProcess = spawn(process.execPath, [restApiPath, '--port', String(port)], {
+					stdio: ['ignore', 'pipe', 'pipe'],
+					windowsHide: true
+				});
+				_restApiRunning = true;
+				_restApiProcess.stdout.on('data', function(data) {
+					console.log('[REST API] ' + data.toString().trim());
+				});
+				_restApiProcess.stderr.on('data', function(data) {
+					console.warn('[REST API ERR] ' + data.toString().trim());
+				});
+				_restApiProcess.on('error', function(err) {
+					console.error('REST API process error: ' + err.message);
+					_restApiRunning = false;
+					_restApiProcess = null;
+					updateRestApiStatus(false);
+					updateTrayMenu();
+				});
+				_restApiProcess.on('exit', function(code) {
+					console.log('REST API process exited with code ' + code);
+					_restApiRunning = false;
+					_restApiProcess = null;
+					updateRestApiStatus(false);
+					updateTrayMenu();
+				});
+				console.log('REST API server started on port ' + port + ' (PID: ' + _restApiProcess.pid + ')');
+				updateRestApiStatus(true, port);
+				updateTrayMenu();
+			} catch(e) {
+				console.error('Failed to start REST API server: ' + e.message);
+				_restApiRunning = false;
+				_restApiProcess = null;
+				updateRestApiStatus(false);
+			}
+		}
+
+		/**
+		 * Stop the REST API server child process.
+		 * Sends SIGTERM and force-kills after a 3-second timeout.
+		 */
+		function stopRestApi() {
+			if (!_restApiProcess) {
+				_restApiRunning = false;
+				updateRestApiStatus(false);
+				updateTrayMenu();
+				return;
+			}
+			try {
+				// On Windows, use taskkill to ensure the process tree is terminated
+				var pid = _restApiProcess.pid;
+				_restApiProcess.removeAllListeners('exit');
+				try {
+					require('child_process').execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
+				} catch(killErr) {
+					// taskkill may fail if process already exited
+					try { _restApiProcess.kill('SIGTERM'); } catch(_) {}
+				}
+			} catch(e) {
+				console.warn('Error stopping REST API process: ' + e.message);
+			}
+			_restApiProcess = null;
+			_restApiRunning = false;
+			console.log('REST API server stopped.');
+			updateRestApiStatus(false);
+			updateTrayMenu();
+		}
+
+		/**
+		 * Update the REST API status badge and Swagger link in the settings UI.
+		 * @param {boolean} running - Whether the server is running.
+		 * @param {number} [port] - The port number (used to build the Swagger link).
+		 */
+		function updateRestApiStatus(running, port) {
+			if (running) {
+				$(".rest-api-status-badge")
+					.removeClass("badge-secondary badge-danger").addClass("badge-success")
+					.html('<i class="fas fa-circle mr-1" style="font-size:0.6em;vertical-align:middle;"></i>Running on port ' + port);
+				$(".rest-api-swagger-link")
+					.attr("href", "http://127.0.0.1:" + port + "/docs")
+					.show();
+			} else {
+				$(".rest-api-status-badge")
+					.removeClass("badge-success badge-danger").addClass("badge-secondary")
+					.html('<i class="fas fa-circle mr-1" style="font-size:0.6em;vertical-align:middle;"></i>Stopped');
+				$(".rest-api-swagger-link").hide();
+			}
+		}
+
+		// ---------------------------------------------------------------------------
+		// System Tray Icon
+		// ---------------------------------------------------------------------------
+
+		/**
+		 * Initialize the system tray icon.
+		 * Shows the app icon in the Windows notification area (hidden icons pane).
+		 * Provides a context menu with options to show the window, toggle the
+		 * REST API, or quit the application.
+		 */
+		function initTrayIcon() {
+			if (_tray) return; // already initialized
+			try {
+				var trayIconPath = path.join(path.dirname(process.execPath), 'LibraryManagerForVenus6.png');
+				if (!fs.existsSync(trayIconPath)) {
+					trayIconPath = path.resolve(__dirname, '..', '..', 'LibraryManagerForVenus6.png');
+				}
+				_tray = new nw.Tray({
+					title: 'Library Manager for Venus 6',
+					icon: trayIconPath,
+					tooltip: 'Library Manager for Venus 6'
+				});
+				_tray.on('click', function() {
+					win.show();
+					win.focus();
+				});
+				updateTrayMenu();
+				console.log('System tray icon created.');
+			} catch(e) {
+				console.warn('Could not create system tray icon: ' + e.message);
+			}
+		}
+
+		/**
+		 * Update the system tray context menu to reflect current REST API state.
+		 */
+		function updateTrayMenu() {
+			if (!_tray) return;
+			try {
+				var menu = new nw.Menu();
+				menu.append(new nw.MenuItem({
+					label: 'Open Library Manager',
+					click: function() {
+						win.show();
+						win.focus();
+					}
+				}));
+				menu.append(new nw.MenuItem({ type: 'separator' }));
+				if (_restApiRunning) {
+					menu.append(new nw.MenuItem({
+						label: 'REST API: Running',
+						click: function() {
+							stopRestApi();
+							saveSetting('chk_enableRestApi', false);
+							$("#chk_enableRestApi").prop("checked", false);
+							$(".rest-api-options").slideUp(150);
+						}
+					}));
+				} else {
+					menu.append(new nw.MenuItem({
+						label: 'REST API: Stopped',
+						click: function() {
+							var port = parseInt($("#txt_restApiPort").val(), 10) || 5555;
+							startRestApi(port);
+							saveSetting('chk_enableRestApi', true);
+							$("#chk_enableRestApi").prop("checked", true);
+							$(".rest-api-options").slideDown(150);
+						}
+					}));
+				}
+				menu.append(new nw.MenuItem({ type: 'separator' }));
+				menu.append(new nw.MenuItem({
+					label: 'Quit',
+					click: function() {
+						win.close();
+					}
+				}));
+				_tray.menu = menu;
+			} catch(e) {
+				console.warn('Could not update tray menu: ' + e.message);
+			}
+		}
+
+		/**
+		 * Remove the system tray icon from the notification area.
+		 */
+		function removeTrayIcon() {
+			if (_tray) {
+				try { _tray.remove(); } catch(_) {}
+				_tray = null;
+			}
+		}
 
 		/// Default VENUS executables. 
         var HxRun = "HxRun.exe";
@@ -1812,6 +2030,11 @@
 
         //Window close.   Ensure to close any background running nw.exe
 		win.on('close', function () {
+			// Stop REST API server if running
+			try { stopRestApi(); } catch(_) {}
+			// Remove system tray icon
+			try { removeTrayIcon(); } catch(_) {}
+
 			// Persist maximized state for next launch (dual-write for reliability)
 			try {
 				saveSetting('windowMaximized', _windowIsMaximized);
@@ -3823,6 +4046,47 @@
 			saveSetting("chk_darkMode", isNowDark);
 		});
 
+		// ---------------------------------------------------------------------------
+		// Settings > REST API Server toggle
+		// ---------------------------------------------------------------------------
+		$(document).on("click", "#chk_enableRestApi", function() {
+			var checked = $(this).prop("checked");
+			saveSetting("chk_enableRestApi", checked);
+			if (checked) {
+				$(".rest-api-options").slideDown(150);
+				var port = parseInt($("#txt_restApiPort").val(), 10) || 5555;
+				saveSetting("restApiPort", port);
+				startRestApi(port);
+			} else {
+				stopRestApi();
+				$(".rest-api-options").slideUp(150);
+			}
+		});
+
+		// Settings > REST API port change (debounced)
+		$(document).on("change", "#txt_restApiPort", function() {
+			var port = parseInt($(this).val(), 10);
+			if (!port || port < 1024 || port > 65535) {
+				$(this).val(5555);
+				port = 5555;
+			}
+			saveSetting("restApiPort", port);
+			// Restart if currently running
+			if (_restApiRunning) {
+				stopRestApi();
+				setTimeout(function() { startRestApi(port); }, 500);
+			}
+		});
+
+		// Settings > REST API Swagger link click (open in default browser)
+		$(document).on("click", ".rest-api-swagger-link", function(e) {
+			e.preventDefault();
+			var href = $(this).attr("href");
+			if (href) {
+				try { gui.Shell.openExternal(href); } catch(ex) { console.warn('Could not open Swagger URL: ' + ex.message); }
+			}
+		});
+
 		$(document).on("click", ".btn-clearRecentList", function () {
 			clearRecentList();
 			$(".txt-recentCleared").text("Recent list has been cleared!");
@@ -5418,6 +5682,22 @@
 			refreshSettingsSigningStatus();
 			refreshSigningUI();
 			refreshTrustedPublishersList();
+
+			//setting - REST API Server
+			var restApiEnabled = !!settings["chk_enableRestApi"];
+			var restApiPort = parseInt(settings["restApiPort"], 10) || 5555;
+			$("#chk_enableRestApi").prop("checked", restApiEnabled);
+			$("#txt_restApiPort").val(restApiPort);
+			if (restApiEnabled) {
+				$(".rest-api-options").show();
+				startRestApi(restApiPort);
+			} else {
+				$(".rest-api-options").hide();
+				updateRestApiStatus(false);
+			}
+
+			// Initialize system tray icon (always present when app is running)
+			initTrayIcon();
 		}
 
 		function saveSetting(key,val){
