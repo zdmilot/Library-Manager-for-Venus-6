@@ -5681,7 +5681,6 @@
 			// Load code signing configuration
 			refreshSettingsSigningStatus();
 			refreshSigningUI();
-			refreshTrustedPublishersList();
 
 			//setting - REST API Server
 			var restApiEnabled = !!settings["chk_enableRestApi"];
@@ -7490,7 +7489,6 @@
 		var signPackageZipWithCert = shared.signPackageZipWithCert;
 		var verifyPackageSignature = shared.verifyPackageSignature;
 		var loadTrustedCertificates = shared.loadTrustedCertificates;
-		var saveTrustedCertificate  = shared.saveTrustedCertificate;
 		var validatePublisherCertificate = shared.validatePublisherCertificate;
 		var generateSigningKeyPair      = shared.generateSigningKeyPair;
 		var buildPublisherCertificate   = shared.buildPublisherCertificate;
@@ -7727,14 +7725,10 @@
 				$(".settings-signing-key-path").val(keyPath);
 				$(".settings-signing-cert-path").val(certPath);
 
-				// Auto-trust this certificate
-				saveTrustedCertificate(_publisherRegistryPath, cert);
-
 				refreshSettingsSigningStatus();
 				refreshSigningUI();
-				refreshTrustedPublishersList();
 
-				alert('Key pair generated successfully!\n\nPrivate Key: ' + keyPath + '\nCertificate: ' + certPath + '\n\nThe certificate has been auto-trusted and configured as the default signing key.\n\nIMPORTANT: Keep the private key (.key.pem) file secure. Never share it. Only distribute the certificate (.cert.json) file.');
+				alert('Key pair generated successfully!\n\nPrivate Key: ' + keyPath + '\nCertificate: ' + certPath + '\n\nConfigured as the default signing key.\n\nIMPORTANT: Keep the private key (.key.pem) file secure. Never share it. Only distribute the certificate (.cert.json) file.');
 			} catch(e) {
 				alert('Error generating key pair:\n' + e.message);
 			}
@@ -7787,106 +7781,6 @@
 				$(".settings-signing-error").show();
 			}
 		}
-
-		/**
-		 * Refresh the trusted publishers list in the Settings modal.
-		 */
-		function refreshTrustedPublishersList() {
-			var $list = $("#settings-trusted-publishers-list");
-			try {
-				var trustedCerts = getTrustedCertificates();
-				var fingerprints = Object.keys(trustedCerts);
-				if (fingerprints.length === 0) {
-					$list.html('<div class="text-muted text-sm py-2"><i class="fas fa-inbox mr-1"></i>No trusted publishers</div>');
-					return;
-				}
-				var html = '';
-				fingerprints.forEach(function(fp) {
-					var cert = trustedCerts[fp];
-					var keyId = cert.key_id || fp.substring(0, 16);
-					html += '<div class="d-flex align-items-center justify-content-between py-1 px-2 mb-1" style="background:var(--body-background); border-radius:4px;">';
-					html += '<div class="d-flex align-items-center">';
-					html += '<i class="fas fa-user-shield mr-2" style="color:var(--medium);"></i>';
-					html += '<span class="text-sm font-weight-bold">' + escapeHtml(cert.publisher || 'Unknown') + '</span>';
-					if (cert.organization) html += '<span class="text-muted text-sm ml-2">(' + escapeHtml(cert.organization) + ')</span>';
-					html += '<span class="badge badge-secondary ml-2" style="font-family:Consolas,monospace; font-size:0.7rem;">' + escapeHtml(keyId) + '</span>';
-					html += '</div>';
-					html += '<button class="btn btn-sm btn-link text-danger btn-revoke-publisher p-0" data-fingerprint="' + escapeHtml(fp) + '" title="Revoke trust"><i class="fas fa-times"></i></button>';
-					html += '</div>';
-				});
-				$list.html(html);
-			} catch(e) {
-				$list.html('<div class="text-muted text-sm py-2"><i class="fas fa-exclamation-circle text-warning mr-1"></i>Error loading publishers</div>');
-			}
-		}
-
-		// Revoke trust for a publisher
-		$(document).on("click", ".btn-revoke-publisher", function() {
-			var fingerprint = $(this).attr("data-fingerprint");
-			if (!fingerprint) return;
-			if (!confirm("Revoke trust for this publisher certificate?\n\nPackages signed by this publisher will no longer show as trusted.")) return;
-			try {
-				// Load registry, find cert, mark as untrusted
-				var regPath = _publisherRegistryPath;
-				var regData = JSON.parse(fs.readFileSync(regPath, 'utf8'));
-				var publishers = regData.publishers || [];
-				publishers.forEach(function(pub) {
-					var certs = pub.certificates || [];
-					certs.forEach(function(c) {
-						if (c.fingerprint === fingerprint) c.trusted = false;
-					});
-				});
-				fs.writeFileSync(regPath, JSON.stringify(regData, null, 2), 'utf8');
-				refreshTrustedPublishersList();
-			} catch(e) {
-				alert('Error revoking trust: ' + e.message);
-			}
-		});
-
-		// Trust a certificate file from Settings
-		$(document).on("click", ".btn-trust-cert-file", function() {
-			$("#settings-trust-cert-picker").trigger("click");
-		});
-		$(document).on("change", "#settings-trust-cert-picker", function() {
-			var filePath = $(this).val();
-			if (!filePath) return;
-			$(this).val('');
-			try {
-				var certJson = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-				var validation = validatePublisherCertificate(certJson);
-				if (!validation.valid) {
-					alert('Invalid publisher certificate:\n' + (validation.errors || []).join('\n'));
-					return;
-				}
-				saveTrustedCertificate(_publisherRegistryPath, certJson);
-				refreshTrustedPublishersList();
-				alert('Publisher certificate trusted:\n' + (certJson.publisher || 'Unknown') + '\nKey ID: ' + (certJson.key_id || ''));
-			} catch(e) {
-				alert('Error trusting certificate:\n' + e.message);
-			}
-		});
-
-		// Trust Publisher button on import preview
-		$(document).on("click", ".btn-trust-import-publisher", function() {
-			var $modal = $("#importPreviewModal");
-			var certData = $modal.data("importPublisherCert");
-			if (!certData) {
-				alert("No publisher certificate data available.");
-				return;
-			}
-			try {
-				saveTrustedCertificate(_publisherRegistryPath, certData);
-				// Update the display
-				$(".imp-preview-trust-action").hide();
-				// Re-render the signature status
-				var $statusDiv = $(".imp-preview-signature-status");
-				$statusDiv.find(".badge-warning").removeClass("badge-warning").addClass("badge-success").html('<i class="fas fa-check-circle mr-1"></i>Trusted');
-				alert('Publisher "' + (certData.publisher || 'Unknown') + '" is now trusted.\nFuture packages from this publisher will show as verified.');
-				refreshTrustedPublishersList();
-			} catch(e) {
-				alert('Error trusting publisher: ' + e.message);
-			}
-		});
 
 		// ---- Binary container format (delegated to shared module) ----
 		var CONTAINER_MAGIC_PKG   = shared.CONTAINER_MAGIC_PKG;
@@ -11245,7 +11139,6 @@
 
 				// Package signature status
 				var $sigStatus = $modal.find(".imp-preview-signature-status");
-				$modal.find(".imp-preview-trust-action").hide();
 				$modal.removeData("importPublisherCert");
 				if ($sigStatus.length > 0) {
 					$sigStatus.empty();
@@ -11270,11 +11163,6 @@
 							'<div class="text-sm ml-4 mt-1 text-muted">Key ID: ' + keyId + ' &mdash; ' + trustLabel + '</div>';
 						$sigStatus.html(certHtml);
 						$modal.find(".imp-preview-signature-section").removeClass("d-none");
-						// Show trust button for untrusted code-signed packages
-						if (sigResult.trust_status !== 'trusted') {
-							$modal.data("importPublisherCert", sigResult.publisher_cert);
-							$modal.find(".imp-preview-trust-action").show();
-						}
 					} else if (sigResult.signed && sigResult.valid) {
 						$sigStatus.html('<div class="d-flex align-items-center text-success"><i class="fas fa-shield-alt mr-2"></i><span>Package integrity verified (HMAC-only &mdash; no publisher identity)</span></div>');
 						$modal.find(".imp-preview-signature-section").removeClass("d-none");

@@ -1629,15 +1629,7 @@
 							<!-- Hidden file dialogs for key pair generation output -->
 							<input type="file" class="d-none" id="settings-keypair-output-dir" nwdirectory>
 						</div>
-						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Trusted Publishers</h6>
-							<small class="text-muted d-block mb-2">Publishers whose certificates have been trusted for code-signed packages. Packages signed by trusted publishers will show a verified badge during import.</small>
-							<div id="settings-trusted-publishers-list" class="mb-2">
-								<div class="text-muted text-sm py-2"><i class="fas fa-inbox mr-1"></i>No trusted publishers</div>
-							</div>
-							<button class="btn btn-sm btn-outlined btn-trust-cert-file"><i class="fas fa-plus mr-1"></i>Trust Certificate File...</button>
-							<input type="file" class="d-none" id="settings-trust-cert-picker" accept=".json">
-						</div>
+
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Recent</h6>
 							<div class="dropdown d-inline">
@@ -1913,9 +1905,7 @@
 					<div class="detail-section imp-preview-signature-section d-none">
 						<h6 class="detail-section-label"><i class="fas fa-shield-alt mr-1" style="color:var(--medium)"></i>Package Integrity</h6>
 						<div class="imp-preview-signature-status" style="padding:6px 10px; border-radius:6px; background:var(--body-background);"></div>
-						<div class="imp-preview-trust-action mt-2" style="display:none;">
-							<button class="btn btn-sm btn-outlined btn-trust-import-publisher"><i class="fas fa-user-check mr-1"></i>Trust this publisher</button>
-						</div>
+
 					</div>
 					<!-- Install Paths -->
 					<div class="detail-section">
