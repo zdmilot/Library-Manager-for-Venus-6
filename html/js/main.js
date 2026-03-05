@@ -1281,16 +1281,64 @@
 		/**
 		 * Build the OEM verified blue checkmark badge HTML for a given author name.
 		 * Returns an empty string if the author is not a restricted OEM name.
+		 * When a publisher_cert object is provided, the badge shows a hover tooltip
+		 * with certificate details (publisher, key ID, fingerprint, issuing authority, etc.)
 		 * @param {string} author - Author or organization name
 		 * @param {boolean} [large=false] - Use the larger variant for detail modals
+		 * @param {Object} [cert=null] - Publisher certificate object (from DB or sigResult)
 		 * @returns {string} HTML string
 		 */
-		function buildOemVerifiedBadge(author, large) {
+		function buildOemVerifiedBadge(author, large, cert) {
 			if (!isRestrictedAuthor(author)) return '';
 			var sizeClass = large ? ' oem-verified-badge-lg' : '';
-			return '<span class="oem-verified-badge' + sizeClass + '" title="Verified OEM publisher">' +
+			var tooltipHtml = '';
+			if (cert && cert.publisher) {
+				tooltipHtml = '<span class="oem-cert-tooltip">' +
+					'<span class="tooltip-header"><i class="fas fa-shield-alt"></i> Verified OEM Publisher</span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Publisher</span><span class="tooltip-value">' + escapeHtml(cert.publisher) + '</span></span>' +
+					(cert.organization ? '<span class="tooltip-row"><span class="tooltip-label">Organization</span><span class="tooltip-value">' + escapeHtml(cert.organization) + '</span></span>' : '') +
+					'<span class="tooltip-divider"></span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Key ID</span><span class="tooltip-value">' + escapeHtml(cert.key_id || '') + '</span></span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Fingerprint</span><span class="tooltip-value">' + escapeHtml((cert.fingerprint || '').substring(0, 32)) + '\u2026</span></span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Algorithm</span><span class="tooltip-value">Ed25519</span></span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Cert Format</span><span class="tooltip-value">' + escapeHtml(cert.cert_format || '') + '</span></span>' +
+					'<span class="tooltip-row"><span class="tooltip-label">Issued</span><span class="tooltip-value">' + escapeHtml(cert.created_date || '') + '</span></span>' +
+				'</span>';
+			}
+			return '<span class="oem-verified-badge' + sizeClass + '">' +
 				'<span class="oem-check-icon"><i class="fas fa-check"></i></span>' +
+				tooltipHtml +
 			'</span>';
+		}
+
+		/**
+		 * Build the Code Signing Certificate detail section HTML for the detail modal.
+		 * Only renders for verified OEM libraries that have a stored publisher_cert.
+		 * @param {Object} cert - Publisher certificate object
+		 * @returns {string} HTML string
+		 */
+		function buildCertDetailSection(cert) {
+			if (!cert || !cert.publisher) return '';
+			var matchedKeywords = shared.getMatchedRestrictedKeywords(cert.publisher + ' ' + (cert.organization || ''));
+			var kwBadges = matchedKeywords.map(function(k) {
+				return '<span style="background:#dbeafe; color:#1e40af; padding:1px 6px; border-radius:3px; margin-right:3px; font-size:0.72rem;">' + escapeHtml(k) + '</span>';
+			}).join('');
+			return '<div class="detail-section oem-cert-section">' +
+				'<div class="oem-cert-section-header">' +
+					'<span class="cert-shield"><i class="fas fa-certificate"></i></span>' +
+					'<h6>Code Signing Certificate</h6>' +
+					'<span class="cert-valid-badge"><i class="fas fa-check-circle"></i> Verified</span>' +
+				'</div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Publisher</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(cert.publisher) + '</span></div>' +
+				(cert.organization ? '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Organization</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(cert.organization) + '</span></div>' : '') +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Certificate Format</span><span class="oem-cert-detail-value">' + escapeHtml(cert.cert_format || '') + '</span></div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Signature Algorithm</span><span class="oem-cert-detail-value">Ed25519 (EdDSA)</span></div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Key ID</span><span class="oem-cert-detail-value">' + escapeHtml(cert.key_id || '') + '</span></div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Public Key</span><span class="oem-cert-detail-value">' + escapeHtml(cert.public_key || '') + '</span></div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Fingerprint (SHA-256)</span><span class="oem-cert-detail-value">' + escapeHtml(cert.fingerprint || '') + '</span></div>' +
+				'<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Issued Date</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(cert.created_date || '') + '</span></div>' +
+				(kwBadges ? '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">OEM Keywords</span><span class="oem-cert-detail-value normal-font">' + kwBadges + '</span></div>' : '') +
+			'</div>';
 		}
 
 		/**
@@ -3526,7 +3574,7 @@
 				cardTooltipAttr = ' title="' + warnTooltip.replace(/"/g, '&quot;') + '"';
 			}
 
-			var oemBadge = buildOemVerifiedBadge(lib.author || '');
+			var oemBadge = buildOemVerifiedBadge(lib.author || '', false, lib.publisher_cert || null);
 
 			return '<div class="col-md-4 col-xl-3 d-flex align-items-stretch imp-lib-card-container" data-lib-id="' + lib._id + '">' +
 				'<div class="m-2 pl-3 pr-3 pt-3 pb-2 link-card imp-lib-card w-100' + cardExtraClass + '"' + cardTooltipAttr + '>' +
@@ -4354,7 +4402,7 @@
 								libIcon = '<img src="data:' + libMime + ';base64,' + lib.library_image_base64 + '" class="ml-2 mr-2 mb-2 align-top pt-2" style="max-width:20px; max-height:20px; border-radius:3px;">';
 							}
 
-							var libSettingsOemBadge = buildOemVerifiedBadge(lib.author || '');
+							var libSettingsOemBadge = buildOemVerifiedBadge(lib.author || '', false, lib.publisher_cert || null);
 
 							var libItemStr = '<div class="settings-links-method w-100 pt-2" data-id="'+lib._id+'">' +
 								libIcon +
@@ -8049,7 +8097,7 @@
 				cardTooltipAttr = ' title="' + warnTooltip.replace(/"/g, '&quot;') + '"';
 			}
 
-			var sysOemBadge = buildOemVerifiedBadge(sLib.author || 'Hamilton');
+			var sysOemBadge = buildOemVerifiedBadge(sLib.author || 'Hamilton', false, null);
 
 			var str =
 				'<div class="col-md-4 col-xl-3 d-flex align-items-stretch imp-lib-card-container imp-lib-card-system-container" data-lib-id="' + sLib._id + '" data-system="true">' +
@@ -8104,14 +8152,15 @@
 			// Metadata
 			$("#libDetailModal .lib-detail-name").text(lib.library_name || "Unknown");
 			$("#libDetailModal .lib-detail-version").text(lib.version ? "v" + lib.version : "");
+			var detailCert = lib.publisher_cert || null;
 			var detailAuthorText = lib.author || "\u2014";
-			var detailAuthorBadge = buildOemVerifiedBadge(lib.author || '', true);
+			var detailAuthorBadge = buildOemVerifiedBadge(lib.author || '', true, detailCert);
 			if (detailAuthorBadge) {
 				$("#libDetailModal .lib-detail-author").html(escapeHtml(detailAuthorText) + ' ' + detailAuthorBadge);
 			} else {
 				$("#libDetailModal .lib-detail-author").text(detailAuthorText);
 			}
-			var detailOrgBadge = buildOemVerifiedBadge(lib.organization || '', true);
+			var detailOrgBadge = buildOemVerifiedBadge(lib.organization || '', true, detailCert);
 			if (detailOrgBadge) {
 				$("#libDetailModal .lib-detail-organization").html(escapeHtml(lib.organization || "\u2014") + ' ' + detailOrgBadge);
 			} else {
@@ -8452,6 +8501,17 @@
 				$versSection.addClass("d-none");
 			}
 
+			// Code Signing Certificate section (OEM verified libraries only)
+			var $certSection = $("#libDetailModal .lib-detail-cert-section");
+			var $certContent = $("#libDetailModal .lib-detail-cert-content");
+			if (detailCert && (isRestrictedAuthor(lib.author) || isRestrictedAuthor(lib.organization))) {
+				$certContent.html(buildCertDetailSection(detailCert));
+				$certSection.removeClass("d-none");
+			} else {
+				$certSection.addClass("d-none");
+				$certContent.empty();
+			}
+
 			// Store library id on the modal so delete button can use it
 			$("#libDetailModal").attr("data-lib-id", libId);
 			$("#libDetailModal").attr("data-system", "false");
@@ -8615,6 +8675,10 @@
 				var fileHashes = {};
 				try { fileHashes = computeLibraryHashes(libFiles, libDestDir, comDlls); } catch(e) { console.warn('Could not compute integrity hashes: ' + e.message); }
 
+				// Verify signature on cached package for publisher_cert
+				var rollbackSig = null;
+				try { rollbackSig = verifyPackageSignature(zip, getTrustedCertificates()); } catch(e) { console.warn('Could not verify rollback package signature: ' + e.message); }
+
 				var dbRecord = {
 					library_name: manifest.library_name || "",
 					author: manifest.author || "",
@@ -8646,7 +8710,8 @@
 					source_package: path.basename(fullPath),
 					file_hashes: fileHashes,
 					public_functions: extractPublicFunctions(libFiles, libDestDir),
-					required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
+					required_dependencies: extractRequiredDependencies(libFiles, libDestDir),
+					publisher_cert: (rollbackSig && rollbackSig.code_signed && rollbackSig.valid && rollbackSig.publisher_cert) ? rollbackSig.publisher_cert : null
 				};
 				// Forward-compat: preserve unknown manifest fields in DB record
 				Object.keys(manifest).forEach(function(mk) { if (shared.KNOWN_MANIFEST_KEYS.indexOf(mk) === -1 && !(mk in dbRecord)) dbRecord[mk] = manifest[mk]; });
@@ -8748,14 +8813,14 @@
 			var sysVerText = sLib.venus_version ? "System Library (VENUS " + sLib.venus_version + ")" : "System Library";
 			$("#libDetailModal .lib-detail-version").text(sysVerText);
 			var sysAuthor = sLib.author || "Hamilton";
-			var sysAuthorOemBadge = buildOemVerifiedBadge(sysAuthor, true);
+			var sysAuthorOemBadge = buildOemVerifiedBadge(sysAuthor, true, null);
 			if (sysAuthorOemBadge) {
 				$("#libDetailModal .lib-detail-author").html(escapeHtml(sysAuthor) + ' ' + sysAuthorOemBadge);
 			} else {
 				$("#libDetailModal .lib-detail-author").text(sysAuthor);
 			}
 			var sysDetailOrg = sLib.organization || "Hamilton";
-			var sysOrgOemBadge = buildOemVerifiedBadge(sysDetailOrg, true);
+			var sysOrgOemBadge = buildOemVerifiedBadge(sysDetailOrg, true, null);
 			if (sysOrgOemBadge) {
 				$("#libDetailModal .lib-detail-organization").html(escapeHtml(sysDetailOrg) + ' ' + sysOrgOemBadge);
 			} else {
@@ -8993,6 +9058,10 @@
 			// HIDE Delete and Export buttons for system libraries
 			$("#libDetailModal .lib-detail-delete-btn").addClass("d-none");
 			$("#libDetailModal .lib-detail-export-btn").addClass("d-none");
+
+			// Hide cert section for system libraries (no stored publisher cert)
+			$("#libDetailModal .lib-detail-cert-section").addClass("d-none");
+			$("#libDetailModal .lib-detail-cert-content").empty();
 
 			// Store library id and mark as system
 			$("#libDetailModal").attr("data-lib-id", libId);
@@ -10099,7 +10168,8 @@
 							source_package: pkgEntry.entryName,
 							file_hashes: fileHashes,
 							public_functions: extractPublicFunctions(libFiles, libDestDir),
-							required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
+							required_dependencies: extractRequiredDependencies(libFiles, libDestDir),
+							publisher_cert: (innerSig && innerSig.code_signed && innerSig.valid && innerSig.publisher_cert) ? innerSig.publisher_cert : null
 						};
 						// Forward-compat: preserve unknown manifest fields in DB record
 						Object.keys(manifest).forEach(function(mk) { if (shared.KNOWN_MANIFEST_KEYS.indexOf(mk) === -1 && !(mk in dbRecord)) dbRecord[mk] = manifest[mk]; });
@@ -10781,13 +10851,14 @@
 				// Metadata
 				$modal.find(".imp-preview-name").text(libName);
 				$modal.find(".imp-preview-version").text(manifest.version ? "v" + manifest.version : "");
-				var impAuthorBadge = buildOemVerifiedBadge(manifest.author || '', true);
+				var impPreviewCert = (sigResult.code_signed && sigResult.valid && sigResult.publisher_cert) ? sigResult.publisher_cert : null;
+				var impAuthorBadge = buildOemVerifiedBadge(manifest.author || '', true, impPreviewCert);
 				if (impAuthorBadge) {
 					$modal.find(".imp-preview-author").html(escapeHtml(manifest.author || "\u2014") + ' ' + impAuthorBadge);
 				} else {
 					$modal.find(".imp-preview-author").text(manifest.author || "\u2014");
 				}
-				var impOrgBadge = buildOemVerifiedBadge(manifest.organization || '', true);
+				var impOrgBadge = buildOemVerifiedBadge(manifest.organization || '', true, impPreviewCert);
 				if (impOrgBadge) {
 					$modal.find(".imp-preview-organization").html(escapeHtml(manifest.organization || "\u2014") + ' ' + impOrgBadge);
 				} else {
@@ -10997,6 +11068,7 @@
 			var libName = manifest.library_name || "Unknown";
 			var helpFiles = $modal.data("imp-helpFiles") || [];
 			var libFiles = $modal.data("imp-filteredLibFiles") || [];
+			var impSigResult = $modal.data("imp-sigResult") || null;
 			var demoFiles = manifest.demo_method_files || [];
 			var comDlls = manifest.com_register_dlls || [];
 			var comWarning = false;  // tracks if COM registration failed but user chose to proceed
@@ -11173,7 +11245,8 @@
 					source_package: path.basename(filePath),
 					file_hashes: fileHashes,
 					public_functions: extractPublicFunctions(libFiles, libDestDir),
-					required_dependencies: extractRequiredDependencies(libFiles, libDestDir)
+					required_dependencies: extractRequiredDependencies(libFiles, libDestDir),
+					publisher_cert: (impSigResult && impSigResult.code_signed && impSigResult.valid && impSigResult.publisher_cert) ? impSigResult.publisher_cert : null
 				};
 				// Forward-compat: preserve unknown manifest fields in DB record
 				Object.keys(manifest).forEach(function(mk) { if (shared.KNOWN_MANIFEST_KEYS.indexOf(mk) === -1 && !(mk in dbRecord)) dbRecord[mk] = manifest[mk]; });
@@ -13164,7 +13237,8 @@
 					source_package: opts.sourcePackage || '(registered from unsigned)',
 					file_hashes: fileHashes,
 					public_functions: extractPublicFunctions(libFileBasenames, libDestDir),
-					required_dependencies: extractRequiredDependencies(libFileBasenames, libDestDir)
+					required_dependencies: extractRequiredDependencies(libFileBasenames, libDestDir),
+					publisher_cert: null
 				};
 				var saved = db_installed_libs.installed_libs.save(dbRecord);
 
