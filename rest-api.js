@@ -32,6 +32,11 @@ const service    = require('./lib/service');
 // ---------------------------------------------------------------------------
 // Minimal argument parser
 // ---------------------------------------------------------------------------
+/**
+ * Parse CLI-style `--key value` arguments into an object.
+ * @param {string[]} argv - Array of argument strings.
+ * @returns {Object<string, string|boolean>} Parsed key-value pairs.
+ */
 function parseArgs(argv) {
     var args = {};
     for (var i = 0; i < argv.length; i++) {
@@ -65,6 +70,10 @@ var upload = multer({ dest: UPLOAD_DIR, limits: { fileSize: 500 * 1024 * 1024 } 
 var _mutexQueue = [];
 var _mutexLocked = false;
 
+/**
+ * Acquire the concurrency mutex (diskdb is not concurrent-safe).
+ * @returns {Promise<void>} Resolves when the lock is acquired.
+ */
 function acquireMutex() {
     return new Promise(function(resolve) {
         if (!_mutexLocked) { _mutexLocked = true; resolve(); }
@@ -72,6 +81,9 @@ function acquireMutex() {
     });
 }
 
+/**
+ * Release the concurrency mutex, allowing the next queued caller to proceed.
+ */
 function releaseMutex() {
     if (_mutexQueue.length > 0) {
         var next = _mutexQueue.shift();
@@ -617,6 +629,13 @@ function sanitizeErrorMessage(msg) {
               .replace(/\/[^\s"',;]+\/[^\s"',;]+/g, '[path]');
 }
 
+/**
+ * Send a service result as a JSON response with appropriate HTTP status.
+ * @param {object} res - Express response object.
+ * @param {object} result - Service result with `success`, `error`, and optional `warnings`.
+ * @param {number} [successStatus=200] - HTTP status for success.
+ * @param {number} [errorStatus=400] - HTTP status for errors (auto-set to 404 for 'not found').
+ */
 function sendResult(res, result, successStatus, errorStatus) {
     if (result.success) {
         res.status(successStatus || 200).json(result);
@@ -638,10 +657,7 @@ function sendResult(res, result, successStatus, errorStatus) {
 app.get('/api/health', function(req, res) {
     res.json({
         status: 'ok', version: '1.6.5',
-        uptime: process.uptime(),
-        hostname: os.hostname(),
-        platform: process.platform,
-        nodeVersion: process.version
+        uptime: process.uptime()
     });
 });
 
@@ -717,6 +733,7 @@ app.get('/api/libraries/:nameOrId/export', function(req, res) {
         var stream = fs.createReadStream(tempPath);
         stream.pipe(res);
         stream.on('end', function() { try { fs.unlinkSync(tempPath); } catch(_){} });
+        stream.on('close', function() { try { fs.unlinkSync(tempPath); } catch(_){} });
         stream.on('error', function(err) {
             try { fs.unlinkSync(tempPath); } catch(_){}
             if (!res.headersSent) res.status(500).json({ success: false, error: 'Export stream error' });
@@ -742,6 +759,7 @@ app.post('/api/libraries/export-archive', function(req, res) {
         var stream = fs.createReadStream(tempPath);
         stream.pipe(res);
         stream.on('end', function() { try { fs.unlinkSync(tempPath); } catch(_){} });
+        stream.on('close', function() { try { fs.unlinkSync(tempPath); } catch(_){} });
         stream.on('error', function(err) {
             try { fs.unlinkSync(tempPath); } catch(_){}
             if (!res.headersSent) res.status(500).json({ success: false, error: 'Export stream error' });

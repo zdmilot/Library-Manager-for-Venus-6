@@ -269,16 +269,16 @@
 				for (var rp = 0; rp < regPaths.length; rp++) {
 					try {
 						// List subkeys under Uninstall
-						var subkeysRaw = execSync('reg query "' + regPaths[rp] + '"', { encoding: 'utf8', timeout: 10000 });
+						var subkeysRaw = require('child_process').execFileSync('reg', ['query', regPaths[rp]], { encoding: 'utf8', timeout: 10000 });
 						var subkeys = subkeysRaw.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
 
 						for (var sk = 0; sk < subkeys.length; sk++) {
 							try {
-								var entryRaw = execSync('reg query "' + subkeys[sk] + '" /v DisplayName', { encoding: 'utf8', timeout: 5000 });
+								var entryRaw = require('child_process').execFileSync('reg', ['query', subkeys[sk], '/v', 'DisplayName'], { encoding: 'utf8', timeout: 5000 });
 								if (!/Hamilton\s+VENUS\s+\d/i.test(entryRaw)) continue;
 
 								// Found the Hamilton VENUS entry - read all values
-								var allVals = execSync('reg query "' + subkeys[sk] + '"', { encoding: 'utf8', timeout: 5000 });
+								var allVals = require('child_process').execFileSync('reg', ['query', subkeys[sk]], { encoding: 'utf8', timeout: 5000 });
 
 								// Extract DisplayVersion
 								var verMatch = allVals.match(/DisplayVersion\s+REG_SZ\s+(.+)/i);
@@ -810,7 +810,6 @@
 		}
 
 		var LOCAL_DATA_DIR = resolveDefaultLocalDataDir();
-		var LEGACY_APP_LOCAL_DIR = path.join(APP_ROOT, 'local');
 
 		/** Ensure the local data directory and all subdirectories exist with seed files */
 		function ensureLocalDataDir(dirPath) {
@@ -1273,7 +1272,6 @@
 
 		// ---- Restricted Author / Organization Protection ----
 		// Uses the centralized constants and validation from shared.js.
-		var OEM_AUTHOR_PASSWORD_HASH = shared.OEM_AUTHOR_PASSWORD_HASH;
 
 		// Re-export from shared for local use
 		var isRestrictedAuthor = shared.isRestrictedAuthor;
@@ -2058,7 +2056,7 @@
 			}
 			
 
-			if(file_type=="method"){
+			if(file_type==="method"){
 				var args = [file_path];
 				if($("#chk_run-autoclose").prop("checked")){ args.push("-t"); } //Run method immediately and terminate when method is complete.
 				else if($("#chk_run-autoplay").prop("checked")){ args.push("-r"); } //Run method immediately.
@@ -2066,12 +2064,12 @@
 				 var child =  spawn(HxRun, args, { detached: true, stdio: [ 'ignore', 'ignore', 'ignore' ] });
 				 child.unref();
 			}
-			if(file_type=="folder"){
+			else if(file_type==="folder"){
 				safeOpenItem(file_path);
 				// nw.Shell.showItemInFolder(file_path);
 
 			}
-			if(file_type=="file"){
+			else if(file_type==="file"){
 				safeOpenItem(file_path);
 			}
 		});
@@ -3760,7 +3758,7 @@
 		// Open the local data folder in Windows Explorer on click
 		$(document).on("click", ".btn-openLocalDataDir", function() {
 			try {
-				require('child_process').exec('explorer "' + LOCAL_DATA_DIR + '"');
+				require('child_process').spawn('explorer', [LOCAL_DATA_DIR], { detached: true, stdio: 'ignore' }).unref();
 			} catch(e) {
 				console.warn('Could not open local data directory: ' + e.message);
 			}
@@ -4895,11 +4893,12 @@
 
 
 		function deleteData(id , linkOrGroup){
+				var el;
 				if(linkOrGroup == "link"){
-					var el = $(".settings-links-method[data-id='" +id+"']");
+					el = $(".settings-links-method[data-id='" +id+"']");
 				}
 				if(linkOrGroup == "group"){
-					var el = $(".settings-links-group[data-group-id='" +id+"']");
+					el = $(".settings-links-group[data-group-id='" +id+"']");
 				}
 
 				if(el){
@@ -5017,7 +5016,6 @@
 					var icon_color = method["icon-color"];
 					var method_path = method["path"];
 					var attachments = method["attachments"];
-					var method_default = method["default"];
 					var method_type = method["type"];
 
 					//fill input fields
@@ -5110,7 +5108,7 @@
 					
 
 					//CLEAR Attachment fields
-					for (i = 1; i < 4; i++) {
+					for (var i = 1; i < 4; i++) {
 						$("#input-attach"+i).val('');
 						$("#editModal .txt-attach"+i).val('');
 					}
@@ -5136,7 +5134,6 @@
 					$("#editModal .txt-customfields").val(cfLines.join("\n"));
 				}
 				if(newOrEdit == "new"){
-					var group_id = id;
 					//show icon
 					$("#editModal .icon-container").removeClass("d-none");
 					$("#editModal .editModal-icon").removeClass("d-none");
@@ -5503,12 +5500,13 @@
 		function historyCleanup(){
 			var settings = db_settings.settings.find()[0]; //get all settings data from settings.json
 			var archiveDir = settings["history-archive-folder"];
-			if(archiveDir==""){archiveDir=os.tmpdir();} //if no dir is given use the default OS temp folder.
+			if(!archiveDir){archiveDir=os.tmpdir();} //if no dir is given use the default OS temp folder.
 			$(".txt-history-archiveDir").val(archiveDir);
 			//Set working dir for the method file browse
 			$("#input-history-archiveDir").attr("nwworkingdir",archiveDir);
 			if(settings["chk_settingHistoryCleanup"]==true){
-				var days= parseInt(settings["history-days"]);
+				var days = parseInt(settings["history-days"], 10);
+				if (isNaN(days) || days <= 0) { return; }
 				var cleanup_action = settings["cleanup-action"];
 				console.log("performing run history cleanup older than "+days+" days...");
 
@@ -5829,7 +5827,7 @@
 
 			// Warn if .med (method) files were added to the Library Files section
 			if (medFiles.length > 0) {
-				var fileNames = medFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+				var fileNames = medFiles.map(function(f) { return '<b>' + escapeHtml(path.basename(f)) + '</b>'; }).join(', ');
 				pkgShowFileTypeWarning(
 					'Whoa there! This section is for <b>library files</b> only. You\'ve added ' +
 					(medFiles.length === 1 ? 'a method file' : medFiles.length + ' method files') +
@@ -5878,7 +5876,7 @@
 
 					// Warn if .med (method) files were found in the folder
 					if (medFiles.length > 0) {
-						var fileNames = medFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+						var fileNames = medFiles.map(function(f) { return '<b>' + escapeHtml(path.basename(f)) + '</b>'; }).join(', ');
 						pkgShowFileTypeWarning(
 							'Whoa there! This section is for <b>library files</b> only. You\'ve added ' +
 							(medFiles.length === 1 ? 'a method file' : medFiles.length + ' method files') +
@@ -5921,7 +5919,7 @@
 
 			// Warn if .dll files were added to the Demo Method Files section
 			if (dllFiles.length > 0) {
-				var fileNames = dllFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+				var fileNames = dllFiles.map(function(f) { return '<b>' + escapeHtml(path.basename(f)) + '</b>'; }).join(', ');
 				pkgShowFileTypeWarning(
 					'Whoa there! This section is for <b>demo methods</b> only. You\'ve added ' +
 					(dllFiles.length === 1 ? 'a DLL file' : dllFiles.length + ' DLL files') +
@@ -5962,7 +5960,7 @@
 
 					// Warn if .dll files were found in the folder
 					if (dllFiles.length > 0) {
-						var fileNames = dllFiles.map(function(f) { return '<b>' + path.basename(f) + '</b>'; }).join(', ');
+						var fileNames = dllFiles.map(function(f) { return '<b>' + escapeHtml(path.basename(f)) + '</b>'; }).join(', ');
 						pkgShowFileTypeWarning(
 							'Whoa there! This section is for <b>demo methods</b> only. You\'ve added ' +
 							(dllFiles.length === 1 ? 'a DLL file' : dllFiles.length + ' DLL files') +
@@ -6168,9 +6166,9 @@
 					$list.append(
 						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
 						'<i class="far fa-file pkg-file-icon"></i>' +
-						'<span class="pkg-file-name">' + baseName + '</span>' +
+						'<span class="pkg-file-name">' + escapeHtml(baseName) + '</span>' +
 						 comCheckbox +
-						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'<span class="pkg-file-dir">' + escapeHtml(path.dirname(f)) + '</span>' +
 						'</div>'
 					);
 				});
@@ -6211,8 +6209,8 @@
 					$list.append(
 						'<div class="pkg-file-item" data-path="' + escapedPath + '">' +
 						'<i class="far fa-file pkg-file-icon"></i>' +
-						'<span class="pkg-file-name">' + path.basename(f) + '</span>' +
-						'<span class="pkg-file-dir">' + path.dirname(f) + '</span>' +
+						'<span class="pkg-file-name">' + escapeHtml(path.basename(f)) + '</span>' +
+						'<span class="pkg-file-dir">' + escapeHtml(path.dirname(f)) + '</span>' +
 						'</div>'
 					);
 				});
@@ -6808,7 +6806,9 @@
 				return { registered: false, details: 'DLL file not found' };
 			}
 
-			var execSync = require('child_process').execSync;
+			if (/[&|><`%\r\n]/.test(dllPath) || /'/.test(dllPath)) {
+				return { registered: false, details: 'DLL path contains unsafe characters' };
+			}
 
 			// Use RegAsm /regfile to discover CLSIDs without actually registering
 			var regasm = findRegAsmPath();
@@ -6816,7 +6816,6 @@
 				return { registered: false, details: '32-bit RegAsm.exe not found' };
 			}
 
-			var os = require('os');
 			var tmpReg = path.join(os.tmpdir(), 'lm_comcheck_' + Date.now() + '.reg');
 			try {
 				execSync('"' + regasm + '" "' + dllPath + '" /regfile:"' + tmpReg + '"', {
@@ -9950,7 +9949,6 @@
 				return;
 			}
 			_isImporting = true;
-			var archiveOemAuthorized = false;
 			try {
 				if (!fs.existsSync(archivePath)) {
 					alert("Archive file not found:\n" + archivePath);
@@ -10017,7 +10015,6 @@
 						alert('Import cancelled. One or more packages in this archive use a restricted OEM author/organization name.');
 						return;
 					}
-					archiveOemAuthorized = true;
 				}
 
 				var results = { success: [], failed: [] };
@@ -11138,6 +11135,7 @@
 									if (rem.length === 0) fs.rmdirSync(libDestDir);
 								}
 							} catch(ex) {}
+							_isImporting = false;
 							return;
 						}
 						comWarning = true;

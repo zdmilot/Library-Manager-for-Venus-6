@@ -35,7 +35,6 @@ const fs   = require('fs');
 const path = require('path');
 const os   = require('os');
 const AdmZip = require('adm-zip');
-const crypto = require('crypto');
 const shared = require('./lib/shared');
 
 // Re-export shared helpers so the rest of the file can use short names
@@ -52,7 +51,6 @@ const generateSigningKeyPair       = shared.generateSigningKeyPair;
 const buildPublisherCertificate    = shared.buildPublisherCertificate;
 const validatePublisherCertificate = shared.validatePublisherCertificate;
 const loadTrustedCertificates      = shared.loadTrustedCertificates;
-const saveTrustedCertificate       = shared.saveTrustedCertificate;
 
 // Binary container format helpers
 const CONTAINER_MAGIC_PKG    = shared.CONTAINER_MAGIC_PKG;
@@ -132,8 +130,6 @@ function isSystemLibraryByName(libName) {
 // Restricted Author Protection
 // ---------------------------------------------------------------------------
 // Uses the centralized constants and validation from shared.js.
-const OEM_AUTHOR_PASSWORD_HASH = shared.OEM_AUTHOR_PASSWORD_HASH;
-
 // Re-export from shared for local use
 const isRestrictedAuthor = shared.isRestrictedAuthor;
 
@@ -205,20 +201,20 @@ function getVENUSVersion() {
     if (_cachedVENUSVersion !== undefined) return _cachedVENUSVersion;
     _cachedVENUSVersion = null;
     try {
-        const execSync = require('child_process').execSync;
+        const execFileSync = require('child_process').execFileSync;
         const regPaths = [
             'HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall',
             'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
         ];
         for (const rp of regPaths) {
             try {
-                const subkeysRaw = execSync('reg query "' + rp + '"', { encoding: 'utf8', timeout: 10000 });
+                const subkeysRaw = execFileSync('reg', ['query', rp], { encoding: 'utf8', timeout: 10000 });
                 const subkeys = subkeysRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 for (const sk of subkeys) {
                     try {
-                        const entryRaw = execSync('reg query "' + sk + '" /v DisplayName', { encoding: 'utf8', timeout: 5000 });
+                        const entryRaw = execFileSync('reg', ['query', sk, '/v', 'DisplayName'], { encoding: 'utf8', timeout: 5000 });
                         if (!/Hamilton\s+VENUS\s+\d/i.test(entryRaw)) continue;
-                        const allVals = execSync('reg query "' + sk + '"', { encoding: 'utf8', timeout: 5000 });
+                        const allVals = execFileSync('reg', ['query', sk], { encoding: 'utf8', timeout: 5000 });
                         const verMatch = allVals.match(/DisplayVersion\s+REG_SZ\s+(.+)/i);
                         if (verMatch) { _cachedVENUSVersion = verMatch[1].trim(); return _cachedVENUSVersion; }
                     } catch (_) { /* skip subkey */ }
@@ -338,7 +334,7 @@ function ensureLocalDataDir(dirPath) {
         'settings.json': '[{"_id":"0"}]',
         'installed_libs.json': '[]',
         'groups.json': '[]',
-        'tree.json': '[{"group-id":"gAll","method-ids":[],"locked":false},{"group-id":"gRecent","method-ids":[],"locked":false},{"group-id":"gStarred","method-ids":[],"locked":false},{"group-id":"gFolders","method-ids":[],"locked":false},{"group-id":"gEditors","method-ids":[],"locked":false},{"group-id":"gHistory","method-ids":[],"locked":false},{"group-id":"gOEM","method-ids":[],"locked":true}]',
+        'tree.json': '[{"group-id":"gAll","method-ids":[],"locked":false},{"group-id":"gRecent","method-ids":[],"locked":false},{"group-id":"gFolders","method-ids":[],"locked":false},{"group-id":"gEditors","method-ids":[],"locked":false},{"group-id":"gHistory","method-ids":[],"locked":false},{"group-id":"gOEM","method-ids":[],"locked":true}]',
         'links.json': '[]'
     };
     for (const [fname, content] of Object.entries(seeds)) {
@@ -397,17 +393,6 @@ function getInstallPaths(db, libDirOverride, metDirOverride) {
 // Integrity hashing
 // ---------------------------------------------------------------------------
 
-/**
- * Parse the Hamilton HSL metadata footer from the last non-empty line of a file.
- * Footer format: // $$author=NAME$$valid=0|1$$time=TIMESTAMP$$checksum=HEX$$length=NNN$$
- *
- * The $$valid=1$$ flag marks a file as Hamilton-validated/protected.
- * The $$checksum$$ is Hamilton's own CRC computed over the file body.
- * Together these form the authoritative integrity indicator for system libraries.
- *
- * @param {string} filePath - full path to the file
- * @returns {Object|null} { author, valid, time, checksum, length, raw } or null
- */
 // parseHslMetadataFooter is imported from shared module above
 
 
@@ -427,10 +412,6 @@ const computeLibraryHashes = shared.computeLibraryHashes;
 // Ported from the VS Code HSL IntelliSense extension.
 // ---------------------------------------------------------------------------
 
-/**
- * Strip string literals and comments from HSL source so that keyword searches
- * (namespace, function) are not confused by content inside strings / comments.
- */
 // HSL parser functions - delegated to shared.js
 const sanitizeHslForParsing = shared.sanitizeHslForParsing;
 const splitHslArgs          = shared.splitHslArgs;
@@ -443,6 +424,10 @@ const extractHslIncludes    = shared.extractHslIncludes;
 /**
  * Extract required dependencies from a library's .hsl files.
  * Returns a deduplicated list of include targets that are external to this library.
+ *
+ * @param {string[]} libFiles - Array of relative file paths within the library
+ * @param {string} libBasePath - Absolute base path where the library files reside
+ * @returns {Array<{include: string, sourceFile: string, libraryName: null, type: string}>} Deduplicated external dependency list
  */
 function extractRequiredDependencies(libFiles, libBasePath) {
     const ownFiles = {};
@@ -487,6 +472,13 @@ function extractRequiredDependencies(libFiles, libBasePath) {
 // Group auto-assignment
 // ---------------------------------------------------------------------------
 
+/**
+ * Automatically assign an imported library to a navigation-tree group.
+ *
+ * @param {Object} db - Database connection object
+ * @param {string} savedLibId - The _id of the newly saved library record
+ * @param {string} authorName - Author name used to determine group assignment
+ */
 function autoAddToGroup(db, savedLibId, authorName) {
     try {
         const navtree = db.tree.find();
@@ -714,6 +706,9 @@ function ensureOutDir(filePath) {
 /**
  * Resolve the package store root directory.
  * Uses --store-dir override if provided, otherwise the default under local/packages.
+ *
+ * @param {Object} [args] - CLI arguments (may contain a `store-dir` override)
+ * @returns {string} Absolute path to the package store directory
  */
 function getPackageStoreDir(args) {
     if (args && args['store-dir']) return path.resolve(args['store-dir']);
@@ -723,6 +718,10 @@ function getPackageStoreDir(args) {
 /**
  * Build a deterministic filename for a cached package:
  *   <LibraryName>_v<version>_<YYYYMMDD-HHmmss>.hxlibpkg
+ *
+ * @param {string} libName - Library name (unsafe characters are sanitised)
+ * @param {string} version - Version string (unsafe characters are sanitised)
+ * @returns {string} Generated .hxlibpkg filename
  */
 function buildCachedPackageName(libName, version) {
     const safe   = (libName || 'Unknown').replace(/[<>:"\/\\|?*]/g, '_');
@@ -813,9 +812,13 @@ function listCachedVersions(libName, args) {
     return entries;
 }
 
-// ---------------------------------------------------------------------------
-// Helper: find a library record by --name or --id
-// ---------------------------------------------------------------------------
+/**
+ * Find a library record by --name or --id.
+ *
+ * @param {Object} db - Database connection object
+ * @param {Object} args - CLI arguments containing `name` or `id`
+ * @returns {Object|null} The matching library record, or null if not found
+ */
 function findLibrary(db, args) {
     if (args.id) {
         return db.installed_libs.findOne({ _id: args.id });
@@ -828,6 +831,7 @@ function findLibrary(db, args) {
 // ===========================================================================
 // COMMAND: list-libs
 // ===========================================================================
+/** Handler for the `list-libs` CLI command. */
 function cmdListLibs(args) {
     const db = connectDB(resolveDBPath(args));
     const includeDeleted = !!(args['include-deleted']);
@@ -880,6 +884,7 @@ function cmdListLibs(args) {
 // ===========================================================================
 // COMMAND: import-lib
 // ===========================================================================
+/** Handler for the `import-lib` CLI command. */
 function cmdImportLib(args) {
     const filePath = args['file'];
     if (!filePath)               { die('--file is required'); }
@@ -1048,6 +1053,7 @@ function cmdImportLib(args) {
 // ===========================================================================
 // COMMAND: import-archive
 // ===========================================================================
+/** Handler for the `import-archive` CLI command. */
 function cmdImportArchive(args) {
     const filePath = args['file'];
     if (!filePath)                { die('--file is required'); }
@@ -1081,6 +1087,9 @@ function cmdImportArchive(args) {
 
     const results = { success: [], failed: [] };
 
+    // Load trusted publisher certificates for signature verification
+    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
+
     pkgEntries.forEach(function (pkgEntry) {
         const label = pkgEntry.entryName;
         try {
@@ -1098,7 +1107,7 @@ function cmdImportArchive(args) {
             }
 
             // Verify inner package signature
-            const sigResult = verifyPackageSignature(innerZip);
+            const sigResult = verifyPackageSignature(innerZip, trustedCerts);
             if (sigResult.signed && !sigResult.valid) {
                 console.log(`  ! ${libName}: signature verification FAILED`);
                 sigResult.errors.forEach(e => process.stderr.write('      ' + e + '\n'));
@@ -1184,6 +1193,7 @@ function cmdImportArchive(args) {
 // ===========================================================================
 // COMMAND: export-lib
 // ===========================================================================
+/** Handler for the `export-lib` CLI command. */
 function cmdExportLib(args) {
     if (!args['name'] && !args['id']) { die('--name or --id is required'); }
     if (!args['output'])              { die('--output is required'); }
@@ -1277,6 +1287,7 @@ function cmdExportLib(args) {
 // ===========================================================================
 // COMMAND: export-archive
 // ===========================================================================
+/** Handler for the `export-archive` CLI command. */
 function cmdExportArchive(args) {
     if (!args['output']) { die('--output is required'); }
     if (!args['all'] && !args['names'] && !args['ids']) {
@@ -1428,6 +1439,7 @@ function cmdExportArchive(args) {
 // ===========================================================================
 // COMMAND: delete-lib
 // ===========================================================================
+/** Handler for the `delete-lib` CLI command. */
 function cmdDeleteLib(args) {
     if (!args['name'] && !args['id']) { die('--name or --id is required'); }
 
@@ -1542,7 +1554,7 @@ function cmdDeleteLib(args) {
     const comDlls = lib.com_register_dlls || [];
     if (comDlls.length > 0 && !args['keep-files']) {
         console.log(`\n  Deregistering ${comDlls.length} COM DLL(s)...`);
-        const libPath = lib.lib_install_path || lib.install_path || '';
+        const libPath = lib.lib_install_path || '';
         // Locate 32-bit RegAsm.exe (NEVER use Framework64 - VENUS is 32-bit x86)
         const frameworkDir = 'C:\\Windows\\Microsoft.NET\\Framework\\';
         let regasmPath = null;
@@ -1576,8 +1588,8 @@ function cmdDeleteLib(args) {
                     return;
                 }
                 try {
-                    const { execSync } = require('child_process');
-                    execSync(`"${regasmPath}" /unregister "${dllPath}"`, {
+                    const { execFileSync } = require('child_process');
+                    execFileSync(regasmPath, ['/unregister', dllPath], {
                         timeout: 30000,
                         windowsHide: true,
                         stdio: 'pipe'
@@ -1603,6 +1615,7 @@ function cmdDeleteLib(args) {
 // ===========================================================================
 // COMMAND: create-package
 // ===========================================================================
+/** Handler for the `create-package` CLI command. */
 function cmdCreatePackage(args) {
     if (!args['spec'])   { die('--spec <json-spec-file> is required'); }
     if (!args['output']) { die('--output <path.hxlibpkg> is required'); }
@@ -1820,6 +1833,7 @@ function cmdCreatePackage(args) {
 // ===========================================================================
 // COMMAND: generate-syslib-hashes
 // ===========================================================================
+/** Handler for the `generate-syslib-hashes` CLI command. */
 function cmdGenerateSyslibHashes(args) {
     const sourceDir = args['source-dir'];
     if (!sourceDir) {
@@ -1934,6 +1948,7 @@ function cmdGenerateSyslibHashes(args) {
 // ===========================================================================
 // COMMAND: verify-syslib-hashes
 // ===========================================================================
+/** Handler for the `verify-syslib-hashes` CLI command. */
 function cmdVerifySyslibHashes(args) {
     // Load the baseline file
     const hashFilePath = args['hash-file'] || path.join(__dirname, 'db', 'system_library_hashes.json');
@@ -2083,6 +2098,7 @@ function cmdVerifySyslibHashes(args) {
 // ===========================================================================
 // COMMAND: list-versions
 // ===========================================================================
+/** Handler for the `list-versions` CLI command. */
 function cmdListVersions(args) {
     if (!args['name']) { die('--name is required'); }
 
@@ -2118,6 +2134,7 @@ function cmdListVersions(args) {
 // ===========================================================================
 // COMMAND: rollback-lib
 // ===========================================================================
+/** Handler for the `rollback-lib` CLI command. */
 function cmdRollbackLib(args) {
     if (!args['name']) { die('--name is required'); }
 
@@ -2181,7 +2198,8 @@ function cmdRollbackLib(args) {
     }
 
     // ---- Signature verification ----
-    const sigResult = verifyPackageSignature(zip);
+    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
+    const sigResult = verifyPackageSignature(zip, trustedCerts);
     if (sigResult.signed && !sigResult.valid) {
         die('Cached package signature verification FAILED:\n  ' + sigResult.errors.join('\n  ') + '\nRollback aborted.');
     }
@@ -2243,6 +2261,7 @@ function cmdRollbackLib(args) {
 // ===========================================================================
 // Help
 // ===========================================================================
+/** Print CLI usage information and available commands to stdout. */
 function printHelp() {
     console.log(`
 Library Manager for Venus 6 CLI  v1.6.5
@@ -2511,6 +2530,7 @@ list-publishers
 // ===========================================================================
 // COMMAND: verify-package
 // ===========================================================================
+/** Handler for the `verify-package` CLI command. */
 function cmdVerifyPackage(args) {
     const filePath = args['file'];
     if (!filePath)                { die('--file is required'); }
@@ -2620,6 +2640,8 @@ function cmdVerifyPackage(args) {
 /**
  * Resolve the publisher registry path.
  * Uses LOCAL_DATA_DIR/publisher_registry.json.
+ *
+ * @returns {string} Absolute path to the publisher registry JSON file
  */
 function resolvePublisherRegistryPath() {
     return path.join(LOCAL_DATA_DIR, 'publisher_registry.json');
@@ -2677,6 +2699,7 @@ function resolveSigningArgs(args) {
 // ===========================================================================
 // COMMAND: generate-keypair
 // ===========================================================================
+/** Handler for the `generate-keypair` CLI command. */
 function cmdGenerateKeypair(args) {
     const publisher = args['publisher'];
     if (!publisher) die('--publisher <name> is required');
@@ -2742,6 +2765,7 @@ function cmdGenerateKeypair(args) {
 // ===========================================================================
 // COMMAND: list-publishers
 // ===========================================================================
+/** Handler for the `list-publishers` CLI command. */
 function cmdListPublishers(args) {
     const regPath = resolvePublisherRegistryPath();
     let data;
@@ -2784,9 +2808,12 @@ function cmdListPublishers(args) {
     });
 }
 
-// ===========================================================================
-// Fatal error helper
-// ===========================================================================
+/**
+ * Print an error message to stderr and terminate the process with exit code 1.
+ *
+ * @param {string} msg - Error message to display
+ * @returns {never}
+ */
 function die(msg) {
     process.stderr.write('Error: ' + msg + '\n');
     process.exit(1);
