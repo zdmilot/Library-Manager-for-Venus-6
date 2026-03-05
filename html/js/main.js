@@ -10674,6 +10674,16 @@
 							_isImporting = false;
 							return;
 						}
+
+						// OEM certificate verification: restricted-author packages must be
+						// code-signed with a certificate whose holder name encompasses the OEM identity.
+						var oemPubCert = (sigResult.code_signed && sigResult.valid) ? sigResult.publisher_cert : null;
+						var oemCertMatch = shared.validateOemCertificateMatch(importAuthor, importOrg, oemPubCert);
+						if (!oemCertMatch.valid) {
+							alert('OEM Import Blocked\n\n' + oemCertMatch.error);
+							_isImporting = false;
+							return;
+						}
 					}
 				}
 

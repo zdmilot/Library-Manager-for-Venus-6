@@ -361,6 +361,53 @@
 </table>
 
 <!-- ================================================================== -->
+<h2>OEM Certificate Verification</h2>
+<!-- ================================================================== -->
+
+<p>Libraries that claim an OEM author or organization name (e.g., "Hamilton", "Tecan", "Roche") are subject to an additional layer of protection beyond the OEM author password. This prevents bad actors from distributing libraries under a legitimate OEM name even if they possess the author password.</p>
+
+<h3>How It Works</h3>
+<ol>
+  <li>When a package is imported (via GUI, CLI, REST API, or archive import), the author and organization fields are checked against the <b>restricted OEM keywords</b> list.</li>
+  <li>If a restricted keyword is matched (e.g., "hamilton" in "Hamilton Company"), the package <b>must</b> be code-signed with an Ed25519 publisher certificate (signature format version 2.0).</li>
+  <li>The certificate holder name (publisher and/or organization fields in the certificate) must <b>encompass</b> the triggered OEM keyword. Matching is case-insensitive with all non-alphanumeric characters stripped.</li>
+  <li>If the certificate does not match, the import is blocked with a clear error message identifying the mismatch.</li>
+</ol>
+
+<h3>Matching Examples</h3>
+<p>For a package with author <b>"Hamilton"</b> (triggers keyword <code>hamilton</code>):</p>
+<table>
+<thead><tr><th>Certificate Holder</th><th>Result</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td>"Hamilton"</td><td style="color:#5cb85c;">&#10004; Allowed</td><td>Exact match</td></tr>
+<tr><td>"The Hamilton Company"</td><td style="color:#5cb85c;">&#10004; Allowed</td><td>Contains "hamilton"</td></tr>
+<tr><td>"Hamilton Company"</td><td style="color:#5cb85c;">&#10004; Allowed</td><td>Contains "hamilton"</td></tr>
+<tr><td>"Hamilton Robotics"</td><td style="color:#5cb85c;">&#10004; Allowed</td><td>Contains "hamilton"</td></tr>
+<tr><td>"John Smith"</td><td style="color:#d9534f;">&#10008; Blocked</td><td>Does not contain "hamilton"</td></tr>
+<tr><td>"Acme Pharma"</td><td style="color:#d9534f;">&#10008; Blocked</td><td>Does not contain "hamilton"</td></tr>
+<tr><td>No certificate (unsigned)</td><td style="color:#d9534f;">&#10008; Blocked</td><td>OEM packages must be code-signed</td></tr>
+<tr><td>No certificate (HMAC-only)</td><td style="color:#d9534f;">&#10008; Blocked</td><td>Legacy signatures have no publisher identity</td></tr>
+</tbody>
+</table>
+
+<h3>Where This Check Applies</h3>
+<ul>
+  <li><b>GUI import</b> &mdash; after the OEM author password prompt</li>
+  <li><b>CLI <code>import-lib</code></b> &mdash; after <code>--author-password</code> validation</li>
+  <li><b>CLI <code>import-archive</code></b> &mdash; for each package within the archive</li>
+  <li><b>CLI <code>rollback-lib</code></b> &mdash; when rolling back to a cached OEM package</li>
+  <li><b>REST API <code>POST /api/import</code></b> &mdash; via the service layer</li>
+  <li><b>REST API <code>POST /api/import-archive</code></b> &mdash; via the service layer</li>
+</ul>
+
+<h3>Why Both Password and Certificate?</h3>
+<p>The OEM author password provides a first layer of protection, preventing casual misuse of OEM names. The certificate verification adds cryptographic proof of identity &mdash; even if the password is shared or leaked, only the holder of the OEM's actual Ed25519 private key can produce a valid code-signed package that passes this check. This defense-in-depth approach ensures that only genuine OEM entities can distribute libraries under their name.</p>
+
+<div class="note">
+<p><b>Note:</b> System libraries (those listed in <code>system_libraries.json</code>) are exempt from this check as they are distributed with the VENUS installation itself.</p>
+</div>
+
+<!-- ================================================================== -->
 <h2>End-to-End Integrity Lifecycle</h2>
 <!-- ================================================================== -->
 

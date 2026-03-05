@@ -982,6 +982,14 @@ function cmdImportLib(args) {
         if (!validateAuthorPassword(args['author-password'])) {
             die('Incorrect author password. Import of packages with restricted OEM names requires valid authorization.');
         }
+
+        // OEM certificate verification: restricted-author packages must be code-signed
+        // with a certificate whose holder name encompasses the OEM identity.
+        const oemPubCert = (sigResult.code_signed && sigResult.valid) ? sigResult.publisher_cert : null;
+        const oemCertMatch = shared.validateOemCertificateMatch(importAuthor, importOrg, oemPubCert);
+        if (!oemCertMatch.valid) {
+            die(oemCertMatch.error);
+        }
     }
 
     // Check for existing installation
@@ -1111,6 +1119,13 @@ function cmdImportArchive(args) {
                 }
                 if (!validateAuthorPassword(args['author-password'])) {
                     throw new Error(`Incorrect author password for restricted package "${libName}".`);
+                }
+
+                // OEM certificate verification for archive entries
+                const oemPubCert = (sigResult.code_signed && sigResult.valid) ? sigResult.publisher_cert : null;
+                const oemCertMatch = shared.validateOemCertificateMatch(importAuthor, importOrg, oemPubCert);
+                if (!oemCertMatch.valid) {
+                    throw new Error(oemCertMatch.error);
                 }
             }
 
@@ -2180,6 +2195,13 @@ function cmdRollbackLib(args) {
         }
         if (!validateAuthorPassword(args['author-password'])) {
             die('Incorrect author password. Rollback of packages with restricted OEM names requires valid authorization.');
+        }
+
+        // OEM certificate verification for rollback
+        const oemPubCert = (sigResult.code_signed && sigResult.valid) ? sigResult.publisher_cert : null;
+        const oemCertMatch = shared.validateOemCertificateMatch(rollbackAuthor, rollbackOrg, oemPubCert);
+        if (!oemCertMatch.valid) {
+            die(oemCertMatch.error);
         }
     }
 
