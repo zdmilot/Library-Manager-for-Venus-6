@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Library Manager for Venus 6 CLI  v1.6.5
@@ -39,8 +39,16 @@ const safeZipExtractPath     = shared.safeZipExtractPath;
 const isValidLibraryName     = shared.isValidLibraryName;
 const computeZipEntryHashes  = shared.computeZipEntryHashes;
 const signPackageZip         = shared.signPackageZip;
+const signPackageZipWithCert = shared.signPackageZipWithCert;
 const verifyPackageSignature = shared.verifyPackageSignature;
 const parseHslMetadataFooter = shared.parseHslMetadataFooter;
+
+// Code signing certificate helpers
+const generateSigningKeyPair       = shared.generateSigningKeyPair;
+const buildPublisherCertificate    = shared.buildPublisherCertificate;
+const validatePublisherCertificate = shared.validatePublisherCertificate;
+const loadTrustedCertificates      = shared.loadTrustedCertificates;
+const saveTrustedCertificate       = shared.saveTrustedCertificate;
 
 // Binary container format helpers
 const CONTAINER_MAGIC_PKG    = shared.CONTAINER_MAGIC_PKG;
@@ -891,10 +899,24 @@ function cmdImportLib(args) {
     }
 
     // ---- Verify package signature ----
-    const sigResult = verifyPackageSignature(zip);
+    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
+    const sigResult = verifyPackageSignature(zip, trustedCerts);
     if (sigResult.signed) {
         if (sigResult.valid) {
             console.log('  Signature: VALID');
+            if (sigResult.code_signed && sigResult.publisher_cert) {
+                console.log('  Code signed by: ' + sigResult.publisher_cert.publisher +
+                    (sigResult.publisher_cert.organization ? ' (' + sigResult.publisher_cert.organization + ')' : '') +
+                    ' [key ' + sigResult.publisher_cert.key_id + ']');
+                if (sigResult.trust_status === 'trusted') {
+                    console.log('  Publisher trust: TRUSTED');
+                } else {
+                    console.log('  Publisher trust: UNTRUSTED (publisher not in trusted registry)');
+                    if (!args['force'] && args['require-trust']) {
+                        die('Package publisher is not trusted. Use --force to import anyway, or trust the publisher with "trust-publisher".');
+                    }
+                }
+            }
         } else {
             console.log('  Signature: FAILED');
             sigResult.errors.forEach(e => process.stderr.write('    ' + e + '\n'));
@@ -1217,7 +1239,12 @@ function cmdExportLib(args) {
     });
 
     // Sign the package for integrity verification
-    signPackageZip(zip);
+    const sigCreds = resolveSigningArgs(args);
+    if (sigCreds) {
+        signPackageZipWithCert(zip, sigCreds.privateKeyPem, sigCreds.cert);
+    } else {
+        signPackageZip(zip);
+    }
 
     ensureOutDir(args['output']);
     fs.writeFileSync(args['output'], packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG));
@@ -1225,6 +1252,7 @@ function cmdExportLib(args) {
     console.log(`\nSuccess: exported to ${args['output']}`);
     console.log(`  Library files    : ${libraryFiles.length}`);
     console.log(`  Demo method files: ${demoFiles.length}`);
+    if (sigCreds) console.log(`  Code signed by   : ${sigCreds.cert.publisher} (key ${sigCreds.cert.key_id})`);
 }
 
 // ===========================================================================
@@ -1274,6 +1302,7 @@ function cmdExportArchive(args) {
     const archiveZip  = new AdmZip();
     const exportedLibs = [];
     const errors       = [];
+    const archSigCreds = resolveSigningArgs(args);
 
     targetLibs.forEach(function (lib) {
         try {
@@ -1333,7 +1362,11 @@ function cmdExportArchive(args) {
             });
 
             // Sign the inner package
-            signPackageZip(innerZip);
+            if (archSigCreds) {
+                signPackageZipWithCert(innerZip, archSigCreds.privateKeyPem, archSigCreds.cert);
+            } else {
+                signPackageZip(innerZip);
+            }
 
             archiveZip.addFile(lib.library_name + '.hxlibpkg', packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG));
             exportedLibs.push({ name: lib.library_name, libFiles: libAdded, demoFiles: demoAdded });
@@ -1724,7 +1757,13 @@ function cmdCreatePackage(args) {
     if (iconSourcePath) zip.addLocalFile(iconSourcePath, 'icon');
 
     // Sign the package for integrity verification
-    signPackageZip(zip);
+    const sigCreds = resolveSigningArgs(args);
+    if (sigCreds) {
+        signPackageZipWithCert(zip, sigCreds.privateKeyPem, sigCreds.cert);
+        console.log('  Code signed by : ' + sigCreds.cert.publisher + ' (key ' + sigCreds.cert.key_id + ')');
+    } else {
+        signPackageZip(zip);
+    }
 
     ensureOutDir(args['output']);
     fs.writeFileSync(args['output'], packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG));
@@ -1738,6 +1777,9 @@ function cmdCreatePackage(args) {
     console.log(`  Demo method files : ${resolvedDemoFiles.length}`);
     if (comDlls.length > 0) console.log(`  COM DLLs          : ${comDlls.join(', ')}`);
     if (libraryImageFilename) console.log(`  Icon              : ${libraryImageFilename}`);
+    if (sigCreds) console.log(`  Code signing      : Ed25519 (${sigCreds.cert.key_id})`);
+    else          console.log(`  Code signing      : none (HMAC-only integrity)`);
+
 
     // ---- Audit trail entry ----
     try {
@@ -2177,7 +2219,7 @@ function cmdRollbackLib(args) {
 // ===========================================================================
 function printHelp() {
     console.log(`
-Library Manager for Venus 6 CLI  v1.5.5
+Library Manager for Venus 6 CLI  v1.6.5
 Hamilton VENUS Library Package Management
 
 USAGE
@@ -2196,6 +2238,9 @@ COMMANDS
   generate-syslib-hashes   Generate integrity baseline for system libraries
   verify-syslib-hashes     Verify system libraries against baseline
   verify-package     Verify integrity signature of a .hxlibpkg or .hxlibarch
+  generate-keypair   Generate an Ed25519 signing key pair for code signing
+  trust-publisher    Trust or revoke a publisher's signing certificate
+  list-publishers    List registered publisher certificates
   help               Show this help text
 
 GLOBAL OPTIONS
@@ -2261,10 +2306,13 @@ export-lib
   --name   <name>    [required*] Library name  (* or use --id)
   --id     <id>      [required*] Library DB ID (* or use --name)
   --output <path>    [required]  Output .hxlibpkg file path
+  --sign-key <path>             Path to Ed25519 private key for code signing
+  --sign-cert <path>            Path to publisher certificate (.cert.json)
 
   Examples:
     node cli.js export-lib --name "MyLibrary" --output ./MyLibrary.hxlibpkg
     node cli.js export-lib --id abc123 --output ./out/MyLibrary.hxlibpkg
+    node cli.js export-lib --name "MyLib" --output ./MyLib.hxlibpkg --sign-key mykey.key.pem
 
 ──────────────────────────────────────────────────────────────────────────────
 export-archive
@@ -2274,10 +2322,13 @@ export-archive
   --names  <n1,n2,...>          Comma-separated library names
   --ids    <id1,id2,...>        Comma-separated library DB IDs
   --output <path>    [required]  Output .hxlibarch file path
+  --sign-key <path>             Path to Ed25519 private key for code signing
+  --sign-cert <path>            Path to publisher certificate (.cert.json)
 
   Examples:
     node cli.js export-archive --all --output ./all-libs.hxlibarch
     node cli.js export-archive --names "LibA,LibB" --output ./subset.hxlibarch
+    node cli.js export-archive --all --output ./all-libs.hxlibarch --sign-key mykey.key.pem
 
 ──────────────────────────────────────────────────────────────────────────────
 delete-lib
@@ -2305,15 +2356,23 @@ create-package
 
   --spec   <path>    [required]  Path to JSON spec file (see cli-schema.json)
   --output <path>    [required]  Output .hxlibpkg file path
+  --sign-key <path>             Path to Ed25519 private key (.key.pem) for code signing
+  --sign-cert <path>            Path to publisher certificate (.cert.json)
+                                Auto-detected from --sign-key if omitted
   --author-password <pw>        Required when author/organization is a restricted OEM name
 
   The spec file describes all metadata and which files to bundle.
   See cli-schema.json for the full JSON Schema definition.
   See cli-spec-example.json for a worked example.
 
+  Without --sign-key, the package uses legacy HMAC-only integrity signing.
+  With --sign-key, an Ed25519 digital signature is embedded that
+  cryptographically binds the publisher's identity to the package content.
+
   Examples:
     node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg
     node cli.js create-package --spec specs/proj.json --output dist/proj.hxlibpkg
+    node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign-key mykey.key.pem
 
 ──────────────────────────────────────────────────────────────────────────────
 list-versions
@@ -2382,8 +2441,9 @@ verify-syslib-hashes
 
 ──────────────────────────────────────────────────────────────────────────────
 verify-package
-  Verify the integrity signature of a .hxlibpkg or .hxlibarch file.
-  Checks that all files match the embedded HMAC-SHA256 signature.
+  Verify the integrity and code signing signature of a .hxlibpkg or .hxlibarch.
+  Checks HMAC-SHA256 integrity AND Ed25519 publisher certificate signatures.
+  Reports publisher identity and trust status for code-signed packages.
   Unsigned (legacy) packages are reported but not treated as errors.
 
   --file <path>   [required]  Path to the .hxlibpkg or .hxlibarch file
@@ -2392,6 +2452,47 @@ verify-package
   Examples:
     node cli.js verify-package --file MyLib.hxlibpkg
     node cli.js verify-package --file archive.hxlibarch --json
+
+──────────────────────────────────────────────────────────────────────────────
+generate-keypair
+  Generate an Ed25519 signing key pair for code signing packages.
+  The private key (.key.pem) must be kept SECRET.
+  The certificate (.cert.json) can be freely distributed to package consumers.
+
+  --publisher <name>    [required]  Publisher name (appears in signed packages)
+  --organization <name>             Organization or company name
+  --output-dir <dir>                Directory for output files (default: current dir)
+  --force                           Overwrite existing key files
+  --no-trust                        Don't auto-register cert in local trust store
+  --author-password <pw>            Required for restricted OEM publisher names
+
+  Examples:
+    node cli.js generate-keypair --publisher "Jane Smith"
+    node cli.js generate-keypair --publisher "Lab Team" --organization "Acme Pharma"
+    node cli.js generate-keypair --publisher "Builder" --output-dir ./keys
+
+──────────────────────────────────────────────────────────────────────────────
+trust-publisher
+  Add or revoke trust for a publisher's signing certificate.
+  Trusted publisher certificates are stored in the local publisher registry.
+  Packages signed by trusted publishers show a verified trust badge.
+
+  --cert <path>   [required]  Path to publisher certificate (.cert.json)
+  --revoke                    Revoke trust instead of granting it
+
+  Examples:
+    node cli.js trust-publisher --cert publisher.cert.json
+    node cli.js trust-publisher --cert publisher.cert.json --revoke
+
+──────────────────────────────────────────────────────────────────────────────
+list-publishers
+  List all registered publisher certificates and their trust status.
+
+  --json          Output raw JSON
+
+  Examples:
+    node cli.js list-publishers
+    node cli.js list-publishers --json
 
 ──────────────────────────────────────────────────────────────────────────────
 `);
@@ -2407,6 +2508,7 @@ function cmdVerifyPackage(args) {
 
     const ext = path.extname(filePath).toLowerCase();
     const results = [];
+    const trustedCerts = loadTrustedCertificates(resolvePublisherRegistryPath());
 
     if (ext === '.hxlibarch') {
         // Verify each inner .hxlibpkg
@@ -2427,10 +2529,19 @@ function cmdVerifyPackage(args) {
             try {
                 const innerZipBuf2 = unpackContainer(pkgEntry.getData(), CONTAINER_MAGIC_PKG);
                 const innerZip = new AdmZip(innerZipBuf2);
-                const sigResult = verifyPackageSignature(innerZip);
-                results.push({ package: pkgEntry.entryName, signed: sigResult.signed, valid: sigResult.valid, errors: sigResult.errors, warnings: sigResult.warnings });
+                const sigResult = verifyPackageSignature(innerZip, trustedCerts);
+                results.push({
+                    package: pkgEntry.entryName,
+                    signed: sigResult.signed,
+                    valid: sigResult.valid,
+                    code_signed: sigResult.code_signed,
+                    publisher_cert: sigResult.publisher_cert,
+                    trust_status: sigResult.trust_status,
+                    errors: sigResult.errors,
+                    warnings: sigResult.warnings
+                });
             } catch (e) {
-                results.push({ package: pkgEntry.entryName, signed: false, valid: false, errors: ['Failed to read: ' + e.message], warnings: [] });
+                results.push({ package: pkgEntry.entryName, signed: false, valid: false, code_signed: false, publisher_cert: null, trust_status: 'none', errors: ['Failed to read: ' + e.message], warnings: [] });
             }
         });
     } else {
@@ -2439,8 +2550,17 @@ function cmdVerifyPackage(args) {
             const rawPkgBuf2 = fs.readFileSync(filePath);
             const zipBuf2 = unpackContainer(rawPkgBuf2, CONTAINER_MAGIC_PKG);
             const zip = new AdmZip(zipBuf2);
-            const sigResult = verifyPackageSignature(zip);
-            results.push({ package: path.basename(filePath), signed: sigResult.signed, valid: sigResult.valid, errors: sigResult.errors, warnings: sigResult.warnings });
+            const sigResult = verifyPackageSignature(zip, trustedCerts);
+            results.push({
+                package: path.basename(filePath),
+                signed: sigResult.signed,
+                valid: sigResult.valid,
+                code_signed: sigResult.code_signed,
+                publisher_cert: sigResult.publisher_cert,
+                trust_status: sigResult.trust_status,
+                errors: sigResult.errors,
+                warnings: sigResult.warnings
+            });
         } catch (e) {
             die('Failed to read package: ' + e.message);
         }
@@ -2455,22 +2575,255 @@ function cmdVerifyPackage(args) {
     } else {
         results.forEach(function (r) {
             const status = !r.signed ? 'UNSIGNED' : (r.valid ? 'VALID' : 'FAILED');
-            console.log(`${r.package}: ${status}`);
+            const sigType = r.code_signed ? ' [Ed25519]' : (r.signed ? ' [HMAC-only]' : '');
+            console.log(`${r.package}: ${status}${sigType}`);
+            if (r.code_signed && r.publisher_cert) {
+                console.log(`  Publisher  : ${r.publisher_cert.publisher}${r.publisher_cert.organization ? ' (' + r.publisher_cert.organization + ')' : ''}`);
+                console.log(`  Key ID     : ${r.publisher_cert.key_id}`);
+                console.log(`  Fingerprint: ${r.publisher_cert.fingerprint}`);
+                console.log(`  Trust      : ${r.trust_status.toUpperCase()}`);
+            }
             r.errors.forEach(e   => console.log(`  [ERROR]   ${e}`));
             r.warnings.forEach(w => console.log(`  [WARNING] ${w}`));
         });
         const anySigned = results.some(r => r.signed);
         const anyFailed = results.some(r => r.signed && !r.valid);
         const allSignedValid = anySigned && results.every(r => !r.signed || r.valid);
+        const anyCodeSigned = results.some(r => r.code_signed);
         if (anyFailed) {
             console.log('\nResult: INTEGRITY CHECK FAILED');
             process.exit(1);
+        } else if (allSignedValid && anyCodeSigned) {
+            console.log('\nResult: ALL PACKAGES VERIFIED (code signed)');
         } else if (allSignedValid) {
-            console.log('\nResult: ALL PACKAGES VERIFIED');
+            console.log('\nResult: ALL PACKAGES VERIFIED (HMAC-only, no publisher identity)');
         } else {
             console.log('\nResult: NO SIGNED PACKAGES FOUND');
         }
     }
+}
+
+// ===========================================================================
+// Code signing key helpers
+// ===========================================================================
+
+/**
+ * Resolve the publisher registry path.
+ * Uses LOCAL_DATA_DIR/publisher_registry.json.
+ */
+function resolvePublisherRegistryPath() {
+    return path.join(LOCAL_DATA_DIR, 'publisher_registry.json');
+}
+
+/**
+ * Load a signing key and certificate from files.
+ * @param {string} keyPath  - Path to PEM private key file
+ * @param {string} certPath - Path to .cert.json file
+ * @returns {{ privateKeyPem: string, cert: Object }}
+ */
+function loadSigningCredentials(keyPath, certPath) {
+    if (!fs.existsSync(keyPath))  die('Signing key not found: ' + keyPath);
+    if (!fs.existsSync(certPath)) die('Publisher certificate not found: ' + certPath);
+
+    const privateKeyPem = fs.readFileSync(keyPath, 'utf8');
+    let cert;
+    try {
+        cert = JSON.parse(fs.readFileSync(certPath, 'utf8'));
+    } catch (e) {
+        die('Failed to parse publisher certificate: ' + e.message);
+    }
+
+    const certCheck = validatePublisherCertificate(cert);
+    if (!certCheck.valid) {
+        die('Invalid publisher certificate:\n  ' + certCheck.errors.join('\n  '));
+    }
+
+    return { privateKeyPem, cert };
+}
+
+/**
+ * Try to resolve --sign-key and --sign-cert from arguments,
+ * or return null if code signing is not requested.
+ * @param {Object} args
+ * @returns {{ privateKeyPem: string, cert: Object }|null}
+ */
+function resolveSigningArgs(args) {
+    if (!args['sign-key'] && !args['sign-cert']) return null;
+    if (args['sign-key'] && !args['sign-cert']) {
+        // Auto-derive cert path from key path
+        const keyPath = path.resolve(args['sign-key']);
+        const certPath = keyPath.replace(/\.key\.pem$/i, '.cert.json');
+        if (!fs.existsSync(certPath)) {
+            die('--sign-key specified but no matching .cert.json found. Use --sign-cert to specify the certificate path.');
+        }
+        return loadSigningCredentials(keyPath, certPath);
+    }
+    if (!args['sign-key'] && args['sign-cert']) {
+        die('--sign-cert requires --sign-key (path to the private key PEM file).');
+    }
+    return loadSigningCredentials(path.resolve(args['sign-key']), path.resolve(args['sign-cert']));
+}
+
+// ===========================================================================
+// COMMAND: generate-keypair
+// ===========================================================================
+function cmdGenerateKeypair(args) {
+    const publisher = args['publisher'];
+    if (!publisher) die('--publisher <name> is required');
+
+    const organization = args['organization'] || '';
+    const outputDir = args['output-dir'] ? path.resolve(args['output-dir']) : process.cwd();
+
+    // Validate publisher name length
+    if (publisher.trim().length < shared.AUTHOR_MIN_LENGTH) {
+        die('Publisher name must be at least ' + shared.AUTHOR_MIN_LENGTH + ' characters.');
+    }
+    if (publisher.trim().length > shared.AUTHOR_MAX_LENGTH) {
+        die('Publisher name cannot exceed ' + shared.AUTHOR_MAX_LENGTH + ' characters.');
+    }
+
+    // Restricted author check
+    if (shared.isRestrictedAuthor(publisher) || shared.isRestrictedAuthor(organization)) {
+        if (!args['author-password']) {
+            die('The specified publisher/organization is a restricted OEM name. Use --author-password <password> to authorize.');
+        }
+        if (!shared.validateAuthorPassword(args['author-password'])) {
+            die('Incorrect author password.');
+        }
+    }
+
+    console.log('Generating Ed25519 signing key pair...');
+    console.log('  Publisher:    ' + publisher);
+    if (organization) console.log('  Organization: ' + organization);
+
+    const keypair = generateSigningKeyPair();
+    const cert = buildPublisherCertificate(publisher, organization, keypair.publicKeyRaw);
+
+    // Build safe filename from publisher name
+    const safeName = publisher.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+    const keyFilePath  = path.join(outputDir, safeName + '.key.pem');
+    const certFilePath = path.join(outputDir, safeName + '.cert.json');
+
+    // Check for existing files
+    if (fs.existsSync(keyFilePath) && !args['force']) {
+        die('Key file already exists: ' + keyFilePath + '\nUse --force to overwrite.');
+    }
+    if (fs.existsSync(certFilePath) && !args['force']) {
+        die('Certificate file already exists: ' + certFilePath + '\nUse --force to overwrite.');
+    }
+
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    fs.writeFileSync(keyFilePath, keypair.privateKeyPem, 'utf8');
+    fs.writeFileSync(certFilePath, JSON.stringify(cert, null, 2), 'utf8');
+
+    console.log('\nKey pair generated successfully:');
+    console.log('  Private key : ' + keyFilePath);
+    console.log('  Certificate : ' + certFilePath);
+    console.log('  Key ID      : ' + cert.key_id);
+    console.log('  Fingerprint : ' + cert.fingerprint);
+    console.log('\n  IMPORTANT: Keep the private key (.key.pem) SECRET.');
+    console.log('  Distribute the certificate (.cert.json) to package consumers.');
+
+    // Auto-trust the certificate in the local publisher registry
+    if (!args['no-trust']) {
+        const regPath = resolvePublisherRegistryPath();
+        if (saveTrustedCertificate(regPath, cert, true)) {
+            console.log('\n  Certificate auto-registered as trusted in local publisher registry.');
+        }
+    }
+}
+
+// ===========================================================================
+// COMMAND: trust-publisher
+// ===========================================================================
+function cmdTrustPublisher(args) {
+    const certPath = args['cert'];
+    if (!certPath)                  die('--cert <path> is required (path to .cert.json)');
+    if (!fs.existsSync(certPath))   die('Certificate file not found: ' + certPath);
+
+    let cert;
+    try {
+        cert = JSON.parse(fs.readFileSync(certPath, 'utf8'));
+    } catch (e) {
+        die('Failed to parse certificate: ' + e.message);
+    }
+
+    const certCheck = validatePublisherCertificate(cert);
+    if (!certCheck.valid) {
+        die('Invalid certificate:\n  ' + certCheck.errors.join('\n  '));
+    }
+
+    const regPath = resolvePublisherRegistryPath();
+    const revoke = !!args['revoke'];
+
+    if (revoke) {
+        if (saveTrustedCertificate(regPath, cert, false)) {
+            console.log('Publisher certificate revoked:');
+        } else {
+            die('Failed to update publisher registry.');
+        }
+    } else {
+        if (saveTrustedCertificate(regPath, cert, true)) {
+            console.log('Publisher certificate trusted:');
+        } else {
+            die('Failed to update publisher registry.');
+        }
+    }
+
+    console.log('  Publisher    : ' + cert.publisher);
+    if (cert.organization) console.log('  Organization : ' + cert.organization);
+    console.log('  Key ID      : ' + cert.key_id);
+    console.log('  Fingerprint : ' + cert.fingerprint);
+    console.log('  Status      : ' + (revoke ? 'REVOKED' : 'TRUSTED'));
+}
+
+// ===========================================================================
+// COMMAND: list-publishers
+// ===========================================================================
+function cmdListPublishers(args) {
+    const regPath = resolvePublisherRegistryPath();
+    let data;
+    try {
+        if (!fs.existsSync(regPath)) {
+            data = { publishers: [] };
+        } else {
+            data = JSON.parse(fs.readFileSync(regPath, 'utf8'));
+        }
+    } catch (e) {
+        die('Failed to read publisher registry: ' + e.message);
+    }
+
+    const pubs = data.publishers || [];
+    const publishersWithCerts = pubs.filter(p => p.certificates && p.certificates.length > 0);
+
+    if (args['json']) {
+        console.log(JSON.stringify(publishersWithCerts, null, 2));
+        return;
+    }
+
+    if (publishersWithCerts.length === 0) {
+        console.log('No publishers with signing certificates registered.');
+        console.log('Use "generate-keypair" to create a signing key pair, or');
+        console.log('"trust-publisher" to trust an existing publisher certificate.');
+        return;
+    }
+
+    console.log('Registered publisher certificates:\n');
+    publishersWithCerts.forEach(function(pub) {
+        (pub.certificates || []).forEach(function(cert) {
+            const trustBadge = cert.trusted ? '[TRUSTED]' : '[REVOKED]';
+            console.log('  ' + trustBadge + '  ' + (cert.publisher || pub.name));
+            if (cert.organization) console.log('           Org: ' + cert.organization);
+            console.log('           Key ID: ' + (cert.key_id || '?'));
+            console.log('           Fingerprint: ' + (cert.fingerprint || '?'));
+            console.log('           Created: ' + (cert.created_date || '?'));
+            console.log('');
+        });
+    });
 }
 
 // ===========================================================================
@@ -2500,6 +2853,9 @@ switch (command) {
     case 'generate-syslib-hashes':  cmdGenerateSyslibHashes(args);  break;
     case 'verify-syslib-hashes':    cmdVerifySyslibHashes(args);    break;
     case 'verify-package':          cmdVerifyPackage(args);          break;
+    case 'generate-keypair':        cmdGenerateKeypair(args);        break;
+    case 'trust-publisher':         cmdTrustPublisher(args);         break;
+    case 'list-publishers':         cmdListPublishers(args);         break;
     case 'help':
     case '--help':
     case '-h':

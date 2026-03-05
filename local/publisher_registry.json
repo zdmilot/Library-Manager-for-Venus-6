@@ -3,6 +3,22 @@
     {
       "name": "Hamilton",
       "maxSpaces": 0
+    },
+    {
+      "name": "Test Publisher",
+      "maxSpaces": 0,
+      "certificates": [
+        {
+          "cert_format": "hxlibpkg-publisher-cert/1.0",
+          "publisher": "Test Publisher",
+          "organization": "",
+          "public_key": "HMh/aotY9i65L2/fbXh/y40OMELEUMzBMUAYWddRyr4=",
+          "fingerprint": "5a14491822a4f8b4de1e45695e01233c9626ea1948b3a8a2690a37252af6ba8e",
+          "key_id": "5a14491822a4f8b4",
+          "created_date": "2026-03-05T15:31:51.351Z",
+          "trusted": true
+        }
+      ]
     }
   ],
   "tags": [],

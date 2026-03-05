@@ -328,6 +328,30 @@
 								</div>
 							</div>
 
+							<!-- Code Signing Section -->
+							<div class="card mb-3 exporter-card">
+								<div class="card-header"><i class="fas fa-certificate mr-2 color-medium"></i>Code Signing</div>
+								<div class="card-body">
+									<p class="text-muted text-sm mb-2">Sign this package with a publisher certificate to verify its origin. Recipients can verify the publisher identity before installing.</p>
+									<div class="custom-control custom-checkbox mb-2">
+										<input type="checkbox" class="custom-control-input chk-export-sign" id="chk-pkg-sign">
+										<label class="custom-control-label" for="chk-pkg-sign">Sign with publisher certificate</label>
+									</div>
+									<div class="pkg-signing-detail" style="display:none;">
+										<div class="pkg-signing-configured" style="display:none;">
+											<div class="d-flex align-items-center" style="background:var(--body-background); border-radius:6px; padding:6px 10px;">
+												<i class="fas fa-user-shield mr-2" style="color:var(--medium)"></i>
+												<span class="pkg-signing-publisher-name text-muted text-sm"></span>
+												<span class="badge badge-secondary ml-2 pkg-signing-key-id" style="font-family:Consolas,monospace; font-size:0.75rem;"></span>
+											</div>
+										</div>
+										<div class="pkg-signing-not-configured text-sm text-muted" style="display:none;">
+											<i class="fas fa-exclamation-circle mr-1 text-warning"></i>No signing key configured. <a href="#" class="export-signing-open-settings">Configure in Settings</a>
+										</div>
+									</div>
+								</div>
+							</div>
+
 							<!-- Actions -->
 							<div class="text-center mt-4 mb-5">
 								<button class="btn solid-button btn-lg" id="pkg-create"><i class="fas fa-box mr-2"></i>Create Package (.hxlibpkg)</button>
@@ -1111,6 +1135,33 @@
 						</div>
 					</div>
 				</div>
+				<!-- Code Signing -->
+				<div class="px-3 pb-3">
+					<div class="export-signing-section" style="border:1px solid var(--border-color); border-radius:8px; padding:12px 14px;">
+						<div class="d-flex align-items-center justify-content-between">
+							<div class="d-flex align-items-center">
+								<i class="fas fa-certificate mr-2" style="color:var(--medium)"></i>
+								<span class="font-weight-bold" style="color:var(--medium2); font-size:0.9rem;">Code Signing</span>
+							</div>
+							<div class="custom-control custom-switch">
+								<input type="checkbox" class="custom-control-input chk-export-sign" id="chk-export-choice-sign">
+								<label class="custom-control-label" for="chk-export-choice-sign"></label>
+							</div>
+						</div>
+						<div class="export-signing-detail mt-2" style="display:none;">
+							<div class="export-signing-configured" style="display:none;">
+								<div class="d-flex align-items-center text-sm" style="background:var(--body-background); border-radius:6px; padding:6px 10px;">
+									<i class="fas fa-user-shield mr-2" style="color:var(--medium)"></i>
+									<span class="export-signing-publisher-name text-muted"></span>
+									<span class="badge badge-secondary ml-2 export-signing-key-id" style="font-family:Consolas,monospace; font-size:0.75rem;"></span>
+								</div>
+							</div>
+							<div class="export-signing-not-configured text-sm text-muted" style="display:none;">
+								<i class="fas fa-exclamation-circle mr-1 text-warning"></i>No signing key configured. <a href="#" class="export-signing-open-settings">Configure in Settings</a>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="modal-footer detail-modal-footer">
 					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
 				</div>
@@ -1356,7 +1407,18 @@
 				</div>
 				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
 					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
-					<div>
+					<div class="d-flex align-items-center">
+						<!-- Code Signing toggle for archive export -->
+						<div class="archive-signing-section mr-3 d-flex align-items-center" style="border:1px solid var(--border-color); border-radius:6px; padding:4px 12px;">
+							<i class="fas fa-certificate mr-2" style="color:var(--medium); font-size:0.85rem;"></i>
+							<span class="text-sm mr-2" style="color:var(--medium2);">Sign</span>
+							<div class="custom-control custom-switch" style="margin-bottom:0;">
+								<input type="checkbox" class="custom-control-input chk-export-sign" id="chk-archive-sign">
+								<label class="custom-control-label" for="chk-archive-sign"></label>
+							</div>
+							<span class="archive-signing-publisher text-muted text-sm ml-1" style="display:none;"></span>
+							<span class="archive-signing-not-configured text-sm ml-1" style="display:none;"><i class="fas fa-exclamation-circle text-warning" title="No signing key configured"></i></span>
+						</div>
 						<button type="button" class="btn solid-button" id="exp-arch-export" disabled><i class="fas fa-file-archive mr-2"></i>Export Archive (.hxlibarch)</button>
 						<input type="file" class="d-none" id="exp-arch-save-dialog" nwsaveas="libraries.hxlibarch" accept=".hxlibarch">
 					</div>
@@ -1493,6 +1555,64 @@
 								<input type="checkbox" class="custom-control-input" id="chk_scanUnsignedOnLaunch" disabled>
 								<label class="custom-control-label" for="chk_scanUnsignedOnLaunch">Scan for new unsigned libraries each launch</label>
 							</div>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Code Signing</h6>
+							<small class="text-muted d-block mb-2">Configure a default publisher certificate for signing exported packages. Generate a key pair or browse to existing key and certificate files. Signed packages allow recipients to verify the publisher's identity.</small>
+							<div class="mb-3">
+								<div class="form-group row mb-2">
+									<label class="col-sm-4 col-form-label col-form-label-sm">Private Key (.key.pem)</label>
+									<div class="col-sm-8">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control form-control-sm settings-signing-key-path" placeholder="No private key selected" readonly style="cursor:default;">
+											<div class="input-group-append">
+												<button class="btn btn-outlined btn-sm btn-browse-signing-key" type="button"><i class="far fa-folder-open mr-1"></i>Browse</button>
+											</div>
+										</div>
+										<input type="file" class="d-none" id="settings-signing-key-picker" accept=".pem">
+									</div>
+								</div>
+								<div class="form-group row mb-2">
+									<label class="col-sm-4 col-form-label col-form-label-sm">Certificate (.cert.json)</label>
+									<div class="col-sm-8">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control form-control-sm settings-signing-cert-path" placeholder="No certificate selected" readonly style="cursor:default;">
+											<div class="input-group-append">
+												<button class="btn btn-outlined btn-sm btn-browse-signing-cert" type="button"><i class="far fa-folder-open mr-1"></i>Browse</button>
+											</div>
+										</div>
+										<input type="file" class="d-none" id="settings-signing-cert-picker" accept=".json">
+									</div>
+								</div>
+							</div>
+							<div class="settings-signing-status mb-2" style="display:none;">
+								<div class="d-flex align-items-center" style="background:var(--body-background); border-radius:6px; padding:8px 12px;">
+									<i class="fas fa-user-shield mr-2" style="color:var(--medium)"></i>
+									<div>
+										<span class="settings-signing-publisher text-sm font-weight-bold"></span>
+										<span class="badge badge-secondary ml-2 settings-signing-key-id" style="font-family:Consolas,monospace; font-size:0.75rem;"></span>
+										<div class="text-muted text-sm settings-signing-org" style="display:none;"></div>
+									</div>
+								</div>
+							</div>
+							<div class="settings-signing-error mb-2" style="display:none;">
+								<div class="text-sm text-danger"><i class="fas fa-times-circle mr-1"></i><span class="settings-signing-error-text"></span></div>
+							</div>
+							<div class="d-flex">
+								<button class="btn btn-sm btn-outlined btn-generate-keypair mr-2"><i class="fas fa-key mr-1"></i>Generate Key Pair...</button>
+								<button class="btn btn-sm btn-outlined btn-clear-signing-config" style="display:none;"><i class="fas fa-times mr-1"></i>Clear</button>
+							</div>
+							<!-- Hidden file dialogs for key pair generation output -->
+							<input type="file" class="d-none" id="settings-keypair-output-dir" nwdirectory>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Trusted Publishers</h6>
+							<small class="text-muted d-block mb-2">Publishers whose certificates have been trusted for code-signed packages. Packages signed by trusted publishers will show a verified badge during import.</small>
+							<div id="settings-trusted-publishers-list" class="mb-2">
+								<div class="text-muted text-sm py-2"><i class="fas fa-inbox mr-1"></i>No trusted publishers</div>
+							</div>
+							<button class="btn btn-sm btn-outlined btn-trust-cert-file"><i class="fas fa-plus mr-1"></i>Trust Certificate File...</button>
+							<input type="file" class="d-none" id="settings-trust-cert-picker" accept=".json">
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Recent</h6>
@@ -1769,6 +1889,9 @@
 					<div class="detail-section imp-preview-signature-section d-none">
 						<h6 class="detail-section-label"><i class="fas fa-shield-alt mr-1" style="color:var(--medium)"></i>Package Integrity</h6>
 						<div class="imp-preview-signature-status" style="padding:6px 10px; border-radius:6px; background:var(--body-background);"></div>
+						<div class="imp-preview-trust-action mt-2" style="display:none;">
+							<button class="btn btn-sm btn-outlined btn-trust-import-publisher"><i class="fas fa-user-check mr-1"></i>Trust this publisher</button>
+						</div>
 					</div>
 					<!-- Install Paths -->
 					<div class="detail-section">

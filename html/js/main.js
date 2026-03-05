@@ -1089,6 +1089,14 @@
 		}
 
 		/**
+		 * Get a map of trusted publisher certificates (fingerprint → cert).
+		 * Used for code signing verification during import.
+		 */
+		function getTrustedCertificates() {
+			return loadTrustedCertificates(_publisherRegistryPath);
+		}
+
+		/**
 		 * Rebuild the publisher registry by scanning all installed + system libraries.
 		 * Called once at startup and after any import/registration.
 		 */
@@ -2190,6 +2198,11 @@
 			if (!$("#pkg-venus-compat").val().trim() && _cachedVENUSVersion) {
 				$("#pkg-venus-compat").val(_cachedVENUSVersion);
 			}
+			// Refresh code signing UI for packager
+			refreshSigningUI();
+			var sigInfo = getSigningDisplayInfo();
+			$("#chk-pkg-sign").prop("checked", !!sigInfo);
+			$(".pkg-signing-detail").toggle(!!sigInfo);
 			fitExporterHeight();
 			return false;
 		});
@@ -5335,6 +5348,11 @@
 			fitNavBarItems();
 			fitMainDivHeight();
 			updateSortableDivs();
+
+			// Load code signing configuration
+			refreshSettingsSigningStatus();
+			refreshSigningUI();
+			refreshTrustedPublishersList();
 		}
 
 		function saveSetting(key,val){
@@ -6531,14 +6549,15 @@
 				});
 
 				// Sign the package for integrity verification
-				signPackageZip(zip);
+				var pkgUseCodeSigning = $("#chk-pkg-sign").is(":checked");
+				var sigResult = applyPackageSigning(zip, pkgUseCodeSigning);
 
 				// Wrap in binary container and write
 				fs.writeFileSync(savePath, packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG));
 
 				// ---- Audit trail entry ----
 				try {
-					appendAuditTrailEntry(buildAuditTrailEntry('package_created', {
+					var auditData = {
 						library_name:    libName,
 						version:         version || '',
 						author:          author || '',
@@ -6547,7 +6566,12 @@
 						library_files:   pkg_libraryFiles.length,
 						demo_files:      pkg_demoMethodFiles.length,
 						com_dlls:        (manifest.com_register_dlls || [])
-					}));
+					};
+					if (sigResult.codeSigned) {
+						auditData.code_signing_publisher = sigResult.publisher;
+						auditData.code_signing_key_id = sigResult.keyId;
+					}
+					appendAuditTrailEntry(buildAuditTrailEntry('package_created', auditData));
 				} catch(_) { /* non-critical */ }
 
 				showGenericSuccessModal({
@@ -7116,7 +7140,402 @@
 		// ---- Package signing & hashing (delegated to shared module) ----
 		var computeLibraryHashes  = shared.computeLibraryHashes;
 		var signPackageZip        = shared.signPackageZip;
+		var signPackageZipWithCert = shared.signPackageZipWithCert;
 		var verifyPackageSignature = shared.verifyPackageSignature;
+		var loadTrustedCertificates = shared.loadTrustedCertificates;
+		var saveTrustedCertificate  = shared.saveTrustedCertificate;
+		var validatePublisherCertificate = shared.validatePublisherCertificate;
+		var generateSigningKeyPair      = shared.generateSigningKeyPair;
+		var buildPublisherCertificate   = shared.buildPublisherCertificate;
+		var computeKeyFingerprint       = shared.computeKeyFingerprint;
+
+		// ---- Code signing configuration helpers ----
+
+		/**
+		 * Read the default signing key/cert paths from settings.
+		 * Returns { keyPath: string|null, certPath: string|null }
+		 */
+		function getSigningConfig() {
+			var s = db_settings.settings.findOne({"_id":"0"});
+			return {
+				keyPath:  (s && s.signing_key_path)  || null,
+				certPath: (s && s.signing_cert_path) || null
+			};
+		}
+
+		/**
+		 * Load the default signing credentials from disk (private key PEM + publisher cert JSON).
+		 * Returns { privateKeyPem: string, publisherCert: object } or null if not configured/invalid.
+		 */
+		function loadDefaultSigningCredentials() {
+			var cfg = getSigningConfig();
+			if (!cfg.keyPath || !cfg.certPath) return null;
+			try {
+				if (!fs.existsSync(cfg.keyPath) || !fs.existsSync(cfg.certPath)) return null;
+				var keyPem = fs.readFileSync(cfg.keyPath, 'utf8');
+				var certJson = JSON.parse(fs.readFileSync(cfg.certPath, 'utf8'));
+				var validation = validatePublisherCertificate(certJson);
+				if (!validation.valid) return null;
+				return { privateKeyPem: keyPem, publisherCert: certJson };
+			} catch(e) {
+				console.warn('Failed to load default signing credentials: ' + e.message);
+				return null;
+			}
+		}
+
+		/**
+		 * Get the display info for the current signing config.
+		 * Returns { configured: boolean, publisher: string, organization: string, keyId: string } or null.
+		 */
+		function getSigningDisplayInfo() {
+			var cfg = getSigningConfig();
+			if (!cfg.keyPath || !cfg.certPath) return null;
+			try {
+				if (!fs.existsSync(cfg.certPath)) return null;
+				var certJson = JSON.parse(fs.readFileSync(cfg.certPath, 'utf8'));
+				var validation = validatePublisherCertificate(certJson);
+				if (!validation.valid) return null;
+				return {
+					configured: true,
+					publisher: certJson.publisher || 'Unknown',
+					organization: certJson.organization || '',
+					keyId: certJson.key_id || certJson.fingerprint.substring(0, 16)
+				};
+			} catch(e) {
+				return null;
+			}
+		}
+
+		/**
+		 * Update all code-signing toggle UI elements across export modals.
+		 * Shows publisher info if configured, or "not configured" notice.
+		 */
+		function refreshSigningUI() {
+			var info = getSigningDisplayInfo();
+			// Export Choice modal
+			if (info) {
+				$(".export-signing-configured").show();
+				$(".export-signing-not-configured").hide();
+				$(".export-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
+				$(".export-signing-key-id").text(info.keyId);
+			} else {
+				$(".export-signing-configured").hide();
+				$(".export-signing-not-configured").show();
+			}
+			// Archive signing inline
+			if (info) {
+				$(".archive-signing-publisher").text(info.publisher).show();
+				$(".archive-signing-not-configured").hide();
+			} else {
+				$(".archive-signing-publisher").hide();
+				$(".archive-signing-not-configured").show();
+			}
+			// Create Package form
+			if (info) {
+				$(".pkg-signing-configured").show();
+				$(".pkg-signing-not-configured").hide();
+				$(".pkg-signing-publisher-name").text(info.publisher + (info.organization ? ' (' + info.organization + ')' : ''));
+				$(".pkg-signing-key-id").text(info.keyId);
+			} else {
+				$(".pkg-signing-configured").hide();
+				$(".pkg-signing-not-configured").show();
+			}
+		}
+
+		/**
+		 * Apply code signing to a zip when the user has enabled it.
+		 * Falls back to legacy HMAC-only signing if credentials are unavailable.
+		 * @param {AdmZip} zip - The zip to sign
+		 * @param {boolean} useCodeSigning - Whether user toggled code signing on
+		 * @returns {{ codeSigned: boolean, publisher: string|null, keyId: string|null }}
+		 */
+		function applyPackageSigning(zip, useCodeSigning) {
+			if (useCodeSigning) {
+				var creds = loadDefaultSigningCredentials();
+				if (creds) {
+					signPackageZipWithCert(zip, creds.privateKeyPem, creds.publisherCert);
+					return {
+						codeSigned: true,
+						publisher: creds.publisherCert.publisher || null,
+						keyId: creds.publisherCert.key_id || null
+					};
+				}
+			}
+			// Fallback to legacy HMAC signing
+			signPackageZip(zip);
+			return { codeSigned: false, publisher: null, keyId: null };
+		}
+
+		// ---- Toggle handlers for code signing checkboxes ----
+		$(document).on("change", ".chk-export-sign", function() {
+			var isChecked = $(this).is(":checked");
+			var $modal = $(this).closest(".modal, .exporter-container, .modal-footer, .export-signing-section, .archive-signing-section, .card-body");
+			// Show/hide the detail section
+			$modal.find(".export-signing-detail, .pkg-signing-detail").toggle(isChecked);
+			// For archive inline, nothing extra to toggle
+		});
+
+		// "Configure in Settings" link in export modals
+		$(document).on("click", ".export-signing-open-settings", function(e) {
+			e.preventDefault();
+			// Close any open modal
+			$(".modal").modal("hide");
+			// Open settings modal
+			setTimeout(function() { $("#settingsModal").modal("show"); }, 350);
+		});
+
+		// ---- Settings: Code Signing configuration ----
+
+		// Browse for signing key file
+		$(document).on("click", ".btn-browse-signing-key", function() {
+			$("#settings-signing-key-picker").trigger("click");
+		});
+		$(document).on("change", "#settings-signing-key-picker", function() {
+			var filePath = $(this).val();
+			if (!filePath) return;
+			$(this).val('');
+			$(".settings-signing-key-path").val(filePath);
+			saveSetting("signing_key_path", filePath);
+			refreshSettingsSigningStatus();
+			refreshSigningUI();
+		});
+
+		// Browse for signing certificate file
+		$(document).on("click", ".btn-browse-signing-cert", function() {
+			$("#settings-signing-cert-picker").trigger("click");
+		});
+		$(document).on("change", "#settings-signing-cert-picker", function() {
+			var filePath = $(this).val();
+			if (!filePath) return;
+			$(this).val('');
+			$(".settings-signing-cert-path").val(filePath);
+			saveSetting("signing_cert_path", filePath);
+			refreshSettingsSigningStatus();
+			refreshSigningUI();
+		});
+
+		// Clear signing configuration
+		$(document).on("click", ".btn-clear-signing-config", function() {
+			$(".settings-signing-key-path").val('');
+			$(".settings-signing-cert-path").val('');
+			saveSetting("signing_key_path", '');
+			saveSetting("signing_cert_path", '');
+			refreshSettingsSigningStatus();
+			refreshSigningUI();
+		});
+
+		// Generate key pair from Settings
+		$(document).on("click", ".btn-generate-keypair", function() {
+			// Prompt for publisher name
+			var publisher = prompt("Enter a publisher name for the certificate:\n(e.g. your name or organization)");
+			if (!publisher || !publisher.trim()) return;
+			publisher = publisher.trim();
+			var organization = prompt("Enter an organization name (optional):\nLeave blank to skip.");
+			organization = (organization || '').trim();
+
+			// Ask where to save
+			$("#settings-keypair-output-dir").trigger("click");
+			// Store publisher/org for use in change handler
+			$("#settings-keypair-output-dir").data("publisher", publisher);
+			$("#settings-keypair-output-dir").data("organization", organization);
+		});
+
+		$(document).on("change", "#settings-keypair-output-dir", function() {
+			var outputDir = $(this).val();
+			if (!outputDir) return;
+			$(this).val('');
+			var publisher = $(this).data("publisher") || '';
+			var organization = $(this).data("organization") || '';
+			if (!publisher) return;
+
+			try {
+				// Generate the key pair
+				var keyPair = generateSigningKeyPair();
+				var cert = buildPublisherCertificate(keyPair.publicKeyRaw, publisher, organization || undefined);
+
+				// Build filenames
+				var safeName = publisher.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+				if (!safeName) safeName = 'publisher';
+				var keyFileName = safeName + '.key.pem';
+				var certFileName = safeName + '.cert.json';
+				var keyPath = path.join(outputDir, keyFileName);
+				var certPath = path.join(outputDir, certFileName);
+
+				// Check for overwrite
+				if (fs.existsSync(keyPath) || fs.existsSync(certPath)) {
+					if (!confirm('Files already exist in this folder:\n' + keyFileName + '\n' + certFileName + '\n\nOverwrite?')) return;
+				}
+
+				// Write files
+				fs.writeFileSync(keyPath, keyPair.privateKeyPem, 'utf8');
+				fs.writeFileSync(certPath, JSON.stringify(cert, null, 2), 'utf8');
+
+				// Auto-configure as default signing key
+				saveSetting("signing_key_path", keyPath);
+				saveSetting("signing_cert_path", certPath);
+				$(".settings-signing-key-path").val(keyPath);
+				$(".settings-signing-cert-path").val(certPath);
+
+				// Auto-trust this certificate
+				saveTrustedCertificate(_publisherRegistryPath, cert);
+
+				refreshSettingsSigningStatus();
+				refreshSigningUI();
+				refreshTrustedPublishersList();
+
+				alert('Key pair generated successfully!\n\nPrivate Key: ' + keyPath + '\nCertificate: ' + certPath + '\n\nThe certificate has been auto-trusted and configured as the default signing key.\n\nIMPORTANT: Keep the private key (.key.pem) file secure. Never share it. Only distribute the certificate (.cert.json) file.');
+			} catch(e) {
+				alert('Error generating key pair:\n' + e.message);
+			}
+		});
+
+		/**
+		 * Refresh the Settings modal code signing status display.
+		 */
+		function refreshSettingsSigningStatus() {
+			var cfg = getSigningConfig();
+			$(".settings-signing-key-path").val(cfg.keyPath || '');
+			$(".settings-signing-cert-path").val(cfg.certPath || '');
+			$(".settings-signing-status").hide();
+			$(".settings-signing-error").hide();
+			$(".btn-clear-signing-config").toggle(!!(cfg.keyPath || cfg.certPath));
+
+			if (!cfg.keyPath && !cfg.certPath) return;
+
+			// Validate the config
+			var errors = [];
+			if (cfg.keyPath && !fs.existsSync(cfg.keyPath)) errors.push('Private key file not found: ' + cfg.keyPath);
+			if (cfg.certPath && !fs.existsSync(cfg.certPath)) errors.push('Certificate file not found: ' + cfg.certPath);
+			if (!cfg.keyPath) errors.push('Private key file not configured');
+			if (!cfg.certPath) errors.push('Certificate file not configured');
+
+			if (errors.length > 0) {
+				$(".settings-signing-error-text").text(errors.join('; '));
+				$(".settings-signing-error").show();
+				return;
+			}
+
+			try {
+				var certJson = JSON.parse(fs.readFileSync(cfg.certPath, 'utf8'));
+				var validation = validatePublisherCertificate(certJson);
+				if (!validation.valid) {
+					$(".settings-signing-error-text").text('Invalid certificate: ' + (validation.errors || []).join('; '));
+					$(".settings-signing-error").show();
+					return;
+				}
+				$(".settings-signing-publisher").text(certJson.publisher || 'Unknown Publisher');
+				$(".settings-signing-key-id").text(certJson.key_id || certJson.fingerprint.substring(0, 16));
+				if (certJson.organization) {
+					$(".settings-signing-org").text(certJson.organization).show();
+				} else {
+					$(".settings-signing-org").hide();
+				}
+				$(".settings-signing-status").show();
+			} catch(e) {
+				$(".settings-signing-error-text").text('Error reading certificate: ' + e.message);
+				$(".settings-signing-error").show();
+			}
+		}
+
+		/**
+		 * Refresh the trusted publishers list in the Settings modal.
+		 */
+		function refreshTrustedPublishersList() {
+			var $list = $("#settings-trusted-publishers-list");
+			try {
+				var trustedCerts = getTrustedCertificates();
+				var fingerprints = Object.keys(trustedCerts);
+				if (fingerprints.length === 0) {
+					$list.html('<div class="text-muted text-sm py-2"><i class="fas fa-inbox mr-1"></i>No trusted publishers</div>');
+					return;
+				}
+				var html = '';
+				fingerprints.forEach(function(fp) {
+					var cert = trustedCerts[fp];
+					var keyId = cert.key_id || fp.substring(0, 16);
+					html += '<div class="d-flex align-items-center justify-content-between py-1 px-2 mb-1" style="background:var(--body-background); border-radius:4px;">';
+					html += '<div class="d-flex align-items-center">';
+					html += '<i class="fas fa-user-shield mr-2" style="color:var(--medium);"></i>';
+					html += '<span class="text-sm font-weight-bold">' + escapeHtml(cert.publisher || 'Unknown') + '</span>';
+					if (cert.organization) html += '<span class="text-muted text-sm ml-2">(' + escapeHtml(cert.organization) + ')</span>';
+					html += '<span class="badge badge-secondary ml-2" style="font-family:Consolas,monospace; font-size:0.7rem;">' + escapeHtml(keyId) + '</span>';
+					html += '</div>';
+					html += '<button class="btn btn-sm btn-link text-danger btn-revoke-publisher p-0" data-fingerprint="' + escapeHtml(fp) + '" title="Revoke trust"><i class="fas fa-times"></i></button>';
+					html += '</div>';
+				});
+				$list.html(html);
+			} catch(e) {
+				$list.html('<div class="text-muted text-sm py-2"><i class="fas fa-exclamation-circle text-warning mr-1"></i>Error loading publishers</div>');
+			}
+		}
+
+		// Revoke trust for a publisher
+		$(document).on("click", ".btn-revoke-publisher", function() {
+			var fingerprint = $(this).attr("data-fingerprint");
+			if (!fingerprint) return;
+			if (!confirm("Revoke trust for this publisher certificate?\n\nPackages signed by this publisher will no longer show as trusted.")) return;
+			try {
+				// Load registry, find cert, mark as untrusted
+				var regPath = _publisherRegistryPath;
+				var regData = JSON.parse(fs.readFileSync(regPath, 'utf8'));
+				var publishers = regData.publishers || [];
+				publishers.forEach(function(pub) {
+					var certs = pub.certificates || [];
+					certs.forEach(function(c) {
+						if (c.fingerprint === fingerprint) c.trusted = false;
+					});
+				});
+				fs.writeFileSync(regPath, JSON.stringify(regData, null, 2), 'utf8');
+				refreshTrustedPublishersList();
+			} catch(e) {
+				alert('Error revoking trust: ' + e.message);
+			}
+		});
+
+		// Trust a certificate file from Settings
+		$(document).on("click", ".btn-trust-cert-file", function() {
+			$("#settings-trust-cert-picker").trigger("click");
+		});
+		$(document).on("change", "#settings-trust-cert-picker", function() {
+			var filePath = $(this).val();
+			if (!filePath) return;
+			$(this).val('');
+			try {
+				var certJson = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+				var validation = validatePublisherCertificate(certJson);
+				if (!validation.valid) {
+					alert('Invalid publisher certificate:\n' + (validation.errors || []).join('\n'));
+					return;
+				}
+				saveTrustedCertificate(_publisherRegistryPath, certJson);
+				refreshTrustedPublishersList();
+				alert('Publisher certificate trusted:\n' + (certJson.publisher || 'Unknown') + '\nKey ID: ' + (certJson.key_id || ''));
+			} catch(e) {
+				alert('Error trusting certificate:\n' + e.message);
+			}
+		});
+
+		// Trust Publisher button on import preview
+		$(document).on("click", ".btn-trust-import-publisher", function() {
+			var $modal = $("#importPreviewModal");
+			var certData = $modal.data("importPublisherCert");
+			if (!certData) {
+				alert("No publisher certificate data available.");
+				return;
+			}
+			try {
+				saveTrustedCertificate(_publisherRegistryPath, certData);
+				// Update the display
+				$(".imp-preview-trust-action").hide();
+				// Re-render the signature status
+				var $statusDiv = $(".imp-preview-signature-status");
+				$statusDiv.find(".badge-warning").removeClass("badge-warning").addClass("badge-success").html('<i class="fas fa-check-circle mr-1"></i>Trusted');
+				alert('Publisher "' + (certData.publisher || 'Unknown') + '" is now trusted.\nFuture packages from this publisher will show as verified.');
+				refreshTrustedPublishersList();
+			} catch(e) {
+				alert('Error trusting publisher: ' + e.message);
+			}
+		});
 
 		// ---- Binary container format (delegated to shared module) ----
 		var CONTAINER_MAGIC_PKG   = shared.CONTAINER_MAGIC_PKG;
@@ -8609,6 +9028,12 @@
 				$depsOption.addClass('export-choice-disabled').css({ opacity: '0.45', cursor: 'not-allowed', pointerEvents: 'none' });
 			}
 
+			// Refresh signing UI and auto-enable if configured
+			refreshSigningUI();
+			var sigInfo = getSigningDisplayInfo();
+			$("#chk-export-choice-sign").prop("checked", !!sigInfo);
+			$(".export-signing-detail").toggle(!!sigInfo);
+
 			$("#exportChoiceModal").modal("show");
 		});
 
@@ -8624,6 +9049,7 @@
 			var choice = $(this).attr("data-choice");
 			var libId = $("#exportChoiceModal").attr("data-lib-id");
 			if (!libId) return;
+			var useCodeSigning = $("#chk-export-choice-sign").is(":checked");
 			$("#exportChoiceModal").modal("hide");
 
 			var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
@@ -8633,11 +9059,13 @@
 			if (choice === "single") {
 				// Single library export (.hxlibpkg)
 				$("#lib-export-save-dialog").attr("nwsaveas", libName + ".hxlibpkg");
+				$("#lib-export-save-dialog").data("useCodeSigning", useCodeSigning);
 				$("#lib-export-save-dialog").trigger("click");
 			} else if (choice === "deps") {
 				// Export with all dependencies (.hxlibarch)
 				$("#lib-export-deps-save-dialog").attr("nwsaveas", libName + "_with_dependencies.hxlibarch");
 				$("#lib-export-deps-save-dialog").data("libId", libId);
+				$("#lib-export-deps-save-dialog").data("useCodeSigning", useCodeSigning);
 				$("#lib-export-deps-save-dialog").trigger("click");
 			}
 		});
@@ -8645,23 +9073,25 @@
 		$(document).on("change", "#lib-export-save-dialog", function() {
 			var savePath = $(this).val();
 			if (!savePath) return;
+			var useCodeSigning = !!($(this).data("useCodeSigning"));
 			$(this).val('');
 			var libId = $("#libDetailModal").attr("data-lib-id");
 			if (!libId) return;
-			exportSingleLibrary(libId, savePath);
+			exportSingleLibrary(libId, savePath, useCodeSigning);
 		});
 
 		// Save dialog for export with dependencies
 		$(document).on("change", "#lib-export-deps-save-dialog", function() {
 			var savePath = $(this).val();
 			if (!savePath) return;
+			var useCodeSigning = !!($(this).data("useCodeSigning"));
 			$(this).val('');
 			var libId = $(this).data("libId");
 			if (!libId) return;
-			exportLibraryWithDependencies(libId, savePath);
+			exportLibraryWithDependencies(libId, savePath, useCodeSigning);
 		});
 
-		function exportSingleLibrary(libId, savePath) {
+		function exportSingleLibrary(libId, savePath, useCodeSigning) {
 			try {
 				var lib = db_installed_libs.installed_libs.findOne({"_id": libId});
 				if (!lib) { alert("Library not found."); return; }
@@ -8760,15 +9190,20 @@
 				});
 
 				// Sign the package for integrity verification
-				signPackageZip(zip);
+				var sigResult = applyPackageSigning(zip, useCodeSigning);
 
 				// Wrap in binary container and write
 				fs.writeFileSync(savePath, packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG));
 
+				var successDetail = libraryFiles.length + " library file" + (libraryFiles.length !== 1 ? "s" : "") + ", " + helpFiles.length + " help file" + (helpFiles.length !== 1 ? "s" : "") + ", " + demoFiles.length + " demo file" + (demoFiles.length !== 1 ? "s" : "");
+				if (sigResult.codeSigned) {
+					successDetail += '\nCode signed by: ' + sigResult.publisher;
+				}
+
 				showGenericSuccessModal({
 					title: "Library Exported Successfully!",
 					name: libName,
-					detail: libraryFiles.length + " library file" + (libraryFiles.length !== 1 ? "s" : "") + ", " + helpFiles.length + " help file" + (helpFiles.length !== 1 ? "s" : "") + ", " + demoFiles.length + " demo file" + (demoFiles.length !== 1 ? "s" : ""),
+					detail: successDetail,
 					paths: [
 						{ label: "Saved To", value: savePath }
 					]
@@ -8836,7 +9271,7 @@
 		 * @param {string} libId    - The _id of the root library
 		 * @param {string} savePath - Destination path for the .hxlibarch file
 		 */
-		function exportLibraryWithDependencies(libId, savePath) {
+		function exportLibraryWithDependencies(libId, savePath, useCodeSigning) {
 			try {
 				// Build full list: root library + all recursive dependencies
 				var depIds = resolveAllDependencyLibIds(libId);
@@ -8931,7 +9366,7 @@
 						}
 					});
 
-					signPackageZip(innerZip);
+					applyPackageSigning(innerZip, useCodeSigning);
 
 					var innerBuffer = packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG);
 					var baseName = libName.replace(/[<>:"\\\/|?*]/g, '_');
@@ -9037,6 +9472,10 @@
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
 			expArchPopulateModal();
+			// Refresh archive signing toggle
+			refreshSigningUI();
+			var sigInfo = getSigningDisplayInfo();
+			$("#chk-archive-sign").prop("checked", !!sigInfo);
 			$("#exportArchiveModal").modal("show");
 		});
 
@@ -9157,8 +9596,9 @@
 				if (singleLib) suggestedName = (singleLib.library_name || "library");
 			}
 			$("#exp-arch-save-dialog").attr("nwsaveas", suggestedName + ".hxlibarch");
-			// Store selected ids for use in save handler
+			// Store selected ids and signing state for use in save handler
 			$("#exp-arch-save-dialog").data("selectedIds", selectedIds);
+			$("#exp-arch-save-dialog").data("useCodeSigning", $("#chk-archive-sign").is(":checked"));
 			$("#exp-arch-save-dialog").trigger("click");
 		});
 
@@ -9169,7 +9609,8 @@
 			$(this).val('');
 			var selectedIds = $(this).data("selectedIds") || [];
 			if (selectedIds.length === 0) return;
-			expArchCreateArchive(selectedIds, savePath);
+			var useCodeSigning = !!($(this).data("useCodeSigning"));
+			expArchCreateArchive(selectedIds, savePath, useCodeSigning);
 			$("#exportArchiveModal").modal("hide");
 		});
 
@@ -9186,7 +9627,7 @@
 		}
 
 		// Core archive creation function
-		async function expArchCreateArchive(libIds, savePath) {
+		async function expArchCreateArchive(libIds, savePath, useCodeSigning) {
 			try {
 				var archiveZip = new AdmZip();
 				var exportedLibs = [];
@@ -9284,7 +9725,7 @@
 					});
 
 					// Sign the inner package
-					signPackageZip(innerZip);
+					applyPackageSigning(innerZip, useCodeSigning);
 
 					// Convert inner zip to binary container and add to archive
 					var innerBuffer = packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG);
@@ -9502,7 +9943,7 @@
 						}
 
 						// Verify inner package signature
-						var innerSig = verifyPackageSignature(innerZip);
+						var innerSig = verifyPackageSignature(innerZip, getTrustedCertificates());
 						if (innerSig.signed && !innerSig.valid) {
 							results.failed.push(libName + ": signature verification FAILED (" + innerSig.errors.join("; ") + ")");
 							return;
@@ -10169,7 +10610,8 @@
 				var manifest = JSON.parse(manifestJson);
 
 				// ---- Verify package signature ----
-				var sigResult = verifyPackageSignature(zip);
+				var trustedCerts = getTrustedCertificates();
+				var sigResult = verifyPackageSignature(zip, trustedCerts);
 				if (sigResult.signed && !sigResult.valid) {
 					var sigMsg = "WARNING: Package signature verification FAILED!\n\n";
 					sigResult.errors.forEach(function(e) { sigMsg += "  \u274C " + e + "\n"; });
@@ -10386,10 +10828,38 @@
 
 				// Package signature status
 				var $sigStatus = $modal.find(".imp-preview-signature-status");
+				$modal.find(".imp-preview-trust-action").hide();
+				$modal.removeData("importPublisherCert");
 				if ($sigStatus.length > 0) {
 					$sigStatus.empty();
-					if (sigResult.signed && sigResult.valid) {
-						$sigStatus.html('<div class="d-flex align-items-center text-success"><i class="fas fa-shield-alt mr-2"></i><span>Package signature verified &mdash; integrity confirmed</span></div>');
+					if (sigResult.code_signed && sigResult.valid && sigResult.publisher_cert) {
+						// Code-signed with Ed25519 publisher certificate
+						var pubName = escapeHtml(sigResult.publisher_cert.publisher);
+						var pubOrg = sigResult.publisher_cert.organization ? ' (' + escapeHtml(sigResult.publisher_cert.organization) + ')' : '';
+						var keyId = escapeHtml(sigResult.publisher_cert.key_id);
+						var trustIcon, trustLabel, trustClass;
+						if (sigResult.trust_status === 'trusted') {
+							trustIcon = 'fa-certificate';
+							trustLabel = 'Trusted publisher';
+							trustClass = 'text-success';
+						} else {
+							trustIcon = 'fa-question-circle';
+							trustLabel = 'Untrusted publisher';
+							trustClass = 'text-warning';
+						}
+						var certHtml = '<div class="d-flex align-items-center ' + trustClass + '">' +
+							'<i class="fas ' + trustIcon + ' mr-2"></i>' +
+							'<span>Code signed by <strong>' + pubName + '</strong>' + pubOrg + '</span></div>' +
+							'<div class="text-sm ml-4 mt-1 text-muted">Key ID: ' + keyId + ' &mdash; ' + trustLabel + '</div>';
+						$sigStatus.html(certHtml);
+						$modal.find(".imp-preview-signature-section").removeClass("d-none");
+						// Show trust button for untrusted code-signed packages
+						if (sigResult.trust_status !== 'trusted') {
+							$modal.data("importPublisherCert", sigResult.publisher_cert);
+							$modal.find(".imp-preview-trust-action").show();
+						}
+					} else if (sigResult.signed && sigResult.valid) {
+						$sigStatus.html('<div class="d-flex align-items-center text-success"><i class="fas fa-shield-alt mr-2"></i><span>Package integrity verified (HMAC-only &mdash; no publisher identity)</span></div>');
 						$modal.find(".imp-preview-signature-section").removeClass("d-none");
 					} else if (sigResult.signed && !sigResult.valid) {
 						var errHtml = '<div class="text-danger"><i class="fas fa-exclamation-triangle mr-2"></i><strong>Signature verification FAILED</strong></div>';
@@ -10740,7 +11210,8 @@
 					var sigStatus = 'unsigned';
 					var sigData = $modal.data("imp-sigResult");
 					if (sigData && sigData.signed) sigStatus = sigData.valid ? 'valid' : 'failed';
-					appendAuditTrailEntry(buildAuditTrailEntry('library_imported', {
+					if (sigData && sigData.code_signed) sigStatus = 'code_signed_' + sigStatus;
+					var auditEntry = {
 						library_name:     libName,
 						version:          manifest.version || '',
 						author:           manifest.author || '',
@@ -10751,7 +11222,13 @@
 						files_extracted:  extractedCount,
 						signature_status: sigStatus,
 						com_warning:      comWarning
-					}));
+					};
+					if (sigData && sigData.code_signed && sigData.publisher_cert) {
+						auditEntry.code_signing_publisher = sigData.publisher_cert.publisher;
+						auditEntry.code_signing_key_id = sigData.publisher_cert.key_id;
+						auditEntry.code_signing_trust = sigData.trust_status;
+					}
+					appendAuditTrailEntry(buildAuditTrailEntry('library_imported', auditEntry));
 				} catch(_) { /* non-critical */ }
 
 			} catch(e) {
@@ -12834,7 +13311,9 @@
 				}
 
 				// Sign the package
-				signPackageZip(zip);
+				var ulibCfg = getSigningConfig();
+				var ulibUseCodeSigning = !!(ulibCfg.keyPath && ulibCfg.certPath);
+				applyPackageSigning(zip, ulibUseCodeSigning);
 
 				// Write binary container
 				fs.writeFileSync(savePath, packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG));
