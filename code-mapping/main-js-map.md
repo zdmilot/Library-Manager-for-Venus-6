@@ -1,6 +1,6 @@
 # Code Map: html/js/main.js
 
-**File**: `html/js/main.js` | **Lines**: 13,474 | **Purpose**: NW.js GUI application logic
+**File**: `html/js/main.js` | **Lines**: 13,469 | **Purpose**: NW.js GUI application logic
 
 ## Imports
 
@@ -97,13 +97,13 @@
 | L1550| `cachePackageToStore(buf, name, ver)` | Cache package |
 | L1567| `listCachedVersions(libName)` | List cached versions |
 | L1620| `backupSystemLibrary(sLib)` | Backup single system lib |
-| L1729| `backupAllSystemLibraries()` | Backup all system libs |
-| L1777| `repairSystemLibraryFromCache(name, silent)` | Repair from cache |
+| L1726| `backupAllSystemLibraries()` | Backup all system libs |
+| L1774| `repairSystemLibraryFromCache(name, silent)` | Repair from cache |
 
-### Window & Layout (L1907–4290)
+### Window & Layout (L1904–4290)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L1907| `_windowLoadInit()` | Window initialization (IIFE) |
+| L1904| `_windowLoadInit()` | Window initialization (IIFE) |
 | L4249| `waitForFinalEvent` | Debounce utility |
 | L4265| `fitMainDivHeight()` | Adjust content height |
 | L4279| `fitNavBarItems()` | Responsive navbar |
@@ -121,13 +121,13 @@
 | L3413| `impEnterSearchMode(query, opts)` | Enter search mode |
 | L3549| `impExitSearchMode()` | Exit search mode |
 
-### Library Cards (L3572–3700, L7648–8095)
+### Library Cards (L3572–3700, L7643–8090)
 | Line | Function | Purpose |
 |------|----------|---------|
 | L3572| `impBuildSingleCardHtml(lib)` | Build single card HTML |
-| L7648| `impBuildLibraryCards(groupId, ...)` | Build all cards from DB |
-| L7938| `resolveSystemLibIcon(sLib, size)` | Resolve system lib icon |
-| L8030| `buildSystemLibraryCard(sLib)` | Build system lib card |
+| L7643| `impBuildLibraryCards(groupId, ...)` | Build all cards from DB |
+| L7933| `resolveSystemLibIcon(sLib, size)` | Resolve system lib icon |
+| L8025| `buildSystemLibraryCard(sLib)` | Build system lib card |
 
 ### Navigation & Groups (L4348–5000)
 | Line | Function | Purpose |
@@ -167,40 +167,40 @@
 | L6853| `comRegisterMultipleDlls(paths, reg)` | Register multiple DLLs |
 | L6876| `checkCOMRegistrationStatus(path)` | Check COM status |
 
-### Code Signing (L7295–7640)
+### Code Signing (L7291–7640)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L7295| `getSigningConfig()` | Read key/cert from settings |
-| L7307| `loadDefaultSigningCredentials()` | Load signing credentials |
-| L7350| `refreshSigningUI()` | Update signing UI |
-| L7393| `applyPackageSigning(zip, useCert)` | Sign ZIP package |
+| L7291| `getSigningConfig()` | Read key/cert from settings |
+| L7303| `loadDefaultSigningCredentials()` | Load signing credentials |
+| L7346| `refreshSigningUI()` | Update signing UI |
+| L7389| `applyPackageSigning(zip, useCert)` | Sign ZIP package |
 
-### Integrity (L7227–7645)
+### Integrity (L7224–7645)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L7227| `verifySystemLibraryIntegrity(sLib)` | Verify system lib |
-| L7588| `verifyLibraryIntegrity(lib)` | Verify installed lib hashes |
-| L7645| `invalidateLibCaches()` | Clear caches |
+| L7224| `verifySystemLibraryIntegrity(sLib)` | Verify system lib |
+| L7583| `verifyLibraryIntegrity(lib)` | Verify installed lib hashes |
+| L7640| `invalidateLibCaches()` | Clear caches |
 
-### Detail Modals (L8095–8770)
+### Detail Modals (L8090–8770)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L8095| `impShowLibDetail(libId)` | Library detail modal |
-| L8773| `impShowSystemLibDetail(libId)` | System lib detail modal |
+| L8090| `impShowLibDetail(libId)` | Library detail modal |
+| L8768| `impShowSystemLibDetail(libId)` | System lib detail modal |
 
-### Export (L9177–9905)
+### Export (L9172–9900)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L9177| `exportSingleLibrary(id, path, sign)` | Export single .hxlibpkg |
+| L9172| `exportSingleLibrary(id, path, sign)` | Export single .hxlibpkg |
 | L9309| `resolveAllDependencyLibIds(rootId)` | Resolve dependency tree |
 | L9357| `exportLibraryWithDependencies(id, path, sign)` | Export with deps |
 | L9566| `expArchPopulateModal()` | Populate archive export modal |
 | L9713| `expArchCreateArchive(ids, path, sign)` | Create .hxlibarch |
 
-### Archive Import (L9905–10360)
+### Archive Import (L9900–10360)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L9905| `impArchImportArchive(archivePath)` | Import .hxlibarch |
+| L9900| `impArchImportArchive(archivePath)` | Import .hxlibarch |
 
 ### Delete & Rollback (L10360–10668)
 | Line | Function | Purpose |
@@ -208,10 +208,10 @@
 | L10360| `showDeleteConfirmModal(name, dlls)` | Delete confirmation |
 | L10413| `showRegulatedModeConfirmModal(enabling)` | Regulated mode confirm |
 
-### Import (L10668–11335)
+### Import (L10663–11335)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L10668| `impLoadAndInstall(filePath)` | Load + preview .hxlibpkg |
+| L10663| `impLoadAndInstall(filePath)` | Load + preview .hxlibpkg |
 
 ### Audit Log (L11335–11730)
 | Line | Function | Purpose |
@@ -226,14 +226,14 @@
 | L12019| `repairLibraryFromCache(name, silent)` | Repair from cache |
 | L12169| `showGenericSuccessModal(opts)` | Success result modal |
 
-### Unsigned Libraries (L12215–13474)
+### Unsigned Libraries (L12215–13469)
 | Line | Function | Purpose |
 |------|----------|---------|
-| L12301| `scanUnsignedLibraries(showFeedback)` | Scan for unsigned libs |
+| L12296| `scanUnsignedLibraries(showFeedback)` | Scan for unsigned libs |
 | L12563| `buildUnsignedLibraryCard(uLib)` | Build unsigned lib card |
 | L12624| `showUnsignedLibDetail(ulibId)` | Unsigned lib detail modal |
-| L13111| `registerUnsignedLibrary(ulibId, opts)` | Register unsigned lib |
-| L13287| `exportUnsignedLibrary(ulibId, path)` | Export unsigned lib |
+| L13106| `registerUnsignedLibrary(ulibId, opts)` | Register unsigned lib |
+| L13282| `exportUnsignedLibrary(ulibId, path)` | Export unsigned lib |
 
 ## Event Handler Summary
 

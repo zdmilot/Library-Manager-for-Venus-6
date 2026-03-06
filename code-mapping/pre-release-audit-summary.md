@@ -3,12 +3,12 @@
 ## Audit Scope
 
 Full pre-release audit of all application source code across three entry points:
-- **GUI**: `html/js/main.js` (13,474 lines)
-- **CLI**: `cli.js` (2,816 lines)
-- **COM Bridge**: `com-bridge.js` (164 lines) → `lib/service.js` (1,736 lines)
-- **Shared**: `lib/shared.js` (1,848 lines)
+- **GUI**: `html/js/main.js` (13,469 lines)
+- **CLI**: `cli.js` (2,810 lines)
+- **COM Bridge**: `com-bridge.js` (164 lines) → `lib/service.js` (1,732 lines)
+- **Shared**: `lib/shared.js` (1,821 lines)
 
-Total: 7 files, ~20,709 lines, 1,211 functions, 97 cross-file references.
+Total: 7 files, ~20,670 lines, 1,209 functions, 96 cross-file references.
 
 ---
 
@@ -35,6 +35,30 @@ default filesystem permissions (world-readable on many systems).
 **Change**:
 - `cli.js` L2718: Added `{ mode: 0o600 }` to `fs.writeFileSync()` for the private key
 
+### 3. Legacy v1.0 HMAC-Only Signing Removed (shared.js, cli.js, service.js, main.js)
+
+**Problem**: The legacy `signPackageZip()` function created v1.0 HMAC-only signatures with
+no publisher identity (no Ed25519 digital signature). These packages were accepted on import
+with only a warning. There should be no legacy signing support — Ed25519 code-signed
+packages (v2.0) are the only accepted signed format.
+
+**Changes**:
+- `lib/shared.js`: Removed `signPackageZip()` function and its `module.exports` entry
+- `lib/shared.js`: `verifyPackageSignature()` now rejects v1.0 signatures as invalid
+  (`result.valid = false` with explicit error message)
+- `lib/shared.js`: Updated comments/JSDoc — HMAC is "tamper-detection hash", not "legacy"
+- `cli.js`: Removed `signPackageZip` import; 3 callers (`cmdExportLib`, `cmdExportArchive`,
+  `cmdCreatePackage`) now leave packages unsigned when no `--sign-key` is provided (with
+  WARNING message) instead of falling back to v1.0 signing
+- `cli.js`: Updated help text ("Without --sign-key, the package is left unsigned") and
+  verify-package description ("Legacy HMAC-only (v1.0) signatures are rejected")
+- `cli.js`: Removed impossible "ALL PACKAGES VERIFIED (HMAC-only)" result path
+- `lib/service.js`: 3 callers (`exportLibrary`, `exportArchive`, `createPackage`) updated
+  to leave packages unsigned when no signing key is configured
+- `html/js/main.js`: Removed `signPackageZip` import; `backupSystemLibrary` now creates
+  unsigned backup packages; `applyPackageSigning` leaves packages unsigned when no
+  credentials are available
+
 ---
 
 ## Documentation Changes Applied
@@ -43,13 +67,13 @@ default filesystem permissions (world-readable on many systems).
 
 | File | Changes |
 |------|---------|
-| `code-mapping/generated-map.json` | Regenerated via companion script (post-code-fix) |
+| `code-mapping/generated-map.json` | Regenerated via companion script (post-code-fix, post-legacy-removal) |
 | `code-mapping/audit-findings.md` | Complete rewrite — 21 findings with status tracking |
 | `code-mapping/cli-js-map.md` | All line numbers corrected; gStarred added to DEFAULT_GROUPS listing |
 | `code-mapping/service-js-map.md` | All line numbers corrected; gStarred added to DEFAULT_GROUPS listing |
-| `code-mapping/shared-js-map.md` | All line numbers corrected (imports, constants, functions); removed phantom entries (`RESTRICTED_AUTHOR_NAMES`, `RESERVED_TAG_PREFIXES`); fixed incorrect constant values (`TAG_MAX_LENGTH` 50→24, `TAG_MAX_COUNT` 20→12) |
-| `code-mapping/main-js-map.md` | All line numbers corrected (line count 13,673→13,474); global state variables updated; all function section line numbers fixed |
-| `code-mapping/architecture-overview.md` | Line counts corrected (cli.js 2815→2816, main.js 13673→13474, com-bridge.js annotated 164) |
+| `code-mapping/shared-js-map.md` | All line numbers corrected; removed phantom entries and `signPackageZip`; fixed incorrect constant values |
+| `code-mapping/main-js-map.md` | All line numbers corrected (line count 13,673→13,469); global state variables updated |
+| `code-mapping/architecture-overview.md` | Line counts corrected (cli.js→2,811, main.js→13,469, shared.js→1,822, service.js→1,733) |
 
 ### CHM Documentation
 
@@ -62,7 +86,7 @@ No changes required. `DataModel.html` already correctly documents:
 
 ## Risk Summary
 
-### Resolved Risks (13 items)
+### Resolved Risks (14 items)
 
 | # | Finding | Resolution |
 |---|---------|------------|
@@ -78,6 +102,7 @@ No changes required. `DataModel.html` already correctly documents:
 | 13 | Orphaned JSDoc comments | Cleaned up |
 | 14 | Legacy `install_path` fallback | All properly prefixed |
 | 19 | No HMAC format validation | Regex check added |
+| 21 | Legacy v1.0 signatures accepted | **Fixed this audit** — v1.0 rejected; `signPackageZip()` removed |
 
 ### Accepted Risks (2 items)
 
@@ -94,12 +119,11 @@ No changes required. `DataModel.html` already correctly documents:
 | 17 | `computeFileHash` single-line edge case | Single-line HSL files with metadata footer are near-impossible in practice |
 | 18 | `isValidLibraryName` allows leading dots | Cosmetic on Windows; creates hidden dirs on Unix (not a supported platform) |
 
-### Feature Gaps (2 items — not bugs)
+### Feature Gaps (1 item — not a bug)
 
 | # | Finding | Description |
 |---|---------|-------------|
 | 20 | No `--require-signature` CLI flag | Unsigned packages are silently accepted on import |
-| 21 | No `--reject-legacy` CLI flag | Pre-v2 signed packages are detected but always accepted |
 
 ### Security Audit Summary — exec/execSync in main.js
 
@@ -114,10 +138,11 @@ All 5 `child_process` call sites in the GUI audited:
 ## Release Readiness Assessment
 
 **Overall**: The codebase is in good shape for release. All critical and high-severity
-findings from previous audits have been resolved. The two code changes made in this audit
-(gStarred divergence fix, private key permissions) address functional correctness and a
-security hardening item respectively. The remaining open items are low-priority edge cases
-that do not affect core functionality or security.
+findings from previous audits have been resolved. The three code changes made in this audit
+(gStarred divergence fix, private key permissions, legacy v1.0 signing removal) address
+functional correctness, security hardening, and signing integrity respectively. The
+remaining open items are low-priority edge cases that do not affect core functionality or
+security.
 
 **Recommendation**: Proceed with release after verifying the gStarred changes work
 correctly in the CLI (`list-libs` should show the Starred group) and COM bridge

@@ -40,7 +40,6 @@ const shared = require('./lib/shared');
 // Re-export shared helpers so the rest of the file can use short names
 const safeZipExtractPath     = shared.safeZipExtractPath;
 const isValidLibraryName     = shared.isValidLibraryName;
-const signPackageZip         = shared.signPackageZip;
 const signPackageZipWithCert = shared.signPackageZipWithCert;
 const verifyPackageSignature = shared.verifyPackageSignature;
 const parseHslMetadataFooter = shared.parseHslMetadataFooter;
@@ -904,7 +903,7 @@ function cmdImportLib(args) {
             console.log('  WARNING: Importing despite failed signature (--force)');
         }
     } else {
-        console.log('  Signature: unsigned (legacy package)');
+        console.log('  Signature: unsigned');
     }
 
     // ---- Version compatibility warnings ----
@@ -1233,12 +1232,10 @@ function cmdExportLib(args) {
         if (fs.existsSync(fp)) zip.addLocalFile(fp, 'demo_methods');
     });
 
-    // Sign the package for integrity verification
+    // Sign the package (Ed25519 code signing required)
     const sigCreds = resolveSigningArgs(args);
     if (sigCreds) {
         signPackageZipWithCert(zip, sigCreds.privateKeyPem, sigCreds.cert);
-    } else {
-        signPackageZip(zip);
     }
 
     ensureOutDir(args['output']);
@@ -1248,6 +1245,7 @@ function cmdExportLib(args) {
     console.log(`  Library files    : ${libraryFiles.length}`);
     console.log(`  Demo method files: ${demoFiles.length}`);
     if (sigCreds) console.log(`  Code signed by   : ${sigCreds.cert.publisher} (key ${sigCreds.cert.key_id})`);
+    else console.log('  WARNING: Package is unsigned (no --sign-key provided). It will not pass signature verification on import.');
 }
 
 // ===========================================================================
@@ -1357,11 +1355,9 @@ function cmdExportArchive(args) {
                 if (fs.existsSync(fp)) { innerZip.addLocalFile(fp, 'demo_methods'); demoAdded++; }
             });
 
-            // Sign the inner package
+            // Sign the inner package (Ed25519 code signing)
             if (archSigCreds) {
                 signPackageZipWithCert(innerZip, archSigCreds.privateKeyPem, archSigCreds.cert);
-            } else {
-                signPackageZip(innerZip);
             }
 
             archiveZip.addFile(lib.library_name + '.hxlibpkg', packContainer(innerZip.toBuffer(), CONTAINER_MAGIC_PKG));
@@ -1754,13 +1750,13 @@ function cmdCreatePackage(args) {
     resolvedDemoFiles.forEach(f => zip.addLocalFile(f, 'demo_methods'));
     if (iconSourcePath) zip.addLocalFile(iconSourcePath, 'icon');
 
-    // Sign the package for integrity verification
+    // Sign the package (Ed25519 code signing required)
     const sigCreds = resolveSigningArgs(args);
     if (sigCreds) {
         signPackageZipWithCert(zip, sigCreds.privateKeyPem, sigCreds.cert);
         console.log('  Code signed by : ' + sigCreds.cert.publisher + ' (key ' + sigCreds.cert.key_id + ')');
     } else {
-        signPackageZip(zip);
+        console.log('  WARNING: Package is unsigned (no --sign-key provided). It will not pass signature verification on import.');
     }
 
     ensureOutDir(args['output']);
@@ -2374,7 +2370,7 @@ create-package
   See cli-schema.json for the full JSON Schema definition.
   See cli-spec-example.json for a worked example.
 
-  Without --sign-key, the package uses legacy HMAC-only integrity signing.
+  Without --sign-key, the package is left unsigned.
   With --sign-key, an Ed25519 digital signature is embedded that
   cryptographically binds the publisher's identity to the package content.
 
@@ -2453,7 +2449,8 @@ verify-package
   Verify the integrity and code signing signature of a .hxlibpkg or .hxlibarch.
   Checks HMAC-SHA256 integrity AND Ed25519 publisher certificate signatures.
   Reports publisher identity and OEM verification status for code-signed packages.
-  Unsigned (legacy) packages are reported but not treated as errors.
+  Unsigned packages are reported but not treated as errors.
+  Legacy HMAC-only (v1.0) signatures are rejected.
 
   --file <path>   [required]  Path to the .hxlibpkg or .hxlibarch file
   --json                      Output results as JSON
@@ -2589,8 +2586,6 @@ function cmdVerifyPackage(args) {
             process.exit(1);
         } else if (allSignedValid && anyCodeSigned) {
             console.log('\nResult: ALL PACKAGES VERIFIED (code signed)');
-        } else if (allSignedValid) {
-            console.log('\nResult: ALL PACKAGES VERIFIED (HMAC-only, no publisher identity)');
         } else {
             console.log('\nResult: NO SIGNED PACKAGES FOUND');
         }

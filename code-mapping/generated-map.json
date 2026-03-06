@@ -1,108 +1,108 @@
 {
   "_meta": {
-    "generated": "2026-03-06T01:25:42.138Z",
+    "generated": "2026-03-06T01:47:17.794Z",
     "generator": "code-mapping/update-code-map.js",
     "projectRoot": "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6",
     "version": "1.6.5"
   },
   "summary": {
     "totalFiles": 7,
-    "totalLines": 20709,
-    "totalFunctions": 1211,
+    "totalLines": 20670,
+    "totalFunctions": 1209,
     "jsdocCoverage": {
-      "documented": 184,
-      "undocumented": 963,
+      "documented": 183,
+      "undocumented": 962,
       "percentage": 15
     },
-    "crossFileReferences": 97
+    "crossFileReferences": 96
   },
   "files": [
     {
       "file": "cli.js",
-      "lines": 2816,
-      "size": 128257,
-      "modified": "2026-03-06T01:25:36.055Z",
+      "lines": 2811,
+      "size": 128232,
+      "modified": "2026-03-06T01:46:42.124Z",
       "functions": [
         {
-          "line": 92,
+          "line": 91,
           "name": "getGroupById",
           "documented": true,
           "section": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 100,
+          "line": 99,
           "name": "loadSystemLibIds",
           "documented": false,
           "section": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 114,
+          "line": 113,
           "name": "loadSystemLibNames",
           "documented": false,
           "section": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 120,
+          "line": 119,
           "name": "isSystemLibrary",
           "documented": false,
           "section": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 124,
+          "line": 123,
           "name": "isSystemLibraryByName",
           "documented": false,
           "section": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 147,
+          "line": 146,
           "name": "parseArgs",
           "documented": false,
           "section": "function parseArgs(argv) {"
         },
         {
-          "line": 149,
+          "line": 148,
           "name": "for",
           "documented": false,
           "section": "function parseArgs(argv) {"
         },
         {
-          "line": 154,
+          "line": 153,
           "name": "if",
           "documented": false,
           "section": "function parseArgs(argv) {"
         },
         {
-          "line": 185,
+          "line": 184,
           "name": "getWindowsUsername",
           "documented": true,
           "section": "Environment / identity helpers"
         },
         {
-          "line": 199,
+          "line": 198,
           "name": "getVENUSVersion",
           "documented": true,
           "section": "Environment / identity helpers"
         },
         {
-          "line": 208,
+          "line": 207,
           "name": "for",
           "documented": false,
           "section": "Environment / identity helpers"
         },
         {
-          "line": 212,
+          "line": 211,
           "name": "for",
           "documented": false,
           "section": "Environment / identity helpers"
         },
         {
-          "line": 218,
+          "line": 217,
           "name": "if",
           "documented": false,
           "section": "Environment / identity helpers"
         },
         {
-          "line": 240,
+          "line": 239,
           "name": "appendAuditTrailEntry",
           "documented": true,
           "section": "Audit trail logging",
@@ -118,13 +118,13 @@
           ]
         },
         {
-          "line": 256,
+          "line": 255,
           "name": "if",
           "documented": false,
           "section": "Audit trail logging"
         },
         {
-          "line": 277,
+          "line": 276,
           "name": "buildAuditTrailEntry",
           "documented": true,
           "section": "Audit trail logging",
@@ -140,61 +140,61 @@
           ]
         },
         {
-          "line": 297,
+          "line": 296,
           "name": "connectDB",
           "documented": true,
           "section": "Database helpers"
         },
         {
-          "line": 307,
+          "line": 306,
           "name": "resolveDBPath",
           "documented": true,
           "section": "Database helpers"
         },
         {
-          "line": 309,
+          "line": 308,
           "name": "if",
           "documented": false,
           "section": "Database helpers"
         },
         {
-          "line": 321,
+          "line": 320,
           "name": "ensureLocalDataDir",
           "documented": true,
           "section": "Database helpers"
         },
         {
-          "line": 350,
+          "line": 349,
           "name": "warnIfSystemPath",
           "documented": true,
           "section": "Database helpers"
         },
         {
-          "line": 353,
+          "line": 352,
           "name": "for",
           "documented": false,
           "section": "Database helpers"
         },
         {
-          "line": 364,
+          "line": 363,
           "name": "getInstallPaths",
           "documented": true,
           "section": "Database helpers"
         },
         {
-          "line": 368,
+          "line": 367,
           "name": "if",
           "documented": false,
           "section": "Database helpers"
         },
         {
-          "line": 378,
+          "line": 377,
           "name": "if",
           "documented": false,
           "section": "Database helpers"
         },
         {
-          "line": 407,
+          "line": 406,
           "name": "extractRequiredDependencies",
           "documented": true,
           "section": "Integrity hashing",
@@ -210,7 +210,7 @@
           ]
         },
         {
-          "line": 457,
+          "line": 456,
           "name": "autoAddToGroup",
           "documented": true,
           "section": "Group auto-assignment",
@@ -230,43 +230,43 @@
           ]
         },
         {
+          "line": 464,
+          "name": "for",
+          "documented": false,
+          "section": "Group auto-assignment"
+        },
+        {
           "line": 465,
+          "name": "if",
+          "documented": false,
+          "section": "Group auto-assignment"
+        },
+        {
+          "line": 470,
+          "name": "if",
+          "documented": false,
+          "section": "Group auto-assignment"
+        },
+        {
+          "line": 490,
           "name": "for",
           "documented": false,
           "section": "Group auto-assignment"
         },
         {
-          "line": 466,
+          "line": 492,
           "name": "if",
           "documented": false,
           "section": "Group auto-assignment"
         },
         {
-          "line": 471,
+          "line": 506,
           "name": "if",
           "documented": false,
           "section": "Group auto-assignment"
         },
         {
-          "line": 491,
-          "name": "for",
-          "documented": false,
-          "section": "Group auto-assignment"
-        },
-        {
-          "line": 493,
-          "name": "if",
-          "documented": false,
-          "section": "Group auto-assignment"
-        },
-        {
-          "line": 507,
-          "name": "if",
-          "documented": false,
-          "section": "Group auto-assignment"
-        },
-        {
-          "line": 540,
+          "line": 539,
           "name": "installPackage",
           "documented": true,
           "section": "Core: install a single parsed package into the filesystem + DB",
@@ -302,61 +302,61 @@
           ]
         },
         {
-          "line": 573,
+          "line": 572,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 575,
+          "line": 574,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 583,
+          "line": 582,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 585,
+          "line": 584,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 594,
+          "line": 593,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 596,
+          "line": 595,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 608,
+          "line": 607,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 662,
+          "line": 661,
           "name": "if",
           "documented": false,
           "section": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 672,
+          "line": 671,
           "name": "ensureOutDir",
           "documented": false,
           "section": "function ensureOutDir(filePath) {"
         },
         {
-          "line": 688,
+          "line": 687,
           "name": "getPackageStoreDir",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -368,7 +368,7 @@
           ]
         },
         {
-          "line": 701,
+          "line": 700,
           "name": "buildCachedPackageName",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -384,7 +384,7 @@
           ]
         },
         {
-          "line": 725,
+          "line": 724,
           "name": "cachePackage",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -408,19 +408,19 @@
           ]
         },
         {
-          "line": 744,
+          "line": 743,
           "name": "listCachedVersions",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 765,
+          "line": 764,
           "name": "if",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 797,
+          "line": 796,
           "name": "findLibrary",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -436,19 +436,19 @@
           ]
         },
         {
-          "line": 798,
+          "line": 797,
           "name": "if",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 2610,
+          "line": 2605,
           "name": "resolvePublisherRegistryPath",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 2620,
+          "line": 2615,
           "name": "loadSigningCredentials",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -464,13 +464,13 @@
           ]
         },
         {
-          "line": 2633,
+          "line": 2628,
           "name": "if",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 2646,
+          "line": 2641,
           "name": "resolveSigningArgs",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -482,19 +482,19 @@
           ]
         },
         {
-          "line": 2648,
+          "line": 2643,
           "name": "if",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 2657,
+          "line": 2652,
           "name": "if",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         },
         {
-          "line": 2779,
+          "line": 2774,
           "name": "die",
           "documented": true,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback",
@@ -506,7 +506,7 @@
           ]
         },
         {
-          "line": 2790,
+          "line": 2785,
           "name": "switch",
           "documented": false,
           "section": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
@@ -539,59 +539,59 @@
           "module": "./lib/shared"
         },
         {
-          "line": 203,
+          "line": 202,
           "alias": "execFileSync",
           "module": "child_process"
         },
         {
-          "line": 298,
+          "line": 297,
           "alias": "diskdb",
           "module": "diskdb"
         }
       ],
       "constants": [
         {
-          "line": 54,
+          "line": 53,
           "name": "CONTAINER_MAGIC_PKG",
           "value": "shared.CONTAINER_MAGIC_PKG"
         },
         {
-          "line": 55,
+          "line": 54,
           "name": "CONTAINER_MAGIC_ARC",
           "value": "shared.CONTAINER_MAGIC_ARC"
         },
         {
-          "line": 63,
+          "line": 62,
           "name": "MIME_MAP",
           "value": "shared.IMAGE_MIME_MAP"
         },
         {
-          "line": 65,
+          "line": 64,
           "name": "HSL_METADATA_EXTS",
           "value": "shared.HSL_METADATA_EXTS"
         },
         {
-          "line": 67,
+          "line": 66,
           "name": "DEFAULT_LIB_PATH",
           "value": "'C:\\\\Program Files (x86)\\\\HAMILTON\\\\Library'"
         },
         {
-          "line": 68,
+          "line": 67,
           "name": "DEFAULT_MET_PATH",
           "value": "'C:\\\\Program Files (x86)\\\\HAMILTON\\\\Methods'"
         },
         {
-          "line": 72,
+          "line": 71,
           "name": "LOCAL_DATA_DIR",
           "value": "path.join(__dirname, 'local')"
         },
         {
-          "line": 73,
+          "line": 72,
           "name": "PACKAGE_STORE_DIR",
           "value": "path.join(LOCAL_DATA_DIR, 'packages')"
         },
         {
-          "line": 255,
+          "line": 254,
           "name": "MAX_AUDIT_ENTRIES",
           "value": "10000"
         }
@@ -599,67 +599,67 @@
       "exports": null,
       "sections": [
         {
-          "line": 59,
+          "line": 58,
           "name": "Constants"
         },
         {
-          "line": 75,
+          "line": 74,
           "name": "Default Groups (hardcoded - never stored in external JSON)"
         },
         {
-          "line": 77,
+          "line": 76,
           "name": "const DEFAULT_GROUPS = {"
         },
         {
-          "line": 128,
+          "line": 127,
           "name": "Restricted Author Protection"
         },
         {
-          "line": 130,
+          "line": 129,
           "name": "Uses the centralized constants and validation from shared.js."
         },
         {
-          "line": 141,
+          "line": 140,
           "name": "Minimal argument parser"
         },
         {
-          "line": 146,
+          "line": 145,
           "name": "function parseArgs(argv) {"
         },
         {
-          "line": 177,
+          "line": 176,
           "name": "Environment / identity helpers"
         },
         {
-          "line": 227,
+          "line": 226,
           "name": "Audit trail logging"
         },
         {
-          "line": 289,
+          "line": 288,
           "name": "Database helpers"
         },
         {
-          "line": 391,
+          "line": 390,
           "name": "Integrity hashing"
         },
         {
-          "line": 446,
+          "line": 445,
           "name": "Group auto-assignment"
         },
         {
-          "line": 526,
+          "line": 525,
           "name": "Core: install a single parsed package into the filesystem + DB"
         },
         {
-          "line": 669,
+          "line": 668,
           "name": "Helper: ensure parent directory exists for an output file"
         },
         {
-          "line": 671,
+          "line": 670,
           "name": "function ensureOutDir(filePath) {"
         },
         {
-          "line": 677,
+          "line": 676,
           "name": "Package store helpers - cache .hxlibpkg files for repair & version rollback"
         }
       ],
@@ -732,9 +732,9 @@
     },
     {
       "file": "lib/shared.js",
-      "lines": 1848,
-      "size": 71833,
-      "modified": "2026-03-05T22:54:13.792Z",
+      "lines": 1822,
+      "size": 70799,
+      "modified": "2026-03-06T01:47:08.267Z",
       "functions": [
         {
           "line": 130,
@@ -1041,19 +1041,7 @@
           ]
         },
         {
-          "line": 563,
-          "name": "signPackageZip",
-          "documented": true,
-          "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files",
-          "params": [
-            {
-              "type": "AdmZip",
-              "name": "zip"
-            }
-          ]
-        },
-        {
-          "line": 594,
+          "line": 568,
           "name": "signPackageZipWithCert",
           "documented": true,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files",
@@ -1073,7 +1061,7 @@
           ]
         },
         {
-          "line": 642,
+          "line": 616,
           "name": "verifyPackageSignature",
           "documented": true,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files",
@@ -1085,55 +1073,49 @@
           ]
         },
         {
-          "line": 650,
+          "line": 624,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 666,
+          "line": 640,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 696,
+          "line": 670,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 706,
+          "line": 680,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 713,
+          "line": 687,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 716,
+          "line": 690,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 724,
+          "line": 698,
           "name": "if",
           "documented": false,
           "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 740,
-          "name": "if",
-          "documented": false,
-          "section": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
-        },
-        {
-          "line": 808,
+          "line": 783,
           "name": "isRestrictedAuthor",
           "documented": true,
           "section": "Restricted Author / Organization Keywords (single source of truth)",
@@ -1145,13 +1127,13 @@
           ]
         },
         {
-          "line": 812,
+          "line": 787,
           "name": "for",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 824,
+          "line": 799,
           "name": "getMatchedRestrictedKeywords",
           "documented": true,
           "section": "Restricted Author / Organization Keywords (single source of truth)",
@@ -1163,13 +1145,13 @@
           ]
         },
         {
-          "line": 829,
+          "line": 804,
           "name": "for",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 855,
+          "line": 830,
           "name": "validateOemCertificateMatch",
           "documented": true,
           "section": "Restricted Author / Organization Keywords (single source of truth)",
@@ -1189,37 +1171,37 @@
           ]
         },
         {
-          "line": 863,
+          "line": 838,
           "name": "for",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 864,
+          "line": 839,
           "name": "if",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 872,
+          "line": 847,
           "name": "if",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 885,
+          "line": 860,
           "name": "for",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 892,
+          "line": 867,
           "name": "if",
           "documented": false,
           "section": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 920,
+          "line": 895,
           "name": "validateAuthorPassword",
           "documented": true,
           "section": "The password is stored as a SHA-256 hash to avoid exposing the plaintext",
@@ -1231,7 +1213,7 @@
           ]
         },
         {
-          "line": 975,
+          "line": 950,
           "name": "isNumericOnlyTag",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1243,7 +1225,7 @@
           ]
         },
         {
-          "line": 985,
+          "line": 960,
           "name": "canonicalizeTagForDedup",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1255,7 +1237,7 @@
           ]
         },
         {
-          "line": 994,
+          "line": 969,
           "name": "buildTagBlockReason",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1267,13 +1249,13 @@
           ]
         },
         {
-          "line": 995,
+          "line": 970,
           "name": "switch",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1017,
+          "line": 992,
           "name": "sanitizeTagDetailed",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1285,25 +1267,49 @@
           ]
         },
         {
-          "line": 1030,
+          "line": 1005,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1038,
+          "line": 1013,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1046,
+          "line": 1021,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1058,
+          "line": 1033,
+          "name": "if",
+          "documented": false,
+          "section": "Reserved tag keywords"
+        },
+        {
+          "line": 1041,
+          "name": "if",
+          "documented": false,
+          "section": "Reserved tag keywords"
+        },
+        {
+          "line": 1047,
+          "name": "if",
+          "documented": false,
+          "section": "Reserved tag keywords"
+        },
+        {
+          "line": 1052,
+          "name": "if",
+          "documented": false,
+          "section": "Reserved tag keywords"
+        },
+        {
+          "line": 1059,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
@@ -1315,37 +1321,13 @@
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1072,
+          "line": 1083,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1077,
-          "name": "if",
-          "documented": false,
-          "section": "Reserved tag keywords"
-        },
-        {
-          "line": 1084,
-          "name": "if",
-          "documented": false,
-          "section": "Reserved tag keywords"
-        },
-        {
-          "line": 1091,
-          "name": "if",
-          "documented": false,
-          "section": "Reserved tag keywords"
-        },
-        {
-          "line": 1108,
-          "name": "if",
-          "documented": false,
-          "section": "Reserved tag keywords"
-        },
-        {
-          "line": 1126,
+          "line": 1101,
           "name": "sanitizeTagsWithFeedback",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1357,37 +1339,37 @@
           ]
         },
         {
-          "line": 1135,
+          "line": 1110,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1138,
+          "line": 1113,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1143,
+          "line": 1118,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1149,
+          "line": 1124,
           "name": "if",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1150,
+          "line": 1125,
           "name": "for",
           "documented": false,
           "section": "Reserved tag keywords"
         },
         {
-          "line": 1173,
+          "line": 1148,
           "name": "isReservedGroupName",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1399,7 +1381,7 @@
           ]
         },
         {
-          "line": 1185,
+          "line": 1160,
           "name": "isReservedTag",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1411,7 +1393,7 @@
           ]
         },
         {
-          "line": 1198,
+          "line": 1173,
           "name": "filterReservedTags",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1423,7 +1405,7 @@
           ]
         },
         {
-          "line": 1221,
+          "line": 1196,
           "name": "sanitizeTag",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1435,7 +1417,7 @@
           ]
         },
         {
-          "line": 1232,
+          "line": 1207,
           "name": "sanitizeTags",
           "documented": true,
           "section": "Reserved tag keywords",
@@ -1447,7 +1429,7 @@
           ]
         },
         {
-          "line": 1292,
+          "line": 1267,
           "name": "validateGitHubRepoUrl",
           "documented": true,
           "section": "GitHub Repository URL validation",
@@ -1459,61 +1441,61 @@
           ]
         },
         {
-          "line": 1303,
+          "line": 1278,
           "name": "if",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1308,
+          "line": 1283,
           "name": "if",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1326,
+          "line": 1301,
           "name": "if",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1361,
+          "line": 1336,
           "name": "if",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1377,
+          "line": 1352,
           "name": "for",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1384,
+          "line": 1359,
           "name": "if",
           "documented": false,
           "section": "GitHub Repository URL validation"
         },
         {
-          "line": 1418,
+          "line": 1393,
           "name": "getAppVersion",
           "documented": true,
           "section": "Application version helper"
         },
         {
-          "line": 1421,
+          "line": 1396,
           "name": "if",
           "documented": false,
           "section": "Application version helper"
         },
         {
-          "line": 1439,
+          "line": 1414,
           "name": "getWindowsVersion",
           "documented": true,
           "section": "Application version helper"
         },
         {
-          "line": 1455,
+          "line": 1430,
           "name": "buildLineageEvent",
           "documented": true,
           "section": "Application version helper",
@@ -1529,7 +1511,7 @@
           ]
         },
         {
-          "line": 1483,
+          "line": 1458,
           "name": "sanitizeHslForParsing",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1541,67 +1523,67 @@
           ]
         },
         {
-          "line": 1486,
+          "line": 1461,
           "name": "while",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1491,
+          "line": 1466,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1494,
+          "line": 1469,
           "name": "while",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1496,
+          "line": 1471,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1500,
+          "line": 1475,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1506,
+          "line": 1481,
+          "name": "if",
+          "documented": false,
+          "section": "HSL Parser Functions"
+        },
+        {
+          "line": 1483,
+          "name": "while",
+          "documented": false,
+          "section": "HSL Parser Functions"
+        },
+        {
+          "line": 1487,
+          "name": "if",
+          "documented": false,
+          "section": "HSL Parser Functions"
+        },
+        {
+          "line": 1489,
+          "name": "while",
+          "documented": false,
+          "section": "HSL Parser Functions"
+        },
+        {
+          "line": 1490,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
           "line": 1508,
-          "name": "while",
-          "documented": false,
-          "section": "HSL Parser Functions"
-        },
-        {
-          "line": 1512,
-          "name": "if",
-          "documented": false,
-          "section": "HSL Parser Functions"
-        },
-        {
-          "line": 1514,
-          "name": "while",
-          "documented": false,
-          "section": "HSL Parser Functions"
-        },
-        {
-          "line": 1515,
-          "name": "if",
-          "documented": false,
-          "section": "HSL Parser Functions"
-        },
-        {
-          "line": 1533,
           "name": "splitHslArgs",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1613,25 +1595,25 @@
           ]
         },
         {
-          "line": 1537,
+          "line": 1512,
           "name": "for",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1539,
+          "line": 1514,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1541,
+          "line": 1516,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1553,
+          "line": 1528,
           "name": "parseHslParameter",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1643,7 +1625,7 @@
           ]
         },
         {
-          "line": 1577,
+          "line": 1552,
           "name": "extractHslDocComment",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1659,13 +1641,13 @@
           ]
         },
         {
-          "line": 1596,
+          "line": 1571,
           "name": "while",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1620,
+          "line": 1595,
           "name": "parseHslFunctions",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1681,67 +1663,67 @@
           ]
         },
         {
-          "line": 1634,
+          "line": 1609,
           "name": "for",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1638,
+          "line": 1613,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1640,
+          "line": 1615,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1652,
+          "line": 1627,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1658,
+          "line": 1633,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1661,
+          "line": 1636,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1693,
+          "line": 1668,
           "name": "for",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1695,
+          "line": 1670,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1697,
+          "line": 1672,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1702,
+          "line": 1677,
           "name": "while",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1718,
+          "line": 1693,
           "name": "extractPublicFunctions",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1757,13 +1739,13 @@
           ]
         },
         {
-          "line": 1728,
+          "line": 1703,
           "name": "if",
           "documented": false,
           "section": "HSL Parser Functions"
         },
         {
-          "line": 1749,
+          "line": 1724,
           "name": "extractHslIncludes",
           "documented": true,
           "section": "HSL Parser Functions",
@@ -1799,38 +1781,38 @@
       ],
       "constants": [
         {
-          "line": 751,
+          "line": 726,
           "name": "AUTHOR_MIN_LENGTH",
           "value": "3"
         },
         {
-          "line": 752,
+          "line": 727,
           "name": "AUTHOR_MAX_LENGTH",
           "value": "29"
         },
         {
-          "line": 912,
+          "line": 887,
           "name": "OEM_AUTHOR_PASSWORD_HASH",
           "value": "'bbdc525497de1c19c57767e36b4f01dadcc05348664eea071ac984fd955bc207'"
         },
         {
-          "line": 1245,
+          "line": 1220,
           "name": "GITHUB_RESERVED_TOPLEVEL",
           "value": "new Set(["
         },
         {
-          "line": 1269,
+          "line": 1244,
           "name": "GITHUB_NONREPO_THIRD_SEGMENTS",
           "value": "new Set(["
         },
         {
-          "line": 1277,
+          "line": 1252,
           "name": "GITHUB_REPO_ROUTES",
           "value": "new Set(["
         }
       ],
       "exports": {
-        "line": 1762,
+        "line": 1737,
         "names": [
           "Constants",
           "FORMAT_VERSION",
@@ -1913,60 +1895,60 @@
           "name": "Package signing - HMAC-SHA256 integrity signatures for .hxlibpkg files"
         },
         {
-          "line": 748,
+          "line": 723,
           "name": "Author / Organization field constraints"
         },
         {
-          "line": 750,
+          "line": 725,
           "name": "const AUTHOR_MIN_LENGTH = 3;"
         },
         {
-          "line": 754,
+          "line": 729,
           "name": "Restricted Author / Organization Keywords (single source of truth)"
         },
         {
-          "line": 906,
+          "line": 881,
           "name": "OEM Author Password"
         },
         {
-          "line": 908,
+          "line": 883,
           "name": "The password is stored as a SHA-256 hash to avoid exposing the plaintext"
         },
         {
-          "line": 931,
+          "line": 906,
           "name": "Reserved tag keywords"
         },
         {
-          "line": 1236,
+          "line": 1211,
           "name": "GitHub Repository URL validation"
         },
         {
-          "line": 1409,
+          "line": 1384,
           "name": "Application version helper"
         },
         {
-          "line": 1473,
+          "line": 1448,
           "name": "HSL Parser Functions"
         },
         {
-          "line": 1759,
+          "line": 1734,
           "name": "Exports"
         },
         {
-          "line": 1761,
+          "line": 1736,
           "name": "module.exports = {"
         }
       ],
       "jsdocCoverage": {
-        "total": 121,
-        "documented": 43
+        "total": 119,
+        "documented": 42
       }
     },
     {
       "file": "lib/service.js",
-      "lines": 1736,
-      "size": 86332,
-      "modified": "2026-03-06T01:24:39.420Z",
+      "lines": 1733,
+      "size": 86205,
+      "modified": "2026-03-06T01:45:48.298Z",
       "functions": [
         {
           "line": 60,
@@ -2599,7 +2581,7 @@
           "section": "/**"
         },
         {
-          "line": 982,
+          "line": 981,
           "name": "exportArchive",
           "documented": true,
           "section": "/**",
@@ -2639,13 +2621,13 @@
           ]
         },
         {
-          "line": 988,
+          "line": 987,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1096,
+          "line": 1094,
           "name": "deleteLibrary",
           "documented": true,
           "section": "/**",
@@ -2677,37 +2659,37 @@
           ]
         },
         {
-          "line": 1107,
+          "line": 1105,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1119,
+          "line": 1117,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1127,
+          "line": 1125,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1136,
+          "line": 1134,
           "name": "for",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1139,
+          "line": 1137,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1170,
+          "line": 1168,
           "name": "createPackage",
           "documented": true,
           "section": "/**",
@@ -2743,55 +2725,55 @@
           ]
         },
         {
-          "line": 1180,
+          "line": 1178,
           "name": "catch",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1208,
+          "line": 1206,
           "name": "for",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1211,
+          "line": 1209,
           "name": "for",
+          "documented": false,
+          "section": "/**"
+        },
+        {
+          "line": 1214,
+          "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
           "line": 1216,
-          "name": "if",
+          "name": "for",
           "documented": false,
           "section": "/**"
         },
         {
           "line": 1218,
-          "name": "for",
-          "documented": false,
-          "section": "/**"
-        },
-        {
-          "line": 1220,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1235,
+          "line": 1233,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1245,
+          "line": 1243,
           "name": "for",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1325,
+          "line": 1322,
           "name": "listVersions",
           "documented": true,
           "section": "/**",
@@ -2811,7 +2793,7 @@
           ]
         },
         {
-          "line": 1346,
+          "line": 1343,
           "name": "rollbackLibrary",
           "documented": true,
           "section": "/**",
@@ -2847,13 +2829,13 @@
           ]
         },
         {
-          "line": 1354,
+          "line": 1351,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1431,
+          "line": 1428,
           "name": "verifyPackage",
           "documented": true,
           "section": "/**",
@@ -2873,13 +2855,13 @@
           ]
         },
         {
-          "line": 1440,
+          "line": 1437,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1494,
+          "line": 1491,
           "name": "generateSyslibHashes",
           "documented": true,
           "section": "/**",
@@ -2903,19 +2885,19 @@
           ]
         },
         {
-          "line": 1504,
+          "line": 1501,
           "name": "catch",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1529,
+          "line": 1526,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1555,
+          "line": 1552,
           "name": "verifySyslibHashes",
           "documented": true,
           "section": "/**",
@@ -2939,31 +2921,31 @@
           ]
         },
         {
-          "line": 1562,
+          "line": 1559,
           "name": "catch",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1578,
+          "line": 1575,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1579,
+          "line": 1576,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1580,
+          "line": 1577,
           "name": "if",
           "documented": false,
           "section": "/**"
         },
         {
-          "line": 1604,
+          "line": 1601,
           "name": "generateKeypair",
           "documented": true,
           "section": "/**",
@@ -2999,7 +2981,7 @@
           ]
         },
         {
-          "line": 1644,
+          "line": 1641,
           "name": "listPublishers",
           "documented": true,
           "section": "/**",
@@ -3011,7 +2993,7 @@
           ]
         },
         {
-          "line": 1666,
+          "line": 1663,
           "name": "getAuditTrail",
           "documented": true,
           "section": "/**",
@@ -3031,7 +3013,7 @@
           ]
         },
         {
-          "line": 1686,
+          "line": 1683,
           "name": "getSettings",
           "documented": true,
           "section": "/**",
@@ -3043,7 +3025,7 @@
           ]
         },
         {
-          "line": 1700,
+          "line": 1697,
           "name": "getSystemLibraries",
           "documented": true,
           "section": "/**"
@@ -3119,7 +3101,7 @@
         }
       ],
       "exports": {
-        "line": 1711,
+        "line": 1708,
         "names": [
           "createContext",
           "Read",
@@ -3278,107 +3260,107 @@
           "name": "/**"
         },
         {
-          "line": 967,
+          "line": 966,
           "name": "6. exportArchive"
         },
         {
-          "line": 969,
+          "line": 968,
           "name": "/**"
         },
         {
-          "line": 1083,
+          "line": 1081,
           "name": "7. deleteLibrary"
         },
         {
-          "line": 1085,
+          "line": 1083,
           "name": "/**"
         },
         {
-          "line": 1156,
+          "line": 1154,
           "name": "8. createPackage"
         },
         {
-          "line": 1158,
+          "line": 1156,
           "name": "/**"
         },
         {
-          "line": 1315,
+          "line": 1312,
           "name": "9. listVersions"
         },
         {
-          "line": 1317,
+          "line": 1314,
           "name": "/**"
         },
         {
-          "line": 1332,
+          "line": 1329,
           "name": "10. rollbackLibrary"
         },
         {
-          "line": 1334,
+          "line": 1331,
           "name": "/**"
         },
         {
-          "line": 1421,
+          "line": 1418,
           "name": "11. verifyPackage"
         },
         {
-          "line": 1423,
+          "line": 1420,
           "name": "/**"
         },
         {
-          "line": 1483,
+          "line": 1480,
           "name": "12. generateSyslibHashes"
         },
         {
-          "line": 1485,
+          "line": 1482,
           "name": "/**"
         },
         {
-          "line": 1544,
+          "line": 1541,
           "name": "13. verifySyslibHashes"
         },
         {
-          "line": 1546,
+          "line": 1543,
           "name": "/**"
         },
         {
-          "line": 1590,
+          "line": 1587,
           "name": "14. generateKeypair"
         },
         {
-          "line": 1592,
+          "line": 1589,
           "name": "/**"
         },
         {
-          "line": 1636,
+          "line": 1633,
           "name": "15. listPublishers"
         },
         {
-          "line": 1638,
+          "line": 1635,
           "name": "/**"
         },
         {
-          "line": 1656,
+          "line": 1653,
           "name": "16. getAuditTrail"
         },
         {
-          "line": 1658,
+          "line": 1655,
           "name": "/**"
         },
         {
-          "line": 1678,
+          "line": 1675,
           "name": "17. getSettings"
         },
         {
-          "line": 1680,
+          "line": 1677,
           "name": "/**"
         },
         {
-          "line": 1693,
+          "line": 1690,
           "name": "18. getSystemLibraries"
         },
         {
-          "line": 1695,
+          "line": 1692,
           "name": "/**"
         }
       ],
@@ -3389,9 +3371,9 @@
     },
     {
       "file": "html/js/main.js",
-      "lines": 13474,
-      "size": 561115,
-      "modified": "2026-03-06T01:08:34.142Z",
+      "lines": 13469,
+      "size": 561011,
+      "modified": "2026-03-06T01:46:03.194Z",
       "functions": [
         {
           "line": 38,
@@ -4024,37 +4006,37 @@
           "section": null
         },
         {
-          "line": 1729,
+          "line": 1726,
           "name": "backupAllSystemLibraries",
           "documented": true,
           "section": null
         },
         {
-          "line": 1737,
+          "line": 1734,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1742,
+          "line": 1739,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1757,
+          "line": 1754,
           "name": "ensureSystemLibraryBackups",
           "documented": true,
           "section": null
         },
         {
-          "line": 1765,
+          "line": 1762,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1777,
+          "line": 1774,
           "name": "repairSystemLibraryFromCache",
           "documented": true,
           "section": null,
@@ -4070,404 +4052,410 @@
           ]
         },
         {
-          "line": 1780,
+          "line": 1777,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1801,
+          "line": 1798,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1808,
+          "line": 1805,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1825,
+          "line": 1822,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1827,
+          "line": 1824,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1835,
+          "line": 1832,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1837,
+          "line": 1834,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1846,
+          "line": 1843,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1897,
+          "line": 1894,
           "name": "waitForFinalEvent",
           "documented": false,
           "section": null
         },
         {
-          "line": 1908,
+          "line": 1905,
           "name": "_onWindowLoad",
           "documented": false,
           "section": null
         },
         {
-          "line": 1915,
+          "line": 1912,
           "name": "dismissSplashIfReady",
           "documented": false,
           "section": null
         },
         {
-          "line": 1923,
+          "line": 1920,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1930,
+          "line": 1927,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 1940,
+          "line": 1937,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 1951,
+          "line": 1948,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1961,
+          "line": 1958,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 1965,
+          "line": 1962,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 1980,
+          "line": 1977,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 1988,
+          "line": 1985,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2005,
+          "line": 2002,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2022,
+          "line": 2019,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2103,
+          "line": 2100,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2105,
+          "line": 2102,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2109,
+          "line": 2106,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2111,
+          "line": 2108,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2117,
+          "line": 2114,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2123,
+          "line": 2120,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2129,
+          "line": 2126,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2149,
+          "line": 2146,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2151,
+          "line": 2148,
           "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 2154,
+          "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 2157,
-          "name": "click",
+          "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2160,
-          "name": "if",
+          "line": 2164,
+          "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 2167,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 2170,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2181,
+          "line": 2178,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2193,
+          "line": 2190,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2201,
+          "line": 2198,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2208,
+          "line": 2205,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2229,
+          "line": 2226,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2242,
+          "line": 2239,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2256,
+          "line": 2253,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2271,
+          "line": 2268,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2286,
+          "line": 2283,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2298,
+          "line": 2295,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2304,
+          "line": 2301,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2313,
+          "line": 2310,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2318,
+          "line": 2315,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2343,
+          "line": 2340,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2353,
+          "line": 2350,
           "name": "input",
           "documented": false,
           "section": null
         },
         {
-          "line": 2357,
+          "line": 2354,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 2361,
+          "line": 2358,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 2365,
+          "line": 2362,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2377,
+          "line": 2374,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 2385,
+          "line": 2382,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2405,
+          "line": 2402,
           "name": "clearPendingDeleteChip",
           "documented": false,
           "section": null
         },
         {
-          "line": 2406,
+          "line": 2403,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2419,
+          "line": 2416,
           "name": "_buildSysLibFnCache",
           "documented": true,
           "section": null
         },
         {
-          "line": 2436,
+          "line": 2433,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2447,
+          "line": 2444,
           "name": "renderSearchInlineTokens",
           "documented": false,
           "section": null
         },
         {
-          "line": 2450,
+          "line": 2447,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2458,
+          "line": 2455,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2466,
+          "line": 2463,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2485,
+          "line": 2482,
           "name": "updateSearchInputWidth",
           "documented": false,
           "section": null
         },
         {
-          "line": 2490,
+          "line": 2487,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2501,
+          "line": 2498,
           "name": "scrollSearchFlowToEnd",
           "documented": false,
           "section": null
         },
         {
-          "line": 2506,
+          "line": 2503,
           "name": "requestAnimationFrame",
           "documented": false,
           "section": null
         },
         {
-          "line": 2511,
+          "line": 2508,
           "name": "normalizeSearchInlineTokens",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 2512,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -4478,367 +4466,367 @@
           "section": null
         },
         {
-          "line": 2518,
+          "line": 2522,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2525,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 2538,
+          "line": 2535,
           "name": "insertSearchTagToken",
           "documented": false,
           "section": null
         },
         {
-          "line": 2543,
+          "line": 2540,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2551,
+          "line": 2548,
           "name": "insertSearchAuthorToken",
           "documented": false,
           "section": null
         },
         {
-          "line": 2556,
+          "line": 2553,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2564,
+          "line": 2561,
           "name": "updateSearchTagChipByIndex",
           "documented": false,
           "section": null
         },
         {
-          "line": 2569,
+          "line": 2566,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2587,
+          "line": 2584,
           "name": "consumeCompletedTagTokens",
           "documented": false,
           "section": null
         },
         {
-          "line": 2594,
+          "line": 2591,
           "name": "while",
           "documented": false,
           "section": null
         },
         {
-          "line": 2603,
+          "line": 2600,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2618,
+          "line": 2615,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2627,
+          "line": 2624,
           "name": "commitTrailingSearchTag",
           "documented": false,
           "section": null
         },
         {
-          "line": 2640,
+          "line": 2637,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2659,
+          "line": 2656,
           "name": "commitTrailingSearchAuthor",
           "documented": true,
           "section": null
         },
         {
-          "line": 2675,
+          "line": 2672,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2694,
+          "line": 2691,
           "name": "autoCloseAuthorTokenBySpaceLimit",
           "documented": true,
           "section": null
         },
         {
-          "line": 2705,
+          "line": 2702,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2711,
+          "line": 2708,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2716,
+          "line": 2713,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2731,
+          "line": 2728,
           "name": "getSearchInlineRawText",
           "documented": false,
           "section": null
         },
         {
-          "line": 2741,
+          "line": 2738,
           "name": "getSearchStateFromInput",
           "documented": false,
           "section": null
         },
         {
-          "line": 2748,
+          "line": 2745,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2752,
+          "line": 2749,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2756,
+          "line": 2753,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2762,
+          "line": 2759,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2790,
+          "line": 2787,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2792,
+          "line": 2789,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2798,
+          "line": 2795,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2804,
+          "line": 2801,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2812,
+          "line": 2809,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2817,
+          "line": 2814,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2826,
+          "line": 2823,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2850,
+          "line": 2847,
           "name": "refreshLibrarySearchFromInput",
           "documented": false,
           "section": null
         },
         {
-          "line": 2857,
+          "line": 2854,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2873,
+          "line": 2870,
           "name": "getSearchAutocompleteContext",
           "documented": false,
           "section": null
         },
         {
-          "line": 2877,
+          "line": 2874,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2882,
+          "line": 2879,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2888,
+          "line": 2885,
           "name": "updateSearchAutocomplete",
           "documented": false,
           "section": null
         },
         {
-          "line": 2891,
+          "line": 2888,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2897,
+          "line": 2894,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2937,
+          "line": 2934,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2950,
+          "line": 2947,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2952,
+          "line": 2949,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 2972,
+          "line": 2969,
           "name": "hideSearchAutocomplete",
           "documented": false,
           "section": null
         },
         {
-          "line": 2977,
+          "line": 2974,
           "name": "selectAutocompleteItem",
           "documented": false,
           "section": null
         },
         {
-          "line": 2988,
+          "line": 2985,
           "name": "commitAutocompleteSelection",
           "documented": false,
           "section": null
         },
         {
-          "line": 2999,
+          "line": 2996,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3029,
+          "line": 3026,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3040,
+          "line": 3037,
           "name": "mousedown",
           "documented": false,
           "section": null
         },
         {
-          "line": 3044,
+          "line": 3041,
           "name": "input",
           "documented": false,
           "section": null
         },
         {
-          "line": 3050,
+          "line": 3047,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3063,
+          "line": 3060,
           "name": "blur",
           "documented": false,
           "section": null
         },
         {
-          "line": 3065,
+          "line": 3062,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 3070,
+          "line": 3067,
           "name": "focus",
           "documented": false,
           "section": null
         },
         {
-          "line": 3076,
+          "line": 3073,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3084,
+          "line": 3081,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3112,
+          "line": 3109,
           "name": "input",
           "documented": false,
           "section": null
         },
         {
-          "line": 3123,
+          "line": 3120,
           "name": "keydown",
           "documented": false,
           "section": null
         },
         {
-          "line": 3124,
+          "line": 3121,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3130,
+          "line": 3127,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 3133,
           "name": "if",
           "documented": false,
           "section": null
@@ -4850,229 +4838,229 @@
           "section": null
         },
         {
-          "line": 3139,
+          "line": 3149,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3152,
+          "line": 3154,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3157,
+          "line": 3179,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3182,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 3187,
+          "line": 3184,
           "name": "blur",
           "documented": false,
           "section": null
         },
         {
-          "line": 3209,
+          "line": 3206,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3215,
+          "line": 3212,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3229,
+          "line": 3226,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3241,
+          "line": 3238,
           "name": "keydown",
           "documented": false,
           "section": null
         },
         {
-          "line": 3249,
+          "line": 3246,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3256,
+          "line": 3253,
           "name": "blur",
           "documented": false,
           "section": null
         },
         {
-          "line": 3267,
+          "line": 3264,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3273,
+          "line": 3270,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3279,
+          "line": 3276,
           "name": "keydown",
           "documented": false,
           "section": null
         },
         {
-          "line": 3284,
+          "line": 3281,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3285,
+          "line": 3282,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3290,
+          "line": 3287,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3295,
+          "line": 3292,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3296,
+          "line": 3293,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3302,
+          "line": 3299,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3309,
+          "line": 3306,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3322,
+          "line": 3319,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3333,
+          "line": 3330,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3366,
+          "line": 3363,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3368,
+          "line": 3365,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3413,
+          "line": 3410,
           "name": "impEnterSearchMode",
           "documented": false,
           "section": null
         },
         {
-          "line": 3416,
+          "line": 3413,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3449,
+          "line": 3446,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3480,
+          "line": 3477,
           "name": "matchesTagFilters",
           "documented": false,
           "section": null
         },
         {
-          "line": 3488,
+          "line": 3485,
           "name": "matchesAuthorFilters",
           "documented": false,
           "section": null
         },
         {
-          "line": 3501,
+          "line": 3498,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3515,
+          "line": 3512,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3523,
+          "line": 3520,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3549,
+          "line": 3546,
           "name": "impExitSearchMode",
           "documented": false,
           "section": null
         },
         {
-          "line": 3560,
+          "line": 3557,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3572,
+          "line": 3569,
           "name": "impBuildSingleCardHtml",
           "documented": true,
           "section": null
         },
         {
-          "line": 3588,
+          "line": 3585,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3594,
+          "line": 3591,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 3598,
           "name": "if",
           "documented": false,
           "section": null
@@ -5084,133 +5072,127 @@
           "section": null
         },
         {
-          "line": 3604,
+          "line": 3608,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3611,
+          "line": 3615,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3618,
+          "line": 3628,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3631,
+          "line": 3633,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3636,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 3670,
+          "line": 3667,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3675,
+          "line": 3672,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3679,
+          "line": 3676,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3685,
+          "line": 3682,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3692,
+          "line": 3689,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3702,
+          "line": 3699,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3737,
+          "line": 3734,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3768,
+          "line": 3765,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3775,
+          "line": 3772,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3785,
+          "line": 3782,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3793,
+          "line": 3790,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3800,
+          "line": 3797,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 3810,
+          "line": 3807,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3815,
+          "line": 3812,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3821,
+          "line": 3818,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 3829,
+          "line": 3826,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 5826,
+          "line": 5823,
           "name": "pkgShowFileTypeWarning",
           "documented": true,
           "section": null,
@@ -5230,469 +5212,469 @@
           ]
         },
         {
-          "line": 5851,
+          "line": 5848,
           "name": "showTagValidationErrorModal",
           "documented": false,
           "section": null
         },
         {
-          "line": 5876,
+          "line": 5873,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 5880,
+          "line": 5877,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 5901,
+          "line": 5898,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 5911,
+          "line": 5908,
           "name": "function",
           "documented": false,
           "section": null
         },
         {
-          "line": 5922,
+          "line": 5919,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 5924,
+          "line": 5921,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 5950,
+          "line": 5947,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 5960,
+          "line": 5957,
           "name": "function",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 5974,
+          "name": "change",
           "documented": false,
           "section": null
         },
         {
           "line": 5977,
-          "name": "change",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 5980,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 5993,
+          "line": 5990,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6003,
+          "line": 6000,
           "name": "function",
           "documented": false,
           "section": null
         },
         {
-          "line": 6014,
+          "line": 6011,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 6016,
+          "line": 6013,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6034,
+          "line": 6031,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6044,
+          "line": 6041,
           "name": "function",
           "documented": false,
           "section": null
         },
         {
-          "line": 6061,
+          "line": 6058,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6066,
+          "line": 6063,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6073,
+          "line": 6070,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6078,
+          "line": 6075,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6086,
+          "line": 6083,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6087,
+          "line": 6084,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6099,
+          "line": 6096,
           "name": "pkgDetectLibraryName",
           "documented": false,
           "section": null
         },
         {
-          "line": 6102,
+          "line": 6099,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6103,
+          "line": 6100,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6112,
+          "line": 6109,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6118,
+          "line": 6115,
           "name": "pkgUpdatePathPlaceholders",
           "documented": false,
           "section": null
         },
         {
-          "line": 6119,
+          "line": 6116,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6127,
+          "line": 6124,
           "name": "pkgAutoDetectBmpImage",
           "documented": false,
           "section": null
         },
         {
-          "line": 6134,
+          "line": 6131,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6136,
+          "line": 6133,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6148,
+          "line": 6145,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6155,
+          "line": 6152,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6184,
+          "line": 6181,
           "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 6204,
+          "name": "input",
           "documented": false,
           "section": null
         },
         {
           "line": 6207,
-          "name": "input",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 6210,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6220,
+          "line": 6217,
           "name": "pkgUpdateLibFileList",
           "documented": false,
           "section": null
         },
         {
-          "line": 6223,
+          "line": 6220,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6232,
+          "line": 6229,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6256,
+          "line": 6253,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 6269,
+          "line": 6266,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6273,
+          "line": 6270,
           "name": "pkgUpdateDemoFileList",
           "documented": false,
           "section": null
         },
         {
-          "line": 6276,
+          "line": 6273,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6298,
+          "line": 6295,
           "name": "blur",
           "documented": false,
           "section": null
         },
         {
-          "line": 6302,
+          "line": 6299,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6314,
+          "line": 6311,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6343,
+          "line": 6340,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 6351,
+          "line": 6348,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6356,
+          "line": 6353,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6361,
+          "line": 6358,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6366,
+          "line": 6363,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6371,
+          "line": 6368,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6376,
+          "line": 6373,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6381,
+          "line": 6378,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6386,
+          "line": 6383,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6394,
+          "line": 6391,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6396,
+          "line": 6393,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6403,
+          "line": 6400,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6409,
+          "line": 6406,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6415,
+          "line": 6412,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6426,
+          "line": 6423,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6441,
+          "line": 6438,
           "name": "input",
           "documented": false,
           "section": null
         },
         {
-          "line": 6446,
+          "line": 6443,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 6463,
+          "line": 6460,
           "name": "pkgCompositeLibraryIcon",
           "documented": false,
           "section": null
         },
         {
-          "line": 6476,
+          "line": 6473,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6538,
+          "line": 6535,
           "name": "pkgCreatePackageFile",
           "documented": false,
           "section": null
         },
         {
-          "line": 6546,
+          "line": 6543,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6559,
+          "line": 6556,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6568,
+          "line": 6565,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6597,
+          "line": 6594,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6599,
+          "line": 6596,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6624,
+          "line": 6621,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6679,
+          "line": 6676,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6708,
+          "line": 6705,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6740,
+          "line": 6737,
           "name": "findRegAsmPath",
           "documented": true,
           "section": null
         },
         {
-          "line": 6758,
+          "line": 6755,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6780,
+          "line": 6777,
           "name": "comRegisterDll",
           "documented": true,
           "section": null,
@@ -5708,31 +5690,31 @@
           ]
         },
         {
-          "line": 6783,
+          "line": 6780,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6820,
+          "line": 6817,
           "name": "exec",
           "documented": false,
           "section": null
         },
         {
-          "line": 6828,
+          "line": 6825,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6830,
+          "line": 6827,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6853,
+          "line": 6850,
           "name": "comRegisterMultipleDlls",
           "documented": true,
           "section": null,
@@ -5748,13 +5730,13 @@
           ]
         },
         {
-          "line": 6856,
+          "line": 6853,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6876,
+          "line": 6873,
           "name": "checkCOMRegistrationStatus",
           "documented": true,
           "section": null,
@@ -5766,31 +5748,31 @@
           ]
         },
         {
-          "line": 6887,
+          "line": 6884,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6918,
+          "line": 6915,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6925,
+          "line": 6922,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 6951,
+          "line": 6948,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 6963,
+          "line": 6960,
           "name": "verifyCOMRegistration",
           "documented": true,
           "section": null,
@@ -5802,13 +5784,13 @@
           ]
         },
         {
-          "line": 6971,
+          "line": 6968,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 7009,
+          "line": 7006,
           "name": "extractRequiredDependencies",
           "documented": true,
           "section": null,
@@ -5824,38 +5806,44 @@
           ]
         },
         {
-          "line": 7043,
+          "line": 7040,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7060,
+          "line": 7057,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 7071,
+          "line": 7068,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7086,
+          "line": 7083,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 7091,
+          "line": 7088,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 7110,
+          "line": 7107,
           "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7109,
+          "name": "for",
           "documented": false,
           "section": null
         },
@@ -5866,26 +5854,26 @@
           "section": null
         },
         {
-          "line": 7115,
+          "line": 7116,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7122,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7136,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7138,
           "name": "for",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7119,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7125,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7139,
-          "name": "if",
           "documented": false,
           "section": null
         },
@@ -5896,37 +5884,31 @@
           "section": null
         },
         {
-          "line": 7144,
-          "name": "for",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7146,
+          "line": 7143,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7151,
+          "line": 7148,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7178,
+          "line": 7175,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7183,
+          "line": 7180,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7198,
+          "line": 7195,
           "name": "checkDependencyStatus",
           "documented": true,
           "section": null,
@@ -5938,13 +5920,13 @@
           ]
         },
         {
-          "line": 7201,
+          "line": 7198,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7227,
+          "line": 7224,
           "name": "verifySystemLibraryIntegrity",
           "documented": true,
           "section": null,
@@ -5956,61 +5938,61 @@
           ]
         },
         {
-          "line": 7256,
+          "line": 7253,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7257,
+          "line": 7254,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7265,
+          "line": 7262,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7270,
+          "line": 7267,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7295,
+          "line": 7291,
           "name": "getSigningConfig",
           "documented": true,
           "section": null
         },
         {
-          "line": 7307,
+          "line": 7303,
           "name": "loadDefaultSigningCredentials",
           "documented": true,
           "section": null
         },
         {
-          "line": 7327,
+          "line": 7323,
           "name": "getSigningDisplayInfo",
           "documented": true,
           "section": null
         },
         {
-          "line": 7350,
+          "line": 7346,
           "name": "refreshSigningUI",
           "documented": true,
           "section": null
         },
         {
-          "line": 7353,
+          "line": 7349,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7393,
+          "line": 7389,
           "name": "applyPackageSigning",
           "documented": true,
           "section": null,
@@ -6026,103 +6008,103 @@
           ]
         },
         {
-          "line": 7394,
+          "line": 7390,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7396,
+          "line": 7392,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7411,
+          "line": 7406,
           "name": "change",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7415,
+          "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 7420,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7425,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 7431,
+          "line": 7426,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 7434,
+          "line": 7429,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 7445,
+          "line": 7440,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 7448,
+          "line": 7443,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 7459,
+          "line": 7454,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 7469,
+          "line": 7464,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 7484,
+          "line": 7479,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 7532,
+          "line": 7527,
           "name": "refreshSettingsSigningStatus",
           "documented": true,
           "section": null
         },
         {
-          "line": 7549,
+          "line": 7544,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7558,
+          "line": 7553,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7565,
+          "line": 7560,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7588,
+          "line": 7583,
           "name": "verifyLibraryIntegrity",
           "documented": true,
           "section": null,
@@ -6134,205 +6116,217 @@
           ]
         },
         {
-          "line": 7618,
+          "line": 7613,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7624,
+          "line": 7619,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7634,
+          "line": 7629,
           "name": "fitImporterHeight",
           "documented": false,
           "section": null
         },
         {
-          "line": 7645,
+          "line": 7640,
           "name": "invalidateLibCaches",
           "documented": false,
           "section": null
         },
         {
-          "line": 7648,
+          "line": 7643,
           "name": "impBuildLibraryCards",
           "documented": false,
           "section": null
         },
         {
-          "line": 7654,
+          "line": 7649,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7656,
+          "line": 7651,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7677,
+          "line": 7672,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7698,
+          "line": 7693,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7700,
+          "line": 7695,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7717,
+          "line": 7712,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7719,
+          "line": 7714,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7736,
+          "line": 7731,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7764,
+          "line": 7759,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7767,
+          "line": 7762,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 7768,
+          "line": 7763,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7771,
+          "line": 7766,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7783,
+          "line": 7778,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7819,
+          "line": 7814,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7826,
+          "line": 7821,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7834,
+          "line": 7829,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7837,
+          "line": 7832,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7845,
+          "line": 7840,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7860,
+          "line": 7855,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7870,
+          "line": 7865,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7878,
+          "line": 7873,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7912,
+          "line": 7907,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7914,
+          "line": 7909,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7938,
+          "line": 7933,
           "name": "resolveSystemLibIcon",
           "documented": false,
           "section": null
         },
         {
+          "line": 7948,
+          "name": "for",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7950,
+          "name": "for",
+          "documented": false,
+          "section": null
+        },
+        {
           "line": 7953,
-          "name": "for",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7955,
-          "name": "for",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7958,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7967,
+          "line": 7962,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7984,
+          "line": 7979,
+          "name": "for",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7985,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 7989,
           "name": "for",
           "documented": false,
           "section": null
@@ -6344,62 +6338,56 @@
           "section": null
         },
         {
-          "line": 7994,
-          "name": "for",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 7995,
+          "line": 7992,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 7997,
+          "line": 7999,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8004,
+          "line": 8016,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8021,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 8030,
+          "line": 8025,
           "name": "buildSystemLibraryCard",
           "documented": false,
           "section": null
         },
         {
-          "line": 8045,
+          "line": 8040,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8059,
+          "line": 8054,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8062,
+          "line": 8057,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8095,
+          "line": 8090,
           "name": "impShowLibDetail",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 8106,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -6410,121 +6398,121 @@
           "section": null
         },
         {
-          "line": 8116,
+          "line": 8123,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8128,
+          "line": 8129,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8134,
+          "line": 8140,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8145,
+          "line": 8151,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8156,
+          "line": 8163,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8168,
+          "line": 8172,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8177,
+          "line": 8187,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8192,
+          "line": 8213,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8218,
+          "line": 8225,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8230,
+          "line": 8241,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8246,
+          "line": 8256,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8261,
+          "line": 8270,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8275,
+          "line": 8285,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8290,
+          "line": 8289,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8294,
+          "line": 8301,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8306,
+          "line": 8340,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8345,
+          "line": 8373,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8378,
+          "line": 8379,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8384,
+          "line": 8403,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8408,
+          "line": 8410,
           "name": "if",
           "documented": false,
           "section": null
@@ -6542,211 +6530,211 @@
           "section": null
         },
         {
-          "line": 8425,
+          "line": 8428,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8433,
+          "line": 8442,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8447,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 8492,
+          "line": 8487,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 8497,
+          "line": 8492,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8521,
+          "line": 8516,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8559,
+          "line": 8554,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 8565,
+          "line": 8560,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8589,
+          "line": 8584,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8591,
+          "line": 8586,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8599,
+          "line": 8594,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8601,
+          "line": 8596,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8609,
+          "line": 8604,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8611,
+          "line": 8606,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8622,
+          "line": 8617,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8625,
+          "line": 8620,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8628,
+          "line": 8623,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8641,
+          "line": 8636,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8698,
+          "line": 8693,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 8702,
+          "line": 8697,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8712,
+          "line": 8707,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 8714,
+          "line": 8709,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8725,
+          "line": 8720,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8763,
+          "line": 8758,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8773,
+          "line": 8768,
           "name": "impShowSystemLibDetail",
           "documented": false,
           "section": null
         },
         {
-          "line": 8787,
+          "line": 8782,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8794,
+          "line": 8789,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8839,
+          "line": 8834,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8854,
+          "line": 8849,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8894,
+          "line": 8889,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8897,
+          "line": 8892,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8908,
+          "line": 8903,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8953,
+          "line": 8948,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 8962,
+          "line": 8957,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9005,
+          "line": 9000,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 9006,
           "name": "if",
           "documented": false,
           "section": null
@@ -6764,139 +6752,133 @@
           "section": null
         },
         {
-          "line": 9021,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 9043,
+          "line": 9038,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9048,
+          "line": 9043,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 9047,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 9050,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
           "line": 9052,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 9055,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 9057,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 9066,
+          "line": 9061,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9068,
+          "line": 9063,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 9074,
+          "line": 9069,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9084,
+          "line": 9079,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9097,
+          "line": 9092,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9124,
+          "line": 9119,
           "name": "mouseenter",
           "documented": false,
           "section": null
         },
         {
-          "line": 9126,
+          "line": 9121,
           "name": "mouseleave",
           "documented": false,
           "section": null
         },
         {
-          "line": 9131,
+          "line": 9126,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9139,
+          "line": 9134,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9142,
+          "line": 9137,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9156,
+          "line": 9151,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 9167,
+          "line": 9162,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 9177,
+          "line": 9172,
           "name": "exportSingleLibrary",
           "documented": false,
           "section": null
         },
         {
-          "line": 9180,
+          "line": 9175,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9191,
+          "line": 9186,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 9282,
+          "line": 9277,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9309,
+          "line": 9304,
           "name": "resolveAllDependencyLibIds",
           "documented": true,
           "section": null,
@@ -6908,31 +6890,31 @@
           ]
         },
         {
-          "line": 9317,
+          "line": 9312,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 9322,
+          "line": 9317,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9327,
+          "line": 9322,
           "name": "walk",
           "documented": false,
           "section": null
         },
         {
-          "line": 9339,
+          "line": 9334,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9357,
+          "line": 9352,
           "name": "exportLibraryWithDependencies",
           "documented": true,
           "section": null,
@@ -6948,170 +6930,176 @@
           ]
         },
         {
-          "line": 9370,
+          "line": 9365,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9474,
+          "line": 9469,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9483,
+          "line": 9478,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9504,
+          "line": 9499,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9517,
+          "line": 9512,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9527,
+          "line": 9522,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9553,
+          "line": 9548,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9566,
+          "line": 9561,
           "name": "expArchPopulateModal",
           "documented": false,
           "section": null
         },
         {
-          "line": 9574,
+          "line": 9569,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9596,
+          "line": 9591,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9603,
+          "line": 9598,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9634,
+          "line": 9629,
           "name": "expArchUpdateCount",
           "documented": false,
           "section": null
         },
         {
-          "line": 9641,
+          "line": 9636,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 9646,
+          "line": 9641,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9654,
+          "line": 9649,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 9660,
+          "line": 9655,
+          "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 9661,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 9666,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 9671,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9677,
+          "line": 9672,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9689,
+          "line": 9684,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 9702,
+          "line": 9697,
           "name": "getArchiveIconPng",
           "documented": false,
           "section": null
         },
         {
-          "line": 9713,
+          "line": 9708,
           "name": "expArchCreateArchive",
           "documented": false,
           "section": null
         },
         {
-          "line": 9722,
+          "line": 9717,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9833,
+          "line": 9828,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9842,
+          "line": 9837,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9864,
+          "line": 9859,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9879,
+          "line": 9874,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9905,
+          "line": 9900,
           "name": "impArchImportArchive",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 9903,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -7122,139 +7110,139 @@
           "section": null
         },
         {
-          "line": 9913,
+          "line": 9932,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9937,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 9955,
+          "line": 9950,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 9961,
+          "line": 9956,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9970,
+          "line": 9965,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9978,
+          "line": 9973,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 9980,
+          "line": 9975,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10001,
+          "line": 9996,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10018,
+          "line": 10013,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10021,
+          "line": 10016,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10028,
+          "line": 10023,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10067,
+          "line": 10062,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10069,
+          "line": 10064,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10077,
+          "line": 10072,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10079,
+          "line": 10074,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10087,
+          "line": 10082,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10089,
+          "line": 10084,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10100,
+          "line": 10095,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10155,
+          "line": 10150,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10158,
+          "line": 10153,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10185,
+          "line": 10180,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 10187,
+          "line": 10182,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10196,
+          "line": 10191,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 10222,
           "name": "if",
           "documented": false,
           "section": null
@@ -7266,133 +7254,133 @@
           "section": null
         },
         {
-          "line": 10232,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 10268,
+          "line": 10263,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10276,
+          "line": 10271,
           "name": "mouseenter",
           "documented": false,
           "section": null
         },
         {
-          "line": 10280,
+          "line": 10275,
           "name": "mouseleave",
           "documented": false,
           "section": null
         },
         {
-          "line": 10284,
+          "line": 10279,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10295,
+          "line": 10290,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10306,
+          "line": 10301,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10313,
+          "line": 10308,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10328,
+          "line": 10323,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10340,
+          "line": 10335,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10351,
+          "line": 10346,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10354,
+          "line": 10349,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10360,
+          "line": 10355,
           "name": "showDeleteConfirmModal",
           "documented": false,
           "section": null
         },
         {
-          "line": 10378,
+          "line": 10373,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10393,
+          "line": 10388,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10402,
+          "line": 10397,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10413,
+          "line": 10408,
           "name": "showRegulatedModeConfirmModal",
           "documented": false,
           "section": null
         },
         {
-          "line": 10420,
+          "line": 10415,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10464,
+          "line": 10459,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10473,
+          "line": 10468,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10484,
+          "line": 10479,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10489,
+          "line": 10484,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 10508,
           "name": "if",
           "documented": false,
           "section": null
@@ -7404,110 +7392,110 @@
           "section": null
         },
         {
-          "line": 10518,
+          "line": 10522,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10527,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 10529,
+          "line": 10524,
           "name": "for",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 10531,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 10533,
+          "name": "if",
           "documented": false,
           "section": null
         },
         {
           "line": 10536,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 10538,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 10541,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 10542,
+          "line": 10537,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10561,
+          "line": 10556,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10572,
+          "line": 10567,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10582,
+          "line": 10577,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10594,
+          "line": 10589,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10628,
+          "line": 10623,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 10631,
+          "line": 10626,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10644,
+          "line": 10639,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 10648,
+          "line": 10643,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 10651,
+          "line": 10646,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10660,
+          "line": 10655,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10668,
+          "line": 10663,
           "name": "impLoadAndInstall",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 10666,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -7518,31 +7506,31 @@
           "section": null
         },
         {
-          "line": 10676,
+          "line": 10681,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10686,
+          "line": 10691,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10696,
+          "line": 10701,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10706,
+          "line": 10705,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10710,
+          "line": 10717,
           "name": "if",
           "documented": false,
           "section": null
@@ -7566,158 +7554,164 @@
           "section": null
         },
         {
-          "line": 10737,
+          "line": 10746,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10751,
+          "line": 10748,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10753,
+          "line": 10758,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10763,
+          "line": 10803,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10808,
+          "line": 10807,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10812,
+          "line": 10818,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10823,
+          "line": 10824,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10829,
+          "line": 10833,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10838,
+          "line": 10844,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10849,
+          "line": 10858,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10863,
+          "line": 10868,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10873,
+          "line": 10879,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10884,
+          "line": 10892,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10897,
+          "line": 10902,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10907,
+          "line": 10915,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10920,
+          "line": 10928,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10933,
+          "line": 10930,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10935,
+          "line": 10963,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 10968,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11001,
+          "line": 10996,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 11016,
+          "line": 11011,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11027,
+          "line": 11022,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11041,
+          "line": 11036,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 11043,
+          "line": 11038,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 11045,
+          "line": 11040,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11055,
+          "line": 11050,
           "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11053,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11057,
+          "name": "for",
           "documented": false,
           "section": null
         },
@@ -7728,20 +7722,14 @@
           "section": null
         },
         {
-          "line": 11062,
+          "line": 11071,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 11063,
+          "line": 11093,
           "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11076,
-          "name": "for",
           "documented": false,
           "section": null
         },
@@ -7752,109 +7740,103 @@
           "section": null
         },
         {
-          "line": 11103,
+          "line": 11111,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11116,
+          "line": 11118,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11123,
+          "line": 11126,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11131,
+          "line": 11128,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11133,
+          "line": 11137,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11142,
+          "line": 11139,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11144,
+          "line": 11150,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11155,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11223,
+          "line": 11218,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 11225,
+          "line": 11220,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11235,
+          "line": 11230,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11269,
+          "line": 11264,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11273,
+          "line": 11268,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11277,
+          "line": 11272,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11286,
+          "line": 11281,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11314,
+          "line": 11309,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11342,
+          "line": 11337,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 11369,
+          "line": 11364,
           "name": "generateLibraryAuditLog",
           "documented": true,
           "section": null,
@@ -7866,19 +7848,25 @@
           ]
         },
         {
-          "line": 11416,
+          "line": 11411,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11420,
+          "line": 11415,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 11438,
+          "line": 11433,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11449,
           "name": "if",
           "documented": false,
           "section": null
@@ -7890,32 +7878,32 @@
           "section": null
         },
         {
-          "line": 11459,
+          "line": 11478,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11483,
+          "line": 11489,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11494,
+          "line": 11507,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11512,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11516,
+          "line": 11511,
           "name": "for",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11540,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -7926,37 +7914,31 @@
           "section": null
         },
         {
-          "line": 11550,
+          "line": 11567,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11572,
+          "line": 11571,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11576,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11627,
+          "line": 11622,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 11636,
+          "line": 11631,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 11648,
+          "line": 11643,
           "name": "verifyAuditLogIntegrity",
           "documented": true,
           "section": null,
@@ -7968,67 +7950,73 @@
           ]
         },
         {
-          "line": 11655,
+          "line": 11650,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11673,
+          "line": 11668,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11686,
+          "line": 11681,
           "name": "showAuditVerifyResult",
           "documented": false,
           "section": null
         },
         {
-          "line": 11703,
+          "line": 11698,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 11724,
+          "line": 11719,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 11731,
+          "line": 11726,
           "name": "repairPopulateModal",
           "documented": true,
           "section": null
         },
         {
-          "line": 11742,
+          "line": 11737,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11759,
+          "line": 11754,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11771,
+          "line": 11766,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11792,
+          "line": 11787,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11821,
+          "line": 11816,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11831,
           "name": "if",
           "documented": false,
           "section": null
@@ -8040,7 +8028,13 @@
           "section": null
         },
         {
-          "line": 11841,
+          "line": 11857,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11858,
           "name": "if",
           "documented": false,
           "section": null
@@ -8052,44 +8046,38 @@
           "section": null
         },
         {
-          "line": 11863,
+          "line": 11870,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11867,
+          "line": 11877,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11875,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11882,
-          "name": "if",
+          "line": 11922,
+          "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 11927,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11932,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11941,
+          "line": 11936,
           "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 11941,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -8100,37 +8088,31 @@
           "section": null
         },
         {
-          "line": 11951,
+          "line": 11956,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11961,
+          "line": 11962,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 11967,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 11981,
+          "line": 11976,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 11998,
+          "line": 11993,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12019,
+          "line": 12014,
           "name": "repairLibraryFromCache",
           "documented": true,
           "section": null,
@@ -8146,79 +8128,79 @@
           ]
         },
         {
-          "line": 12022,
+          "line": 12017,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12043,
+          "line": 12038,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12050,
+          "line": 12045,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12067,
+          "line": 12062,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12075,
+          "line": 12070,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12095,
+          "line": 12090,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12097,
+          "line": 12092,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12105,
+          "line": 12100,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12107,
+          "line": 12102,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12115,
+          "line": 12110,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12117,
+          "line": 12112,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12137,
+          "line": 12132,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12169,
+          "line": 12164,
           "name": "showGenericSuccessModal",
           "documented": true,
           "section": null,
@@ -8258,7 +8240,13 @@
           ]
         },
         {
-          "line": 12175,
+          "line": 12170,
+          "name": "if",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12174,
           "name": "if",
           "documented": false,
           "section": null
@@ -8270,193 +8258,205 @@
           "section": null
         },
         {
-          "line": 12184,
+          "line": 12185,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12190,
+          "line": 12189,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12194,
+          "line": 12198,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12203,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12227,
+          "line": 12222,
           "name": "ulibUpdateLibFileList",
           "documented": true,
           "section": null
         },
         {
-          "line": 12230,
+          "line": 12225,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12239,
+          "line": 12234,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12262,
+          "line": 12257,
           "name": "ulibUpdateDemoFileList",
           "documented": true,
           "section": null
         },
         {
-          "line": 12265,
+          "line": 12260,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12286,
+          "line": 12281,
           "name": "ulibUpdateComWarning",
           "documented": true,
           "section": null
         },
         {
-          "line": 12288,
+          "line": 12283,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12301,
+          "line": 12296,
           "name": "scanUnsignedLibraries",
           "documented": true,
           "section": null
         },
         {
-          "line": 12308,
+          "line": 12303,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12316,
+          "line": 12311,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 12354,
+          "line": 12349,
           "name": "scanDir",
           "documented": false,
           "section": null
         },
         {
-          "line": 12391,
+          "line": 12386,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12407,
+          "line": 12402,
           "name": "scanDirFlat",
           "documented": false,
           "section": null
         },
         {
-          "line": 12476,
+          "line": 12471,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12511,
+          "line": 12506,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12518,
+          "line": 12513,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12530,
+          "line": 12525,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12536,
+          "line": 12531,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12563,
+          "line": 12558,
           "name": "buildUnsignedLibraryCard",
           "documented": true,
           "section": null
         },
         {
-          "line": 12573,
+          "line": 12568,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12581,
+          "line": 12576,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12588,
+          "line": 12583,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12615,
+          "line": 12610,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 12624,
+          "line": 12619,
           "name": "showUnsignedLibDetail",
           "documented": true,
           "section": null
         },
         {
-          "line": 12626,
+          "line": 12621,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12633,
+          "line": 12628,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12672,
+          "line": 12667,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12695,
+          "line": 12690,
+          "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12691,
+          "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12692,
+          "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12693,
           "name": "click",
           "documented": false,
           "section": null
@@ -8468,146 +8468,134 @@
           "section": null
         },
         {
-          "line": 12697,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12698,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12701,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12705,
+          "line": 12700,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 12718,
+          "line": 12713,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12740,
+          "line": 12735,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 12755,
+          "line": 12750,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 12758,
+          "line": 12753,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 12776,
+          "line": 12771,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 12778,
+          "line": 12773,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12805,
+          "line": 12800,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 12807,
+          "line": 12802,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 12817,
+          "line": 12812,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 12819,
+          "line": 12814,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12839,
+          "line": 12834,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 12855,
+          "line": 12850,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 12868,
+          "line": 12863,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 12869,
+          "line": 12864,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12878,
+          "line": 12873,
           "name": "change",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12886,
+          "name": "click",
           "documented": false,
           "section": null
         },
         {
           "line": 12891,
-          "name": "click",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12896,
           "name": "input",
           "documented": false,
           "section": null
         },
         {
-          "line": 12903,
+          "line": 12898,
           "name": "blur",
           "documented": false,
           "section": null
         },
         {
-          "line": 12907,
+          "line": 12902,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12925,
+          "line": 12920,
           "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 12928,
+          "name": "if",
           "documented": false,
           "section": null
         },
@@ -8630,103 +8618,97 @@
           "section": null
         },
         {
-          "line": 12948,
+          "line": 12951,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12956,
+          "line": 12953,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12958,
+          "line": 12967,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12972,
+          "line": 12975,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12980,
+          "line": 12977,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 12982,
-          "name": "if",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 12995,
+          "line": 12990,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 13024,
+          "line": 13019,
           "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
-          "line": 13030,
+          "line": 13025,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13038,
+          "line": 13033,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 13047,
+          "line": 13042,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13053,
+          "line": 13048,
           "name": "click",
           "documented": false,
           "section": null
         },
         {
-          "line": 13067,
+          "line": 13062,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13076,
+          "line": 13071,
           "name": "click",
+          "documented": false,
+          "section": null
+        },
+        {
+          "line": 13080,
+          "name": "setTimeout",
           "documented": false,
           "section": null
         },
         {
           "line": 13085,
-          "name": "setTimeout",
-          "documented": false,
-          "section": null
-        },
-        {
-          "line": 13090,
           "name": "change",
           "documented": false,
           "section": null
         },
         {
-          "line": 13111,
+          "line": 13106,
           "name": "registerUnsignedLibrary",
           "documented": true,
           "section": null,
@@ -8750,85 +8732,85 @@
           ]
         },
         {
-          "line": 13115,
+          "line": 13110,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13119,
+          "line": 13114,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13156,
+          "line": 13151,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13210,
+          "line": 13205,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 13212,
+          "line": 13207,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13221,
+          "line": 13216,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13261,
+          "line": 13256,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13287,
+          "line": 13282,
           "name": "exportUnsignedLibrary",
           "documented": true,
           "section": null
         },
         {
-          "line": 13290,
+          "line": 13285,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13307,
+          "line": 13302,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 13315,
+          "line": 13310,
           "name": "for",
           "documented": false,
           "section": null
         },
         {
-          "line": 13397,
+          "line": 13392,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13434,
+          "line": 13429,
           "name": "if",
           "documented": false,
           "section": null
         },
         {
-          "line": 13463,
+          "line": 13458,
           "name": "getUnsignedLibraries",
           "documented": true,
           "section": null
@@ -8901,17 +8883,17 @@
           "module": "diskdb"
         },
         {
-          "line": 2226,
+          "line": 2223,
           "alias": "execSync",
           "module": "child_process"
         },
         {
-          "line": 6799,
+          "line": 6796,
           "alias": "os",
           "module": "os"
         },
         {
-          "line": 6819,
+          "line": 6816,
           "alias": "exec",
           "module": "child_process"
         }
@@ -9464,7 +9446,6 @@
         "cli.js",
         "cli.js",
         "cli.js",
-        "lib/shared.js",
         "lib/shared.js",
         "lib/shared.js",
         "lib/shared.js",
@@ -10407,16 +10388,6 @@
         "lib/service.js",
         "html/js/main.js",
         "html/js/syscheck-worker.js"
-      ]
-    },
-    "signPackageZip": {
-      "definedIn": [
-        "lib/shared.js"
-      ],
-      "referencedIn": [
-        "cli.js",
-        "lib/service.js",
-        "html/js/main.js"
       ]
     },
     "signPackageZipWithCert": {

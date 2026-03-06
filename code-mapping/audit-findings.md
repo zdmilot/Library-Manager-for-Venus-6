@@ -132,8 +132,11 @@ remaining gap. No unmitigated injection vectors found.
 ### 20. No `--require-signature` Flag in CLI (OPEN)
 Unsigned packages are silently accepted on import. A strict mode would reject them.
 
-### 21. No `--reject-legacy` Flag in CLI (OPEN)
-Old-format packages (pre-v2 signing) are detected but always accepted.
+### 21. ~~Legacy v1.0 HMAC-only Signatures Accepted~~ (RESOLVED)
+- **Previous**: Pre-v2 signed packages (HMAC-only, no Ed25519) were accepted with a warning.
+- **Fix applied**: `verifyPackageSignature()` now rejects v1.0 signatures as invalid.
+  `signPackageZip()` (the v1.0 signer) has been removed from shared.js and all callers.
+  Packages created without a signing key are now left unsigned rather than v1.0-signed.
 
 ---
 
@@ -158,3 +161,4 @@ Old-format packages (pre-v2 signing) are detected but always accepted.
 | 17 | computeFileHash edge case | OPEN — low priority |
 | 18 | isValidLibraryName dots | OPEN — low priority |
 | 19 | HMAC format validation | Verified RESOLVED |
+| 21 | Legacy v1.0 signatures accepted | **FIXED** — v1.0 rejected, `signPackageZip()` removed |

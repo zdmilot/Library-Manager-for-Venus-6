@@ -1,16 +1,16 @@
 # Code Map: lib/service.js
 
-**File**: `lib/service.js` | **Lines**: 1737 | **Purpose**: Service layer used by COM bridge
+**File**: `lib/service.js` | **Lines**: 1732 | **Purpose**: Service layer used by COM bridge
 
 ## Imports
 
 | Line | Module | Alias |
 |------|--------|-------|
-| L28  | `fs` | `fs` |
-| L29  | `path` | `path` |
-| L30  | `os` | `os` |
-| L31  | `adm-zip` | `AdmZip` |
-| L33  | `./shared` | `shared` |
+| L26  | `fs` | `fs` |
+| L27  | `path` | `path` |
+| L28  | `os` | `os` |
+| L29  | `adm-zip` | `AdmZip` |
+| L30  | `./shared` | `shared` |
 
 ## Constants
 
@@ -64,19 +64,19 @@
 | 3 | `importLibrary` | L671 | `ctx, opts{filePath,force,noGroup,noCache,...}` | Import .hxlibpkg |
 | 4 | `importArchive` | L790 | `ctx, opts{filePath,force,noGroup,noCache,...}` | Import .hxlibarch |
 | 5 | `exportLibrary` | L884 | `ctx, opts{name/id,output,signKey,signCert}` | Export as .hxlibpkg |
-| 6 | `exportArchive` | L982 | `ctx, opts{output,all,names,ids,...}` | Export as .hxlibarch |
-| 7 | `deleteLibrary` | L1096 | `ctx, opts{name/id,hard,keepFiles}` | Delete library |
-| 8 | `createPackage` | L1170 | `ctx, opts{specPath,output,...}` | Create .hxlibpkg from spec |
-| 9 | `listVersions` | L1325 | `ctx, opts{name}` | List cached versions |
-| 10 | `rollbackLibrary` | L1346 | `ctx, opts{name,version,index,...}` | Rollback to cached version |
-| 11 | `verifyPackage` | L1431 | `ctx, opts{filePath}` | Verify package signatures |
-| 12 | `generateSyslibHashes` | L1494 | `ctx, opts{sourceDir,output}` | Generate system lib baseline |
-| 13 | `verifySyslibHashes` | L1555 | `ctx, opts{hashFile,libDir}` | Verify system lib integrity |
-| 14 | `generateKeypair` | L1604 | `ctx, opts{publisher,org,outputDir,...}` | Generate Ed25519 keypair |
-| 15 | `listPublishers` | L1644 | `ctx` | List publisher certs |
-| 16 | `getAuditTrail` | L1666 | `ctx, opts{limit}` | Read audit trail |
-| 17 | `getSettings` | L1686 | `ctx` | Get app settings |
-| 18 | `getSystemLibraries` | L1700 | — | Read system_libraries.json |
+| 6 | `exportArchive` | L981 | `ctx, opts{output,all,names,ids,...}` | Export as .hxlibarch |
+| 7 | `deleteLibrary` | L1094 | `ctx, opts{name/id,hard,keepFiles}` | Delete library |
+| 8 | `createPackage` | L1168 | `ctx, opts{specPath,output,...}` | Create .hxlibpkg from spec |
+| 9 | `listVersions` | L1322 | `ctx, opts{name}` | List cached versions |
+| 10 | `rollbackLibrary` | L1343 | `ctx, opts{name,version,index,...}` | Rollback to cached version |
+| 11 | `verifyPackage` | L1428 | `ctx, opts{filePath}` | Verify package signatures |
+| 12 | `generateSyslibHashes` | L1491 | `ctx, opts{sourceDir,output}` | Generate system lib baseline |
+| 13 | `verifySyslibHashes` | L1552 | `ctx, opts{hashFile,libDir}` | Verify system lib integrity |
+| 14 | `generateKeypair` | L1601 | `ctx, opts{publisher,org,outputDir,...}` | Generate Ed25519 keypair |
+| 15 | `listPublishers` | L1641 | `ctx` | List publisher certs |
+| 16 | `getAuditTrail` | L1663 | `ctx, opts{limit}` | Read audit trail |
+| 17 | `getSettings` | L1683 | `ctx` | Get app settings |
+| 18 | `getSystemLibraries` | L1697 | — | Read system_libraries.json |
 
 ## Call Graph
 
@@ -98,7 +98,7 @@ importLibrary ──► shared.unpackContainer
 
 exportLibrary ──► findLibrary
               ──► resolveSigningCredentials
-              ──► shared.signPackageZipWithCert / signPackageZip
+              ──► shared.signPackageZipWithCert
               ──► shared.packContainer
 
 deleteLibrary ──► findLibrary

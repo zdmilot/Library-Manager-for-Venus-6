@@ -1708,9 +1708,6 @@
 					}
 				});
 
-				// Sign the package
-				signPackageZip(zip);
-
 				// Wrap in binary container and cache to package store
 				var pkgBuffer = packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG);
 				var storedPath = cachePackageToStore(pkgBuffer, libName, "system");
@@ -7278,7 +7275,6 @@
 
 		// ---- Package signing & hashing (delegated to shared module) ----
 		var computeLibraryHashes  = shared.computeLibraryHashes;
-		var signPackageZip        = shared.signPackageZip;
 		var signPackageZipWithCert = shared.signPackageZipWithCert;
 		var verifyPackageSignature = shared.verifyPackageSignature;
 		var validatePublisherCertificate = shared.validatePublisherCertificate;
@@ -7402,8 +7398,7 @@
 					};
 				}
 			}
-			// Fallback to legacy HMAC signing
-			signPackageZip(zip);
+			// No signing credentials available — leave package unsigned
 			return { codeSigned: false, publisher: null, keyId: null };
 		}
 

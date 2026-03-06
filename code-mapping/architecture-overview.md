@@ -5,15 +5,15 @@
 ```
 Library-Manager-for-Venus-6/
 ├── package.json              # NW.js manifest + npm config (v1.6.5)
-├── cli.js                    # CLI entry point (2816 lines)
+├── cli.js                    # CLI entry point (2810 lines)
 ├── com-bridge.js             # COM bridge dispatcher (164 lines)
 ├── lib/
-│   ├── shared.js             # Shared crypto, validation, signing (1848 lines)
-│   └── service.js            # Service layer — COM bridge backend (1736 lines)
+│   ├── shared.js             # Shared crypto, validation, signing (1821 lines)
+│   └── service.js            # Service layer — COM bridge backend (1732 lines)
 ├── html/
 │   ├── index.html            # GUI shell (NW.js main window)
 │   ├── js/
-│   │   ├── main.js           # GUI logic (13474 lines)
+│   │   ├── main.js           # GUI logic (13469 lines)
 │   │   ├── syscheck-worker.js# System library check web worker
 │   │   ├── bootstrap.min.js  # Bootstrap 4 JS
 │   │   ├── jquery-2.1.3.min.js
