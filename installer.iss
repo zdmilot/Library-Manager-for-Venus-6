@@ -187,7 +187,7 @@ begin
       '  - An audit log is maintained for all library operations' + #13#10 +
       '  - Import/export operations require authorized group membership' + #13#10 +
       '  - Action comments and signatures may be enforced' + #13#10 + #13#10 +
-      'This mode is designed for GxP-regulated laboratory environments ' +
+      'This mode is designed for regulated laboratory environments ' +
       'where strict access control and traceability are required.' + #13#10 + #13#10 +
       'Click Yes to enable Regulated Environment Mode, or No to leave it disabled.',
       mbConfirmation, MB_YESNO) = IDYES);
@@ -338,7 +338,7 @@ begin
 
   RegulatedCheckbox := TNewCheckBox.Create(WizardForm);
   RegulatedCheckbox.Parent := ConfigPage.Surface;
-  RegulatedCheckbox.Caption := 'Enable Regulated Environment Mode (GxP)';
+  RegulatedCheckbox.Caption := 'Enable Regulated Environment Mode';
   RegulatedCheckbox.Top := SectionLabel.Top + SectionLabel.Height + 8;
   RegulatedCheckbox.Left := 8;
   RegulatedCheckbox.Width := ConfigPage.SurfaceWidth - 16;
@@ -457,7 +457,7 @@ begin
   Memo := Memo + 'Application Configuration:' + NewLine;
   Memo := Memo + Space + 'Regulated Environment Mode: ';
   if RegulatedCheckbox.Checked then
-    Memo := Memo + 'Enabled (GxP)' + NewLine
+    Memo := Memo + 'Enabled' + NewLine
   else
     Memo := Memo + 'Disabled' + NewLine;
 

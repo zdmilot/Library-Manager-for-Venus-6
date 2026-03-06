@@ -1,71 +1,71 @@
-## Terms of Use - Library Manager for VENUS 6
+Terms of Use - Library Manager for VENUS 6
 
-**Effective date:** March 3, 2026
-**Last updated:** March 3, 2026
+Effective date: March 3, 2026
+Last updated: March 3, 2026
 
-These Terms of Use ("Terms") govern your use of **Library Manager for VENUS 6** (the "App"). By installing, accessing, or using the App, you agree to these Terms. If you do not agree, do not use the App.
+These Terms of Use ("Terms") govern your use of Library Manager for VENUS 6 (the "App"). By installing, accessing, or using the App, you agree to these Terms. If you do not agree, do not use the App.
 
-### 1) About the App
+1) About the App
 
 The App is an independent, community-developed desktop application intended to help users manage Hamilton VENUS library packages and related files. The App is designed to run locally and can be used offline.
 
-### 2) Open source license governs
+2) Open source license governs
 
-The App is **open source** and is licensed under the **Apache License, Version 2.0** (the "License").
+The App is open source and is licensed under the Apache License, Version 2.0 (the "License").
 Your rights to use, reproduce, modify, distribute, and otherwise work with the App are granted under the License-not limited by these Terms.
 
-**Commercial use is permitted under the License.**
+Commercial use is permitted under the License.
 
-If there is any conflict between these Terms and the License regarding permissions related to the App's source code, **the License controls**.
+If there is any conflict between these Terms and the License regarding permissions related to the App's source code, the License controls.
 
-* Source code repository: `https://github.com/zdmilot/Library-Manager-for-Venus-6`
-* License text: `https://github.com/zdmilot/Library-Manager-for-Venus-6?tab=Apache-2.0-1-ov-file`
+Source code repository: https://github.com/zdmilot/Library-Manager-for-Venus-6
+License text: https://github.com/zdmilot/Library-Manager-for-Venus-6?tab=Apache-2.0-1-ov-file
 
-### 3) Attribution and notices
+3) Attribution and notices
 
 If you redistribute the App or derivative works (including modified versions), you must comply with the Apache 2.0 License requirements, which include (among other things) maintaining required copyright, license, and notice information, and providing attribution as required by the License.
 
-### 4) No affiliation with Hamilton Company
+4) No affiliation with Hamilton Company
 
-The App is **not** endorsed, released, distributed, sponsored, or associated with **Hamilton Company**. The App is an independent project and has no official relationship with Hamilton Company or any of its subsidiaries, partners, or affiliates.
+The App is not endorsed, released, distributed, sponsored, or associated with Hamilton Company. The App is an independent project and has no official relationship with Hamilton Company or any of its subsidiaries, partners, or affiliates.
 
-### 5) Trademarks and product names
+5) Trademarks and product names
 
 Hamilton product and platform names (including "VENUS," "VENUS 6," "Vantage," "ML STAR," "Nimbus," and related marks) are trademarks or registered trademarks of their respective owners. Use of these names within the App or documentation is for identification, interoperability, and descriptive purposes only. No ownership, endorsement, sponsorship, or affiliation is implied.
-**Hamilton Company has not reviewed or approved this App.**
+Hamilton Company has not reviewed or approved this App.
 
-### 6) Permitted use and user responsibilities
+6) Permitted use and user responsibilities
 
 You may use the App for lawful purposes and you are responsible for:
 
-* ensuring you have the rights/permission to access and modify any files you process with the App;
-* validating packages and libraries before deployment into production systems;
-* maintaining backups of important files and configuration;
-* implementing appropriate access controls on the machines where the App is used.
+- ensuring you have the rights/permission to access and modify any files you process with the App;
+- validating packages and libraries before deployment into production systems;
+- maintaining backups of important files and configuration;
+- implementing appropriate access controls on the machines where the App is used.
 
-### 7) Regulated and high-stakes environments
+7) Regulated and high-stakes environments
 
-You are solely responsible for determining whether the App is appropriate for use in regulated or controlled environments and for completing any required validation, qualification, change control, audit readiness, and compliance activities (including, where applicable, GxP and 21 CFR Part 11 expectations and your organization's SOPs and IT/security policies).
+You are solely responsible for determining whether the App is appropriate for use in regulated or controlled environments and for completing any required validation, qualification, change control, audit readiness, and compliance activities (including, where applicable, 21 CFR Part 11 expectations and your organization's SOPs and IT/security policies).
 
 If the App provides a "regulated environment mode," it is provided as an optional feature intended to help reduce certain operational risks (for example, by disabling optional behaviors, removing external links, etc). Regulated environment mode does not guarantee compliance with any law, regulation, guidance, or internal policy, and does not replace required validation/qualification, documentation, change control, audit readiness, or security controls in your environment. The developer makes no warranties or representations regarding regulated use, and assumes no liability arising from reliance on or use of regulated environment mode.
 
-### 8) External links and third-party services
+8) External links and third-party services
 
 The App may include links that open in your web browser (for example, documentation or issue reporting). Your use of third-party sites or services is governed by their own terms and privacy practices. The developer is not responsible for third-party websites or services.
 
-### 9) Third-party components
+9) Third-party components
 
 The App may include or depend on third-party libraries or runtime components governed by their own licenses. Any required third-party license notices will be included with the App distribution, repository, or documentation.
 
-### 10) Updates and changes
+10) Updates and changes
 
 The App may be updated from time to time. Updates may add, modify, or remove features. If you do not want to use an updated version, your remedy is to stop using the App and uninstall it, subject to your organization's policies.
 
-### 11) Disclaimer of warranties
+11) Disclaimer of warranties
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE APP IS PROVIDED **"AS IS"** AND **"AS AVAILABLE"** WITHOUT WARRANTY OF ANY KIND. THE DEVELOPER DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, AND NON-INFRINGEMENT. YOU USE THE APP AT YOUR OWN RISK.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND. THE DEVELOPER DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, AND NON-INFRINGEMENT. YOU USE THE APP AT YOUR OWN RISK.
 
-### 12) Limitation of liability
+12) Limitation of liability
 
 TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE DEVELOPER, AUTHORS, OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, OR FOR ANY LOSS OF PROFITS, LOSS OF DATA, BUSINESS INTERRUPTION, SYSTEM FAILURE, OR OTHER DAMAGES ARISING OUT OF OR RELATING TO THE APP OR THESE TERMS, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
@@ -73,15 +73,15 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE TOTAL LIABILITY OF THE DEVELOPER FOR
 
 (Some jurisdictions do not allow certain limitations, so some of the above may not apply to you.)
 
-### 13) Termination
+13) Termination
 
 These Terms remain in effect while you use the App. If you do not comply with these Terms, you must stop using the App. Your rights to the source code and redistribution are governed by the Apache 2.0 License, including its termination provisions if its conditions are not met.
 
-### 14) Governing law
+14) Governing law
 
-These Terms are governed by the laws of the **Commonwealth of Massachusetts**, United States of America, without regard to conflict of law principles.
+These Terms are governed by the laws of the Commonwealth of Massachusetts, United States of America, without regard to conflict of law principles.
 
-### 15) Contact
+15) Contact
 
-Publisher/Developer: **Zachary Milot**
+Publisher/Developer: Zachary Milot
 Github: https://github.com/zdmilot
