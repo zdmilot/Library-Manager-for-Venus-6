@@ -3923,90 +3923,175 @@
 			var statusEl = $(".pretty-status-text");
 			statusEl.css("display", "inline").text("Working...");
 
+			setTimeout(function() {
 			try {
-				var jsonFiles = [
-					'settings.json',
-					'installed_libs.json',
-					'groups.json',
-					'tree.json',
-					'links.json',
-					'unsigned_libs.json'
-				];
+				// Resolve the VENUS Library folder
+				var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
+				var libDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
 
-				// 1. Prettify all JSON database files
-				var prettified = 0;
-				jsonFiles.forEach(function (file) {
-					var filePath = path.join(LOCAL_DATA_DIR, file);
-					if (fs.existsSync(filePath)) {
-						try {
-							var raw = fs.readFileSync(filePath, 'utf8');
-							var data = JSON.parse(raw);
-							fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-							prettified++;
-						} catch (e) {
-							console.warn('Could not prettify ' + file + ': ' + e.message);
-						}
-					}
+				if (!fs.existsSync(libDir)) {
+					statusEl.text("Library folder not found.").css("color", "var(--danger)");
+					return;
+				}
+
+				// Build sets of filenames already claimed by system or installed libraries
+				var claimedFiles = {};
+				var sysLibs = getAllSystemLibraries();
+				sysLibs.forEach(function(sLib) {
+					(sLib.discovered_files || []).forEach(function(f) {
+						var normalized = f.replace(/^Library[\\\/]/i, '').toLowerCase();
+						claimedFiles[normalized] = true;
+					});
+				});
+				var installedLibs = db_installed_libs.installed_libs.find() || [];
+				installedLibs.forEach(function(lib) {
+					if (lib.deleted) return;
+					(lib.library_files || []).forEach(function(f) {
+						claimedFiles[f.toLowerCase()] = true;
+					});
 				});
 
-				// 2. Remove orphaned group references from tree
-				var treePath = path.join(LOCAL_DATA_DIR, 'tree.json');
-				if (fs.existsSync(treePath)) {
-					try {
-						var treeRaw = fs.readFileSync(treePath, 'utf8');
-						var treeData = JSON.parse(treeRaw);
-						var defaultGroupIds = Object.keys(DEFAULT_GROUPS);
-						var customGroups = db_groups.groups.find() || [];
-						var customGroupIds = customGroups.map(function (g) { return g._id; });
-						var validGroupIds = defaultGroupIds.concat(customGroupIds);
-						var before = treeData.length;
-						treeData = treeData.filter(function (entry) {
-							return validGroupIds.indexOf(entry["group-id"]) !== -1;
-						});
-						if (treeData.length !== before) {
-							console.log('Removed ' + (before - treeData.length) + ' orphaned tree entries');
+				// Scan for unclaimed .hsl and .smt files (same as unsigned library scan)
+				var targetExts = ['.hsl', '.smt'];
+				var relatedExts = ['.hs_', '.sub', '.bmp', '.ico', '.chm', '.stp', '.res', '.fdb', '.sii', '.dec', '.dll'];
+				var allExts = targetExts.concat(relatedExts);
+				var discovered = {}; // libraryName -> { files: [] }
+
+				function scanDir(dir, relBase) {
+					var entries;
+					try { entries = fs.readdirSync(dir); } catch(e) { return; }
+					entries.forEach(function(entry) {
+						var fullPath = path.join(dir, entry);
+						var relPath = relBase ? path.join(relBase, entry) : entry;
+						var stat;
+						try { stat = fs.statSync(fullPath); } catch(e) { return; }
+						if (stat.isDirectory()) {
+							var lowerEntry = entry.toLowerCase();
+							if (lowerEntry === 'librarymanagerforvenus6' ||
+								lowerEntry === 'librarypackages' ||
+								lowerEntry === '.librarymanagerforvenus6' ||
+								lowerEntry === 'libraryintegrityaudit') return;
+							scanDir(fullPath, relPath);
+							return;
 						}
-						fs.writeFileSync(treePath, JSON.stringify(treeData, null, 2), 'utf8');
-					} catch (e) {
-						console.warn('Could not clean tree.json: ' + e.message);
-					}
+						if (!stat.isFile()) return;
+						if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
+						var ext = path.extname(entry).toLowerCase();
+						if (allExts.indexOf(ext) === -1) return;
+						if (claimedFiles[relPath.toLowerCase()]) return;
+						if (claimedFiles[entry.toLowerCase()]) return;
+
+						if (targetExts.indexOf(ext) !== -1) {
+							var libName = path.basename(entry, ext);
+							var enuMatch = libName.match(/^(.+?)(Enu|Deu|Jpn|Chs|Kor|Fra|Esp|Por)$/i);
+							var baseName = enuMatch ? enuMatch[1] : libName;
+							if (!discovered[baseName]) {
+								discovered[baseName] = { files: [] };
+							}
+							if (discovered[baseName].files.indexOf(relPath) === -1) {
+								discovered[baseName].files.push(relPath);
+							}
+						}
+					});
 				}
 
-				// 3. Rebuild publisher registry
-				rebuildPublisherRegistry();
+				scanDir(libDir, '');
 
-				// Prettify publisher registry too
-				var regPath = path.join(LOCAL_DATA_DIR, 'publisher_registry.json');
-				if (fs.existsSync(regPath)) {
-					try {
-						var regRaw = fs.readFileSync(regPath, 'utf8');
-						var regData = JSON.parse(regRaw);
-						fs.writeFileSync(regPath, JSON.stringify(regData, null, 2), 'utf8');
-					} catch (e) {
-						console.warn('Could not prettify publisher_registry.json: ' + e.message);
-					}
+				// Gather related files for each discovered library
+				var allFiles = [];
+				function scanDirFlat(dir, relBase, result) {
+					var entries;
+					try { entries = fs.readdirSync(dir); } catch(e) { return; }
+					entries.forEach(function(entry) {
+						var fullPath = path.join(dir, entry);
+						var relPath = relBase ? path.join(relBase, entry) : entry;
+						var stat;
+						try { stat = fs.statSync(fullPath); } catch(e) { return; }
+						if (stat.isDirectory()) {
+							var lowerEntry = entry.toLowerCase();
+							if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+							if (entry.charAt(0) === '.') return;
+							scanDirFlat(fullPath, relPath, result);
+						} else if (stat.isFile()) {
+							if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
+							result.push(relPath);
+						}
+					});
 				}
+				try { scanDirFlat(libDir, '', allFiles); } catch(e) { allFiles = []; }
 
-				// Reconnect databases to pick up reformatted files
-				db_settings = db.connect(LOCAL_DATA_DIR, ['settings']);
-				db_links = db.connect(LOCAL_DATA_DIR, ['links']);
-				db_groups = db.connect(LOCAL_DATA_DIR, ['groups']);
-				db_tree = db.connect(LOCAL_DATA_DIR, ['tree']);
-				db_installed_libs = db.connect(LOCAL_DATA_DIR, ['installed_libs']);
-				db_unsigned_libs = db.connect(LOCAL_DATA_DIR, ['unsigned_libs']);
+				Object.keys(discovered).forEach(function(baseName) {
+					var baseNameLower = baseName.toLowerCase();
+					allFiles.forEach(function(relPath) {
+						if (claimedFiles[relPath.toLowerCase()]) return;
+						if (claimedFiles[path.basename(relPath).toLowerCase()]) return;
+						var fname = path.basename(relPath);
+						var fnameNoExt = path.basename(fname, path.extname(fname)).toLowerCase();
+						var ext = path.extname(fname).toLowerCase();
+						if (relatedExts.indexOf(ext) === -1) return;
+						if (fnameNoExt === baseNameLower || fnameNoExt.indexOf(baseNameLower) === 0) {
+							if (discovered[baseName].files.indexOf(relPath) === -1) {
+								discovered[baseName].files.push(relPath);
+							}
+						}
+					});
+				});
 
-				statusEl.text("Done! Prettified " + prettified + " files.").css("color", "var(--success)");
-				console.log('Make Library Pretty completed: prettified ' + prettified + ' files');
+				// Move each library's files into a named subdirectory
+				var moved = 0;
+				var libsMoved = 0;
+				Object.keys(discovered).sort().forEach(function(baseName) {
+					var entry = discovered[baseName];
+					var targetDir = path.join(libDir, baseName);
+					var filesMovedForLib = 0;
+
+					entry.files.forEach(function(relPath) {
+						var srcFull = path.join(libDir, relPath);
+						if (!fs.existsSync(srcFull)) return;
+						// Skip files already in the correct named subdirectory
+						var relDir = path.dirname(relPath);
+						if (relDir.toLowerCase() === baseName.toLowerCase()) return;
+
+						// Create the target directory if needed
+						if (!fs.existsSync(targetDir)) {
+							fs.mkdirSync(targetDir, { recursive: true });
+						}
+
+						var destFull = path.join(targetDir, path.basename(relPath));
+						// Avoid overwriting if a file with the same name already exists
+						if (fs.existsSync(destFull)) return;
+
+						try {
+							fs.renameSync(srcFull, destFull);
+							moved++;
+							filesMovedForLib++;
+						} catch(e) {
+							console.warn('Could not move ' + relPath + ' to ' + baseName + '/: ' + e.message);
+						}
+					});
+
+					if (filesMovedForLib > 0) libsMoved++;
+				});
+
+				if (moved > 0) {
+					statusEl.text("Done! Organized " + moved + " file" + (moved !== 1 ? "s" : "") + " into " + libsMoved + " librar" + (libsMoved !== 1 ? "ies" : "y") + ".").css("color", "var(--success)");
+					// Re-scan unsigned libraries so paths are updated
+					scanUnsignedLibraries(false);
+				} else {
+					statusEl.text("All unsigned library files are already organized.").css("color", "var(--success)");
+				}
+				console.log('Make Library Pretty completed: moved ' + moved + ' files into ' + libsMoved + ' directories');
 			} catch (e) {
 				statusEl.text("Error: " + e.message).css("color", "var(--danger)");
 				console.error('Make Library Pretty failed: ' + e.message);
 			}
+			}, 50);
 
 			setTimeout(function () {
 				statusEl.fadeOut(1000, function () {
 					statusEl.text("").css("color", "").css("display", "none");
 				});
-			}, 5000);
+			}, 8000);
 		}
 
 		// Settings > Links > favorite icon click (eye toggle: visible / hidden)

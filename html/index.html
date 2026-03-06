@@ -1635,7 +1635,7 @@
 
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Make Library Pretty</h6>
-							<p class="text-sm text-muted mb-2">Cleans up and optimizes the library database files by reformatting JSON data with proper indentation, removing orphaned group entries, and rebuilding the publisher registry. This makes the data files human-readable and resolves structural inconsistencies.</p>
+							<p class="text-sm text-muted mb-2">Scans the VENUS Library folder for unsigned (unmanaged) files and organizes them into named subdirectories based on their library name. Files already belonging to installed or system libraries are not affected.</p>
 							<div class="d-flex align-items-center">
 								<button class="btn btn-sm btn-outlined btn-make-library-pretty"><i class="fas fa-magic mr-1"></i>Make Library Pretty...</button>
 								<span class="ml-3 text-sm pretty-status-text text-muted" style="display:none;"></span>
@@ -1672,13 +1672,13 @@
 				<div class="modal-body delete-confirm-body">
 					<div class="delete-confirm-warning-box">
 						<p class="mb-2"><strong><i class="fas fa-exclamation-circle mr-1"></i>Warning: This is a destructive action.</strong></p>
-						<p class="mb-2">This operation will rewrite all library database files. While it preserves data content, the files will be restructured and reformatted. The following changes will be made:</p>
+						<p class="mb-2">This operation will move unsigned library files in the VENUS Library folder into named subdirectories based on their library name. The following changes will be made:</p>
 						<ul class="mb-2 pl-4">
-							<li>All JSON database files will be reformatted with indentation</li>
-							<li>Orphaned group references will be removed from the tree</li>
-							<li>The publisher registry will be rebuilt from scratch</li>
+							<li>Unsigned .hsl, .smt, and related files will be moved into library-named folders</li>
+							<li>Files belonging to installed or system libraries will not be touched</li>
+							<li>Files already in the correct subdirectory will be skipped</li>
 						</ul>
-						<p class="mb-0 text-danger"><strong>Back up your <code>local/</code> directory before proceeding if you want to be able to revert.</strong></p>
+						<p class="mb-0 text-danger"><strong>Back up your VENUS Library folder before proceeding if you want to be able to revert.</strong></p>
 					</div>
 					<div class="delete-item-input-section mt-3">
 						<label class="delete-confirm-label">To confirm, type "<strong>I Accept</strong>" in the box below</label>
