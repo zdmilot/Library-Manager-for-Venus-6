@@ -7021,7 +7021,7 @@
 			var allIncludes = [];
 			(libFiles || []).forEach(function(fname) {
 				var ext = path.extname(fname).toLowerCase();
-				if (ext !== '.hsl' && ext !== '.hs_') return;
+				if (ext !== '.hsl' && ext !== '.hs_' && ext !== '.hsi') return;
 				var fullPath = path.join(libBasePath, fname);
 				try {
 					var text = fs.readFileSync(fullPath, 'utf8');

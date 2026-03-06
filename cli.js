@@ -413,7 +413,7 @@ function extractRequiredDependencies(libFiles, libBasePath) {
     const allIncludes = [];
     (libFiles || []).forEach(function(fname) {
         const ext = path.extname(fname).toLowerCase();
-        if (ext !== '.hsl' && ext !== '.hs_') return;
+        if (ext !== '.hsl' && ext !== '.hs_' && ext !== '.hsi') return;
         const fullPath = path.join(libBasePath, fname);
         try {
             const text = fs.readFileSync(fullPath, 'utf8');
