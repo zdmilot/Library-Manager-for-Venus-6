@@ -1158,6 +1158,13 @@ function cmdImportArchive(args) {
 // ===========================================================================
 // COMMAND: export-lib
 // ===========================================================================
+
+/** Computes ZIP directory for a file, preserving subfolder structure. */
+function zipSubdir(baseZipDir, relPath) {
+    var relDir = path.dirname(relPath).replace(/\\/g, '/');
+    return relDir && relDir !== '.' ? baseZipDir + '/' + relDir : baseZipDir;
+}
+
 /** Handler for the `export-lib` CLI command. */
 function cmdExportLib(args) {
     if (!args['name'] && !args['id']) { die('--name or --id is required'); }
@@ -1224,12 +1231,12 @@ function cmdExportLib(args) {
     // Pack all library files + help files into library/ (CHMs live in the library folder)
     libraryFiles.concat(helpFiles).forEach(f => {
         const fp = path.join(libBasePath, f);
-        if (fs.existsSync(fp)) zip.addLocalFile(fp, 'library');
+        if (fs.existsSync(fp)) zip.addLocalFile(fp, zipSubdir('library', f));
     });
 
     demoFiles.forEach(f => {
         const fp = path.join(demoBasePath, f);
-        if (fs.existsSync(fp)) zip.addLocalFile(fp, 'demo_methods');
+        if (fs.existsSync(fp)) zip.addLocalFile(fp, zipSubdir('demo_methods', f));
     });
 
     // Sign the package (Ed25519 code signing required)
@@ -1348,11 +1355,11 @@ function cmdExportArchive(args) {
             let libAdded = 0, demoAdded = 0;
             libraryFiles.concat(helpFiles).forEach(f => {
                 const fp = path.join(libBasePath, f);
-                if (fs.existsSync(fp)) { innerZip.addLocalFile(fp, 'library');      libAdded++;  }
+                if (fs.existsSync(fp)) { innerZip.addLocalFile(fp, zipSubdir('library', f));      libAdded++;  }
             });
             demoFiles.forEach(f => {
                 const fp = path.join(demoBasePath, f);
-                if (fs.existsSync(fp)) { innerZip.addLocalFile(fp, 'demo_methods'); demoAdded++; }
+                if (fs.existsSync(fp)) { innerZip.addLocalFile(fp, zipSubdir('demo_methods', f)); demoAdded++; }
             });
 
             // Sign the inner package (Ed25519 code signing)

@@ -1696,7 +1696,7 @@
 				libFiles.forEach(function(f) {
 					var fullPath = path.join(sysLibDir, f);
 					if (fs.existsSync(fullPath)) {
-						zip.addLocalFile(fullPath, "library");
+						zip.addLocalFile(fullPath, zipSubdir('library', f));
 					}
 				});
 
@@ -1704,10 +1704,9 @@
 				helpFiles.forEach(function(f) {
 					var fullPath = path.join(sysLibDir, f);
 					if (fs.existsSync(fullPath)) {
-						zip.addLocalFile(fullPath, "help_files");
+						zip.addLocalFile(fullPath, zipSubdir('help_files', f));
 					}
 				});
-
 				// Wrap in binary container and cache to package store
 				var pkgBuffer = packContainer(zip.toBuffer(), CONTAINER_MAGIC_PKG);
 				var storedPath = cachePackageToStore(pkgBuffer, libName, "system");
@@ -6074,6 +6073,16 @@
 			return results;
 		}
 
+		/**
+		 * Computes the ZIP directory path for a file, preserving any subfolder
+		 * structure in the relative path. E.g. zipSubdir('library', 'sub/file.hsl')
+		 * returns 'library/sub'.  For flat files, returns baseZipDir unchanged.
+		 */
+		function zipSubdir(baseZipDir, relPath) {
+			var relDir = path.dirname(relPath).replace(/\\/g, '/');
+			return relDir && relDir !== '.' ? baseZipDir + '/' + relDir : baseZipDir;
+		}
+
 		// Fit exporter container height to window
 		function fitExporterHeight() {
 			if($(".methods-page").hasClass("d-none")){return;}
@@ -7014,9 +7023,7 @@
 				// Add library files under library/ directory (preserving subfolder structure)
 				pkg_libraryFiles.forEach(function(fpath) {
 					var relPath = pkg_fileRelPaths[fpath] || path.basename(fpath);
-					var relDir = path.dirname(relPath);
-					var zipDir = relDir && relDir !== '.' ? 'library/' + relDir.replace(/\\/g, '/') : 'library';
-					zip.addLocalFile(fpath, zipDir);
+					zip.addLocalFile(fpath, zipSubdir('library', relPath));
 				});
 
 				// Add composited icon under icon/ directory (for Windows file system display)
@@ -7029,9 +7036,7 @@
 				// Add demo method files under demo_methods/ directory (preserving subfolder structure)
 				pkg_demoMethodFiles.forEach(function(fpath) {
 					var relPath = pkg_fileRelPaths[fpath] || path.basename(fpath);
-					var relDir = path.dirname(relPath);
-					var zipDir = relDir && relDir !== '.' ? 'demo_methods/' + relDir.replace(/\\/g, '/') : 'demo_methods';
-					zip.addLocalFile(fpath, zipDir);
+					zip.addLocalFile(fpath, zipSubdir('demo_methods', relPath));
 				});
 
 				// Sign the package for integrity verification
@@ -9594,7 +9599,7 @@
 				libraryFiles.forEach(function(f) {
 					var fullPath = path.join(libBasePath, f);
 					if (fs.existsSync(fullPath)) {
-						zip.addLocalFile(fullPath, "library");
+						zip.addLocalFile(fullPath, zipSubdir('library', f));
 					}
 				});
 
@@ -9602,7 +9607,7 @@
 				helpFiles.forEach(function(f) {
 					var fullPath = path.join(libBasePath, f);
 					if (fs.existsSync(fullPath)) {
-						zip.addLocalFile(fullPath, "library");
+						zip.addLocalFile(fullPath, zipSubdir('library', f));
 					}
 				});
 
@@ -9610,10 +9615,9 @@
 				demoFiles.forEach(function(f) {
 					var fullPath = path.join(demoBasePath, f);
 					if (fs.existsSync(fullPath)) {
-						zip.addLocalFile(fullPath, "demo_methods");
+						zip.addLocalFile(fullPath, zipSubdir('demo_methods', f));
 					}
 				});
-
 				// Sign the package for integrity verification
 				var sigResult = applyPackageSigning(zip, useCodeSigning);
 
@@ -9770,7 +9774,7 @@
 					libraryFiles.forEach(function(f) {
 						var fullPath = path.join(libBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "library");
+							innerZip.addLocalFile(fullPath, zipSubdir('library', f));
 							libFilesAdded++;
 						}
 					});
@@ -9778,7 +9782,7 @@
 					helpFiles.forEach(function(f) {
 						var fullPath = path.join(libBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "library");
+							innerZip.addLocalFile(fullPath, zipSubdir('library', f));
 						}
 					});
 
@@ -9786,7 +9790,7 @@
 					demoFiles.forEach(function(f) {
 						var fullPath = path.join(demoBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "demo_methods");
+							innerZip.addLocalFile(fullPath, zipSubdir('demo_methods', f));
 							demoFilesAdded++;
 						}
 					});
@@ -10126,7 +10130,7 @@
 					libraryFiles.forEach(function(f) {
 						var fullPath = path.join(libBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "library");
+							innerZip.addLocalFile(fullPath, zipSubdir('library', f));
 							libFilesAdded++;
 						}
 					});
@@ -10135,7 +10139,7 @@
 					helpFiles.forEach(function(f) {
 						var fullPath = path.join(libBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "library");
+							innerZip.addLocalFile(fullPath, zipSubdir('library', f));
 						}
 					});
 
@@ -10144,7 +10148,7 @@
 					demoFiles.forEach(function(f) {
 						var fullPath = path.join(demoBasePath, f);
 						if (fs.existsSync(fullPath)) {
-							innerZip.addLocalFile(fullPath, "demo_methods");
+							innerZip.addLocalFile(fullPath, zipSubdir('demo_methods', f));
 							demoFilesAdded++;
 						}
 					});
@@ -13753,9 +13757,13 @@
 					}
 				});
 
-				// Build manifest file lists (basenames)
-				var manifestLibFiles = nonHelpPaths.map(function(f) { return path.basename(f); });
-				var manifestHelpFiles = helpPaths.map(function(f) { return path.basename(f); });
+				// Build manifest file lists (relative paths to preserve subfolder structure)
+				var manifestLibFiles = nonHelpPaths.map(function(f) {
+					return libDir ? path.relative(libDir, f).replace(/\\/g, '/') : path.basename(f);
+				});
+				var manifestHelpFiles = helpPaths.map(function(f) {
+					return libDir ? path.relative(libDir, f).replace(/\\/g, '/') : path.basename(f);
+				});
 				manifestHelpFiles.forEach(function(hf) {
 					if (manifestLibFiles.indexOf(hf) === -1) manifestLibFiles.push(hf);
 				});
@@ -13798,14 +13806,16 @@
 				// Add library files (non-help)
 				nonHelpPaths.forEach(function(f) {
 					if (fs.existsSync(f)) {
-						zip.addLocalFile(f, "library");
+						var relPath = libDir ? path.relative(libDir, f) : path.basename(f);
+						zip.addLocalFile(f, zipSubdir('library', relPath));
 					}
 				});
 
 				// Add help files
 				helpPaths.forEach(function(f) {
 					if (fs.existsSync(f)) {
-						zip.addLocalFile(f, "library");
+						var relPath = libDir ? path.relative(libDir, f) : path.basename(f);
+						zip.addLocalFile(f, zipSubdir('library', relPath));
 					}
 				});
 
