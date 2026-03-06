@@ -3898,6 +3898,116 @@
 			 }, 3000);
 		});
 
+		// Settings > Make Library Pretty
+		$(document).on("click", ".btn-make-library-pretty", function () {
+			var $modal = $("#prettyConfirmModal");
+			$modal.find(".pretty-confirm-input").val("");
+			$modal.find(".btn-pretty-confirm").prop("disabled", true);
+			$modal.modal("show");
+		});
+
+		// Enable/disable confirm button based on typed input
+		$(document).on("input", ".pretty-confirm-input", function () {
+			var typed = $(this).val().trim();
+			$(".btn-pretty-confirm").prop("disabled", typed !== "I Accept");
+		});
+
+		// Confirm button handler for Make Library Pretty
+		$(document).on("click", ".btn-pretty-confirm", function () {
+			$("#prettyConfirmModal").modal("hide");
+			makeLibraryPretty();
+		});
+
+		function makeLibraryPretty() {
+			var statusEl = $(".pretty-status-text");
+			statusEl.css("display", "inline").text("Working...");
+
+			try {
+				var jsonFiles = [
+					'settings.json',
+					'installed_libs.json',
+					'groups.json',
+					'tree.json',
+					'links.json',
+					'unsigned_libs.json'
+				];
+
+				// 1. Prettify all JSON database files
+				var prettified = 0;
+				jsonFiles.forEach(function (file) {
+					var filePath = path.join(LOCAL_DATA_DIR, file);
+					if (fs.existsSync(filePath)) {
+						try {
+							var raw = fs.readFileSync(filePath, 'utf8');
+							var data = JSON.parse(raw);
+							fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+							prettified++;
+						} catch (e) {
+							console.warn('Could not prettify ' + file + ': ' + e.message);
+						}
+					}
+				});
+
+				// 2. Remove orphaned group references from tree
+				var treePath = path.join(LOCAL_DATA_DIR, 'tree.json');
+				if (fs.existsSync(treePath)) {
+					try {
+						var treeRaw = fs.readFileSync(treePath, 'utf8');
+						var treeData = JSON.parse(treeRaw);
+						var defaultGroupIds = Object.keys(DEFAULT_GROUPS);
+						var customGroups = db_groups.groups.find() || [];
+						var customGroupIds = customGroups.map(function (g) { return g._id; });
+						var validGroupIds = defaultGroupIds.concat(customGroupIds);
+						var before = treeData.length;
+						treeData = treeData.filter(function (entry) {
+							return validGroupIds.indexOf(entry["group-id"]) !== -1;
+						});
+						if (treeData.length !== before) {
+							console.log('Removed ' + (before - treeData.length) + ' orphaned tree entries');
+						}
+						fs.writeFileSync(treePath, JSON.stringify(treeData, null, 2), 'utf8');
+					} catch (e) {
+						console.warn('Could not clean tree.json: ' + e.message);
+					}
+				}
+
+				// 3. Rebuild publisher registry
+				rebuildPublisherRegistry();
+
+				// Prettify publisher registry too
+				var regPath = path.join(LOCAL_DATA_DIR, 'publisher_registry.json');
+				if (fs.existsSync(regPath)) {
+					try {
+						var regRaw = fs.readFileSync(regPath, 'utf8');
+						var regData = JSON.parse(regRaw);
+						fs.writeFileSync(regPath, JSON.stringify(regData, null, 2), 'utf8');
+					} catch (e) {
+						console.warn('Could not prettify publisher_registry.json: ' + e.message);
+					}
+				}
+
+				// Reconnect databases to pick up reformatted files
+				db_settings = db.connect(LOCAL_DATA_DIR, ['settings']);
+				db_links = db.connect(LOCAL_DATA_DIR, ['links']);
+				db_groups = db.connect(LOCAL_DATA_DIR, ['groups']);
+				db_tree = db.connect(LOCAL_DATA_DIR, ['tree']);
+				db_installed_libs = db.connect(LOCAL_DATA_DIR, ['installed_libs']);
+				db_unsigned_libs = db.connect(LOCAL_DATA_DIR, ['unsigned_libs']);
+
+				statusEl.text("Done! Prettified " + prettified + " files.").css("color", "var(--success)");
+				console.log('Make Library Pretty completed: prettified ' + prettified + ' files');
+			} catch (e) {
+				statusEl.text("Error: " + e.message).css("color", "var(--danger)");
+				console.error('Make Library Pretty failed: ' + e.message);
+			}
+
+			setTimeout(function () {
+				statusEl.fadeOut(1000, function () {
+					statusEl.text("").css("color", "").css("display", "none");
+				});
+			}, 5000);
+		}
+
 		// Settings > Links > favorite icon click (eye toggle: visible / hidden)
 		$(document).on("click", ".favorite-icon", function (e) {
 			var bool_favorite = false;

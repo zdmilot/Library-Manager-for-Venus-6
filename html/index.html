@@ -1632,6 +1632,15 @@
 								<div class="d-inline ml-4 txt-recentCleared text-muted"></div>
 							</div>
 						</div>
+
+						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Make Library Pretty</h6>
+							<p class="text-sm text-muted mb-2">Cleans up and optimizes the library database files by reformatting JSON data with proper indentation, removing orphaned group entries, and rebuilding the publisher registry. This makes the data files human-readable and resolves structural inconsistencies.</p>
+							<div class="d-flex align-items-center">
+								<button class="btn btn-sm btn-outlined btn-make-library-pretty"><i class="fas fa-magic mr-1"></i>Make Library Pretty...</button>
+								<span class="ml-3 text-sm pretty-status-text text-muted" style="display:none;"></span>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="modal-footer detail-modal-footer">
@@ -1641,6 +1650,51 @@
 		</div>
 	</div>
 	<!---- Modal Settings end --->
+
+	<!---- Modal Make Library Pretty Confirmation start --->
+	<div class="modal" tabindex="-1" role="dialog" id="prettyConfirmModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:520px;">
+			<div class="modal-content delete-confirm-content">
+				<div class="modal-header delete-confirm-header">
+					<div class="d-flex align-items-center">
+						<div class="delete-confirm-icon mr-3">
+							<i class="fas fa-exclamation-triangle fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Make Library Pretty</h5>
+							<span class="text-muted text-sm">Destructive operation</span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body delete-confirm-body">
+					<div class="delete-confirm-warning-box">
+						<p class="mb-2"><strong><i class="fas fa-exclamation-circle mr-1"></i>Warning: This is a destructive action.</strong></p>
+						<p class="mb-2">This operation will rewrite all library database files. While it preserves data content, the files will be restructured and reformatted. The following changes will be made:</p>
+						<ul class="mb-2 pl-4">
+							<li>All JSON database files will be reformatted with indentation</li>
+							<li>Orphaned group references will be removed from the tree</li>
+							<li>The publisher registry will be rebuilt from scratch</li>
+						</ul>
+						<p class="mb-0 text-danger"><strong>Back up your <code>local/</code> directory before proceeding if you want to be able to revert.</strong></p>
+					</div>
+					<div class="delete-item-input-section mt-3">
+						<label class="delete-confirm-label">To confirm, type "<strong>I Accept</strong>" in the box below</label>
+						<input type="text" class="form-control delete-confirm-input pretty-confirm-input" autocomplete="off" spellcheck="false" placeholder="Type I Accept">
+					</div>
+				</div>
+				<div class="modal-footer delete-confirm-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-danger btn-pretty-confirm" disabled>
+						<i class="fas fa-magic mr-1"></i>I understand, make library pretty
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Make Library Pretty Confirmation end --->
 
 	<!---- Modal Unsigned Library Detail start --->
 	<div class="modal" tabindex="-1" role="dialog" id="unsignedLibDetailModal">
