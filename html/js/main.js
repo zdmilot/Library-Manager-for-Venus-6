@@ -3900,11 +3900,66 @@
 		});
 
 		// Settings > Make Library Pretty
+		var _prettyDiscovered = null; // holds scan results between modal open and confirm
+		var _prettyLibDir = '';
+
 		$(document).on("click", ".btn-make-library-pretty", function () {
-			var $modal = $("#prettyConfirmModal");
-			$modal.find(".pretty-confirm-input").val("");
-			$modal.find(".btn-pretty-confirm").prop("disabled", true);
-			$modal.modal("show");
+			var statusEl = $(".pretty-status-text");
+			statusEl.css("display", "inline").text("Scanning...");
+
+			setTimeout(function() {
+				var scanResult = prettyDiscoverLibraries();
+				if (!scanResult) {
+					statusEl.text("Library folder not found.").css("color", "var(--danger)");
+					return;
+				}
+				_prettyDiscovered = scanResult.discovered;
+				_prettyLibDir = scanResult.libDir;
+
+				var names = Object.keys(_prettyDiscovered).sort();
+				var $list = $(".pretty-lib-selector-list");
+				$list.empty();
+
+				if (names.length === 0) {
+					statusEl.text("No unsigned libraries to organize.").css("color", "var(--success)");
+					setTimeout(function() { statusEl.fadeOut(1000, function() { statusEl.text("").css("color","").css("display","none"); }); }, 3000);
+					return;
+				}
+
+				names.forEach(function(name) {
+					var fileCount = _prettyDiscovered[name].files.length;
+					// Check if files are already in a named subdirectory
+					var alreadyOrganized = _prettyDiscovered[name].files.every(function(f) {
+						return path.dirname(f).toLowerCase() === name.toLowerCase();
+					});
+					var badge = alreadyOrganized
+						? '<span class="badge badge-success ml-2" style="font-size:0.65rem;">Already organized</span>'
+						: '<span class="badge badge-secondary ml-2" style="font-size:0.65rem;">' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + '</span>';
+					$list.append(
+						'<label class="d-flex align-items-center px-3 py-2 mb-0 pretty-lib-item" style="border-bottom:1px solid #eee; cursor:pointer;">' +
+							'<input type="checkbox" class="mr-2 pretty-lib-checkbox" data-libname="' + escapeHtml(name) + '"' + (alreadyOrganized ? '' : ' checked') + '>' +
+							'<span class="text-sm" style="font-weight:500;">' + escapeHtml(name) + '</span>' +
+							badge +
+						'</label>'
+					);
+				});
+
+				$(".pretty-lib-count").text(names.length);
+				statusEl.text("").css("display", "none");
+
+				var $modal = $("#prettyConfirmModal");
+				$modal.find(".pretty-confirm-input").val("");
+				$modal.find(".btn-pretty-confirm").prop("disabled", true);
+				$modal.modal("show");
+			}, 50);
+		});
+
+		// Select All / Deselect All
+		$(document).on("click", ".pretty-select-all", function() {
+			$(".pretty-lib-checkbox").prop("checked", true);
+		});
+		$(document).on("click", ".pretty-deselect-all", function() {
+			$(".pretty-lib-checkbox").prop("checked", false);
 		});
 
 		// Enable/disable confirm button based on typed input
@@ -3916,149 +3971,141 @@
 		// Confirm button handler for Make Library Pretty
 		$(document).on("click", ".btn-pretty-confirm", function () {
 			$("#prettyConfirmModal").modal("hide");
-			makeLibraryPretty();
+			// Gather selected library names
+			var selected = [];
+			$(".pretty-lib-checkbox:checked").each(function() {
+				selected.push($(this).attr("data-libname"));
+			});
+			if (selected.length > 0 && _prettyDiscovered) {
+				makeLibraryPretty(_prettyDiscovered, _prettyLibDir, selected);
+			}
 		});
 
-		function makeLibraryPretty() {
+		/**
+		 * Scan the Library folder and discover unsigned libraries (reusable helper).
+		 * Returns { discovered, libDir } or null if Library folder not found.
+		 */
+		function prettyDiscoverLibraries() {
+			var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
+			var libDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
+			if (!fs.existsSync(libDir)) return null;
+
+			var claimedFiles = {};
+			var sysLibs = getAllSystemLibraries();
+			sysLibs.forEach(function(sLib) {
+				(sLib.discovered_files || []).forEach(function(f) {
+					var normalized = f.replace(/^Library[\\\/]/i, '').toLowerCase();
+					claimedFiles[normalized] = true;
+				});
+			});
+			var installedLibs = db_installed_libs.installed_libs.find() || [];
+			installedLibs.forEach(function(lib) {
+				if (lib.deleted) return;
+				(lib.library_files || []).forEach(function(f) { claimedFiles[f.toLowerCase()] = true; });
+			});
+
+			var targetExts = ['.hsl', '.smt'];
+			var relatedExts = ['.hs_', '.sub', '.bmp', '.ico', '.chm', '.stp', '.res', '.fdb', '.sii', '.dec', '.dll'];
+			var allExts = targetExts.concat(relatedExts);
+			var discovered = {};
+
+			function scanDir(dir, relBase) {
+				var entries;
+				try { entries = fs.readdirSync(dir); } catch(e) { return; }
+				entries.forEach(function(entry) {
+					var fullPath = path.join(dir, entry);
+					var relPath = relBase ? path.join(relBase, entry) : entry;
+					var stat;
+					try { stat = fs.statSync(fullPath); } catch(e) { return; }
+					if (stat.isDirectory()) {
+						var lowerEntry = entry.toLowerCase();
+						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+						scanDir(fullPath, relPath);
+						return;
+					}
+					if (!stat.isFile()) return;
+					if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
+					var ext = path.extname(entry).toLowerCase();
+					if (allExts.indexOf(ext) === -1) return;
+					if (claimedFiles[relPath.toLowerCase()]) return;
+					if (claimedFiles[entry.toLowerCase()]) return;
+					if (targetExts.indexOf(ext) !== -1) {
+						var libName = path.basename(entry, ext);
+						var enuMatch = libName.match(/^(.+?)(Enu|Deu|Jpn|Chs|Kor|Fra|Esp|Por)$/i);
+						var baseName = enuMatch ? enuMatch[1] : libName;
+						if (!discovered[baseName]) discovered[baseName] = { files: [] };
+						if (discovered[baseName].files.indexOf(relPath) === -1) discovered[baseName].files.push(relPath);
+					}
+				});
+			}
+			scanDir(libDir, '');
+
+			var allFiles = [];
+			function scanDirFlat(dir, relBase, result) {
+				var entries;
+				try { entries = fs.readdirSync(dir); } catch(e) { return; }
+				entries.forEach(function(entry) {
+					var fullPath = path.join(dir, entry);
+					var relPath = relBase ? path.join(relBase, entry) : entry;
+					var stat;
+					try { stat = fs.statSync(fullPath); } catch(e) { return; }
+					if (stat.isDirectory()) {
+						var lowerEntry = entry.toLowerCase();
+						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+						if (entry.charAt(0) === '.') return;
+						scanDirFlat(fullPath, relPath, result);
+					} else if (stat.isFile()) {
+						if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
+						result.push(relPath);
+					}
+				});
+			}
+			try { scanDirFlat(libDir, '', allFiles); } catch(e) { allFiles = []; }
+
+			Object.keys(discovered).forEach(function(baseName) {
+				var baseNameLower = baseName.toLowerCase();
+				allFiles.forEach(function(relPath) {
+					if (claimedFiles[relPath.toLowerCase()]) return;
+					if (claimedFiles[path.basename(relPath).toLowerCase()]) return;
+					var fname = path.basename(relPath);
+					var fnameNoExt = path.basename(fname, path.extname(fname)).toLowerCase();
+					var ext = path.extname(fname).toLowerCase();
+					if (relatedExts.indexOf(ext) === -1) return;
+					if (fnameNoExt === baseNameLower || fnameNoExt.indexOf(baseNameLower) === 0) {
+						if (discovered[baseName].files.indexOf(relPath) === -1) discovered[baseName].files.push(relPath);
+					}
+				});
+			});
+
+			return { discovered: discovered, libDir: libDir };
+		}
+
+		function makeLibraryPretty(discovered, libDir, selectedNames) {
 			var statusEl = $(".pretty-status-text");
 			statusEl.css("display", "inline").text("Working...");
 
 			setTimeout(function() {
 			try {
-				// Resolve the VENUS Library folder
-				var libFolderRec = db_links.links.findOne({"_id":"lib-folder"});
-				var libDir = (libFolderRec && libFolderRec.path) ? libFolderRec.path : 'C:\\Program Files (x86)\\HAMILTON\\Library';
-
-				if (!fs.existsSync(libDir)) {
-					statusEl.text("Library folder not found.").css("color", "var(--danger)");
-					return;
-				}
-
-				// Build sets of filenames already claimed by system or installed libraries
-				var claimedFiles = {};
-				var sysLibs = getAllSystemLibraries();
-				sysLibs.forEach(function(sLib) {
-					(sLib.discovered_files || []).forEach(function(f) {
-						var normalized = f.replace(/^Library[\\\/]/i, '').toLowerCase();
-						claimedFiles[normalized] = true;
-					});
-				});
-				var installedLibs = db_installed_libs.installed_libs.find() || [];
-				installedLibs.forEach(function(lib) {
-					if (lib.deleted) return;
-					(lib.library_files || []).forEach(function(f) {
-						claimedFiles[f.toLowerCase()] = true;
-					});
-				});
-
-				// Scan for unclaimed .hsl and .smt files (same as unsigned library scan)
-				var targetExts = ['.hsl', '.smt'];
-				var relatedExts = ['.hs_', '.sub', '.bmp', '.ico', '.chm', '.stp', '.res', '.fdb', '.sii', '.dec', '.dll'];
-				var allExts = targetExts.concat(relatedExts);
-				var discovered = {}; // libraryName -> { files: [] }
-
-				function scanDir(dir, relBase) {
-					var entries;
-					try { entries = fs.readdirSync(dir); } catch(e) { return; }
-					entries.forEach(function(entry) {
-						var fullPath = path.join(dir, entry);
-						var relPath = relBase ? path.join(relBase, entry) : entry;
-						var stat;
-						try { stat = fs.statSync(fullPath); } catch(e) { return; }
-						if (stat.isDirectory()) {
-							var lowerEntry = entry.toLowerCase();
-							if (lowerEntry === 'librarymanagerforvenus6' ||
-								lowerEntry === 'librarypackages' ||
-								lowerEntry === '.librarymanagerforvenus6' ||
-								lowerEntry === 'libraryintegrityaudit') return;
-							scanDir(fullPath, relPath);
-							return;
-						}
-						if (!stat.isFile()) return;
-						if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
-						var ext = path.extname(entry).toLowerCase();
-						if (allExts.indexOf(ext) === -1) return;
-						if (claimedFiles[relPath.toLowerCase()]) return;
-						if (claimedFiles[entry.toLowerCase()]) return;
-
-						if (targetExts.indexOf(ext) !== -1) {
-							var libName = path.basename(entry, ext);
-							var enuMatch = libName.match(/^(.+?)(Enu|Deu|Jpn|Chs|Kor|Fra|Esp|Por)$/i);
-							var baseName = enuMatch ? enuMatch[1] : libName;
-							if (!discovered[baseName]) {
-								discovered[baseName] = { files: [] };
-							}
-							if (discovered[baseName].files.indexOf(relPath) === -1) {
-								discovered[baseName].files.push(relPath);
-							}
-						}
-					});
-				}
-
-				scanDir(libDir, '');
-
-				// Gather related files for each discovered library
-				var allFiles = [];
-				function scanDirFlat(dir, relBase, result) {
-					var entries;
-					try { entries = fs.readdirSync(dir); } catch(e) { return; }
-					entries.forEach(function(entry) {
-						var fullPath = path.join(dir, entry);
-						var relPath = relBase ? path.join(relBase, entry) : entry;
-						var stat;
-						try { stat = fs.statSync(fullPath); } catch(e) { return; }
-						if (stat.isDirectory()) {
-							var lowerEntry = entry.toLowerCase();
-							if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
-							if (entry.charAt(0) === '.') return;
-							scanDirFlat(fullPath, relPath, result);
-						} else if (stat.isFile()) {
-							if (entry.charAt(0) === '~' || entry.charAt(0) === '.') return;
-							result.push(relPath);
-						}
-					});
-				}
-				try { scanDirFlat(libDir, '', allFiles); } catch(e) { allFiles = []; }
-
-				Object.keys(discovered).forEach(function(baseName) {
-					var baseNameLower = baseName.toLowerCase();
-					allFiles.forEach(function(relPath) {
-						if (claimedFiles[relPath.toLowerCase()]) return;
-						if (claimedFiles[path.basename(relPath).toLowerCase()]) return;
-						var fname = path.basename(relPath);
-						var fnameNoExt = path.basename(fname, path.extname(fname)).toLowerCase();
-						var ext = path.extname(fname).toLowerCase();
-						if (relatedExts.indexOf(ext) === -1) return;
-						if (fnameNoExt === baseNameLower || fnameNoExt.indexOf(baseNameLower) === 0) {
-							if (discovered[baseName].files.indexOf(relPath) === -1) {
-								discovered[baseName].files.push(relPath);
-							}
-						}
-					});
-				});
-
-				// Move each library's files into a named subdirectory
 				var moved = 0;
 				var libsMoved = 0;
-				Object.keys(discovered).sort().forEach(function(baseName) {
+
+				selectedNames.forEach(function(baseName) {
 					var entry = discovered[baseName];
+					if (!entry) return;
 					var targetDir = path.join(libDir, baseName);
 					var filesMovedForLib = 0;
 
 					entry.files.forEach(function(relPath) {
 						var srcFull = path.join(libDir, relPath);
 						if (!fs.existsSync(srcFull)) return;
-						// Skip files already in the correct named subdirectory
 						var relDir = path.dirname(relPath);
 						if (relDir.toLowerCase() === baseName.toLowerCase()) return;
 
-						// Create the target directory if needed
 						if (!fs.existsSync(targetDir)) {
 							fs.mkdirSync(targetDir, { recursive: true });
 						}
 
 						var destFull = path.join(targetDir, path.basename(relPath));
-						// Avoid overwriting if a file with the same name already exists
 						if (fs.existsSync(destFull)) return;
 
 						try {
@@ -4075,10 +4122,9 @@
 
 				if (moved > 0) {
 					statusEl.text("Done! Organized " + moved + " file" + (moved !== 1 ? "s" : "") + " into " + libsMoved + " librar" + (libsMoved !== 1 ? "ies" : "y") + ".").css("color", "var(--success)");
-					// Re-scan unsigned libraries so paths are updated
 					scanUnsignedLibraries(false);
 				} else {
-					statusEl.text("All unsigned library files are already organized.").css("color", "var(--success)");
+					statusEl.text("All selected libraries are already organized.").css("color", "var(--success)");
 				}
 				console.log('Make Library Pretty completed: moved ' + moved + ' files into ' + libsMoved + ' directories');
 			} catch (e) {
