@@ -1,10 +1,10 @@
 ; ============================================================================
 ; Inno Setup Script for Library Manager for Venus 6
-; Version: 1.7.4
+; Version: 1.7.5
 ; ============================================================================
 
 #define MyAppName "Library Manager for Venus 6"
-#define MyAppVersion "1.7.4"
+#define MyAppVersion "1.7.5"
 #define MyAppPublisher "Zachary Milot"
 #define MyAppURL "https://github.com/zdmilot/Library-Manager-for-Venus-6"
 #define MyAppExeName "Library Manager for Venus 6.exe"

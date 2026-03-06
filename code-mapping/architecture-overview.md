@@ -4,7 +4,7 @@
 
 ```
 Library-Manager-for-Venus-6/
-├── package.json              # NW.js manifest + npm config (v1.7.4)
+├── package.json              # NW.js manifest + npm config (v1.7.5)
 ├── cli.js                    # CLI entry point (2810 lines)
 ├── com-bridge.js             # COM bridge dispatcher (164 lines)
 ├── lib/

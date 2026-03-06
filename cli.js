@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Library Manager for Venus 6 CLI  v1.7.4
+ * Library Manager for Venus 6 CLI  v1.7.5
  * Command-line interface for managing Hamilton VENUS libraries.
  *
  * Copyright (c) 2026 Zachary Milot
@@ -2216,7 +2216,7 @@ function cmdRollbackLib(args) {
 /** Print CLI usage information and available commands to stdout. */
 function printHelp() {
     console.log(`
-Library Manager for Venus 6 CLI  v1.7.4
+Library Manager for Venus 6 CLI  v1.7.5
 Hamilton VENUS Library Package Management
 
 USAGE

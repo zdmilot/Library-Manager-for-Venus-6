@@ -88,7 +88,7 @@ signtool sign /fd SHA256 /tr $ts /td SHA256 /n $cert "com\VenusLibraryManager.dl
 
 # 4. Verify signatures
 signtool verify /pa /v "Library Manager for Venus 6.exe"
-signtool verify /pa /v "Output\LibraryManagerForVenus6_v1.7.4_Setup.exe"
+signtool verify /pa /v "Output\LibraryManagerForVenus6_v1.7.5_Setup.exe"
 ```
 
 ### Key Points
