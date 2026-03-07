@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = VenusLibraryManager
-build_property.ProjectDir = C:\Users\admin\Desktop\Library-Manager-for-Venus-6\com\
+build_property.ProjectDir = C:\Users\admin\Desktop\Library-Manager\com\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false

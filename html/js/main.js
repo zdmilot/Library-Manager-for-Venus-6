@@ -14816,7 +14816,7 @@
 		}
 
 		/**
-		 * Load a .pkg file buffer and populate the explore view.
+		 * Load a .pkg or .hamPackage file buffer and populate the explore view.
 		 */
 		function hampkgLoadFile(filePath) {
 			var $modal = $("#importHamPkgModal");
@@ -14827,9 +14827,20 @@
 
 			try {
 				_hampkgFilePath = filePath;
-				_hampkgBuffer = fs.readFileSync(filePath);
-				_hampkgPkgInfo = pkgExtractor.parsePkg(_hampkgBuffer);
-				_hampkgFiles = pkgExtractor.extractAllFiles(_hampkgBuffer, _hampkgPkgInfo);
+				var ext = path.extname(filePath).toLowerCase();
+
+				if (ext === '.hampackage') {
+					// .hamPackage = ZIP-based format
+					var result = pkgExtractor.parseHamPackage(filePath);
+					_hampkgPkgInfo = result.pkgInfo;
+					_hampkgFiles = result.files;
+					_hampkgBuffer = null; // not needed for ZIP format
+				} else {
+					// .pkg = binary HamPkg format
+					_hampkgBuffer = fs.readFileSync(filePath);
+					_hampkgPkgInfo = pkgExtractor.parsePkg(_hampkgBuffer);
+					_hampkgFiles = pkgExtractor.extractAllFiles(_hampkgBuffer, _hampkgPkgInfo);
+				}
 
 				// Populate package info header
 				$modal.find(".hampkg-pkg-name").text(path.basename(filePath));
@@ -14886,7 +14897,7 @@
 			} catch (e) {
 				$modal.find(".hampkg-loading").addClass("d-none");
 				$modal.find(".hampkg-step-select").removeClass("d-none");
-				alert("Error reading .pkg file:\n" + e.message);
+				alert("Error reading package file:\n" + e.message);
 			}
 		}
 
@@ -15097,10 +15108,11 @@
 			var files = e.originalEvent.dataTransfer.files;
 			if (files && files.length > 0) {
 				var droppedPath = files[0].path;
-				if (path.extname(droppedPath).toLowerCase() === '.pkg') {
+				var droppedExt = path.extname(droppedPath).toLowerCase();
+				if (droppedExt === '.pkg' || droppedExt === '.hampackage') {
 					hampkgLoadFile(droppedPath);
 				} else {
-					alert("Please drop a Hamilton VENUS .pkg file.");
+					alert("Please drop a Hamilton VENUS .pkg or .hamPackage file.");
 				}
 			}
 		});
@@ -15442,7 +15454,7 @@
 				// Show success via the existing import success modal
 				var $sm = $("#importSuccessModal");
 				$sm.find(".import-success-libname").text(libName);
-				$sm.find(".import-success-filecount").text(extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " installed from .pkg");
+				$sm.find(".import-success-filecount").text(extractedCount + " file" + (extractedCount !== 1 ? "s" : "") + " installed from package");
 
 				var pathsHtml = "";
 				if (libFileNames.length > 0 || helpFileNames.length > 0) {
@@ -15475,7 +15487,7 @@
 				} catch(_) { /* non-critical */ }
 
 			} catch (e) {
-				alert("Error importing from .pkg:\n" + e.message);
+				alert("Error importing package:\n" + e.message);
 			} finally {
 				$btn.prop("disabled", false);
 			}

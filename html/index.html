@@ -2581,7 +2581,7 @@
 						</div>
 						<div>
 							<h5 class="modal-title mb-0">Import HamPkg</h5>
-							<small class="text-muted hampkg-subtitle">Extract and import libraries from Hamilton VENUS .pkg packages</small>
+							<small class="text-muted hampkg-subtitle">Extract and import libraries from Hamilton VENUS packages</small>
 						</div>
 					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -2596,10 +2596,10 @@
 							<div class="hampkg-drop-icon">
 								<i class="fas fa-file-archive fa-3x" style="color:var(--medium);"></i>
 							</div>
-							<p class="mb-1"><strong>Drop a .pkg file here</strong> or click to browse</p>
-							<p class="text-muted text-sm mb-0">Hamilton VENUS package files (.pkg)</p>
+							<p class="mb-1"><strong>Drop a .pkg or .hamPackage file here</strong> or click to browse</p>
+							<p class="text-muted text-sm mb-0">Hamilton VENUS package files (.pkg, .hamPackage)</p>
 						</div>
-						<input type="file" class="d-none" id="hampkg-input-file" accept=".pkg">
+						<input type="file" class="d-none" id="hampkg-input-file" accept=".pkg,.hampackage">
 					</div>
 
 					<!-- Step 2: Package Info + File Explorer -->
@@ -2800,7 +2800,7 @@
 		</div>
 	</div>
 	<!-- Hidden file input for HamPkg browsing -->
-	<input type="file" class="d-none" id="hampkg-browse-input" accept=".pkg">
+	<input type="file" class="d-none" id="hampkg-browse-input" accept=".pkg,.hampackage">
 	<!---- Modal Import HamPkg end --->
 
 	<!-- Hidden open dialog for Check Audit File -->

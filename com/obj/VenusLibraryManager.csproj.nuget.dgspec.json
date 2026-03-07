@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6\\com\\VenusLibraryManager.csproj": {}
+    "C:\\Users\\admin\\Desktop\\Library-Manager\\com\\VenusLibraryManager.csproj": {}
   },
   "projects": {
-    "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6\\com\\VenusLibraryManager.csproj": {
+    "C:\\Users\\admin\\Desktop\\Library-Manager\\com\\VenusLibraryManager.csproj": {
       "version": "1.9.8",
       "restore": {
-        "projectUniqueName": "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6\\com\\VenusLibraryManager.csproj",
+        "projectUniqueName": "C:\\Users\\admin\\Desktop\\Library-Manager\\com\\VenusLibraryManager.csproj",
         "projectName": "VenusLibraryManager",
-        "projectPath": "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6\\com\\VenusLibraryManager.csproj",
+        "projectPath": "C:\\Users\\admin\\Desktop\\Library-Manager\\com\\VenusLibraryManager.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\admin\\Desktop\\Library-Manager-for-Venus-6\\com\\obj\\",
+        "outputPath": "C:\\Users\\admin\\Desktop\\Library-Manager\\com\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
