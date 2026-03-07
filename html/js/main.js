@@ -1408,6 +1408,80 @@
 		}
 
 		/**
+		 * Build the grey checkmark badge for a converted distribution package.
+		 * These packages were created from .exe installers by the companion tool.
+		 * Shows a grey checkmark (not blue) with source exe certificate info on hover.
+		 * @param {boolean} [large=false] - Use larger variant for detail modals
+		 * @param {Object} [sourceCert=null] - source_certificate object from signature
+		 * @param {string} [conversionSource=''] - Original .exe filename
+		 * @returns {string} HTML string
+		 */
+		function buildConvertedBadge(large, sourceCert, conversionSource) {
+			var sizeClass = large ? ' converted-verified-badge-lg' : '';
+			var tooltipRows = '';
+			if (sourceCert && sourceCert.present && sourceCert.signer_name) {
+				tooltipRows =
+					'<span class="tooltip-row"><span class="tooltip-label">EXE Signer</span><span class="tooltip-value">' + escapeHtml(sourceCert.signer_name) + '</span></span>' +
+					(sourceCert.issuer_name ? '<span class="tooltip-row"><span class="tooltip-label">Issuer</span><span class="tooltip-value">' + escapeHtml(sourceCert.issuer_name) + '</span></span>' : '') +
+					'<span class="tooltip-divider"></span>' +
+					(sourceCert.thumbprint ? '<span class="tooltip-row"><span class="tooltip-label">Thumbprint</span><span class="tooltip-value">' + escapeHtml((sourceCert.thumbprint || '').substring(0, 32)) + '\u2026</span></span>' : '') +
+					(sourceCert.serial_number ? '<span class="tooltip-row"><span class="tooltip-label">Serial</span><span class="tooltip-value">' + escapeHtml(sourceCert.serial_number) + '</span></span>' : '') +
+					'<span class="tooltip-row"><span class="tooltip-label">Status</span><span class="tooltip-value">' + escapeHtml(sourceCert.status || 'Unknown') + '</span></span>';
+			} else {
+				tooltipRows =
+					'<span class="tooltip-row"><span class="tooltip-label">Provenance</span><span class="tooltip-value" style="font-family:inherit;">Created from official library distribution</span></span>';
+			}
+			if (conversionSource) {
+				tooltipRows += '<span class="tooltip-row"><span class="tooltip-label">Source</span><span class="tooltip-value">' + escapeHtml(conversionSource) + '</span></span>';
+			}
+			return '<span class="converted-verified-badge' + sizeClass + '">' +
+				'<span class="converted-check-icon"><i class="fas fa-check"></i></span>' +
+				'<span class="converted-cert-tooltip">' +
+					'<span class="tooltip-header"><i class="fas fa-file-import"></i> Converted Distribution</span>' +
+					tooltipRows +
+				'</span>' +
+			'</span>';
+		}
+
+		/**
+		 * Build the Converted Distribution certificate detail section for the detail modal.
+		 * Shows source .exe certificate metadata or "official distribution" fallback.
+		 * @param {Object} sourceCert - source_certificate from signature
+		 * @param {string} [conversionSource=''] - Original .exe filename
+		 * @returns {string} HTML string
+		 */
+		function buildConvertedCertDetailSection(sourceCert, conversionSource) {
+			var badgeText = (sourceCert && sourceCert.present) ? 'EXE Certificate' : 'Official Distribution';
+			var rows = '';
+			if (sourceCert && sourceCert.present && sourceCert.signer_name) {
+				rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">EXE Signer</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.signer_name) + '</span></div>';
+				if (sourceCert.issuer_name) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Issuer</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.issuer_name) + '</span></div>';
+				if (sourceCert.subject) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Subject</span><span class="oem-cert-detail-value">' + escapeHtml(sourceCert.subject) + '</span></div>';
+				if (sourceCert.issuer) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Issuer DN</span><span class="oem-cert-detail-value">' + escapeHtml(sourceCert.issuer) + '</span></div>';
+				if (sourceCert.serial_number) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Serial Number</span><span class="oem-cert-detail-value">' + escapeHtml(sourceCert.serial_number) + '</span></div>';
+				if (sourceCert.thumbprint) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Thumbprint</span><span class="oem-cert-detail-value">' + escapeHtml(sourceCert.thumbprint) + '</span></div>';
+				if (sourceCert.not_before) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Valid From</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.not_before) + '</span></div>';
+				if (sourceCert.not_after) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Valid Until</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.not_after) + '</span></div>';
+				rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Status</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.status || 'Unknown') + '</span></div>';
+				if (sourceCert.timestamp_signer) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Timestamp Signer</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.timestamp_signer) + '</span></div>';
+			} else {
+				rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Provenance</span><span class="oem-cert-detail-value normal-font">Created from official library distribution</span></div>';
+				if (sourceCert && sourceCert.note) rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Note</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(sourceCert.note) + '</span></div>';
+			}
+			if (conversionSource) {
+				rows += '<div class="oem-cert-detail-row"><span class="oem-cert-detail-label">Source Executable</span><span class="oem-cert-detail-value normal-font">' + escapeHtml(conversionSource) + '</span></div>';
+			}
+			return '<div class="detail-section converted-cert-section">' +
+				'<div class="converted-cert-section-header">' +
+					'<span class="cert-shield"><i class="fas fa-file-import"></i></span>' +
+					'<h6>Converted Distribution</h6>' +
+					'<span class="cert-converted-badge"><i class="fas fa-check-circle"></i> ' + escapeHtml(badgeText) + '</span>' +
+				'</div>' +
+				rows +
+			'</div>';
+		}
+
+		/**
 		 * Add a library ID to the gOEM tree group entry. Creates the entry if missing.
 		 * Uses raw file I/O to safely update tree.json (diskdb update may replace entire record).
 		 * @param {string} libId - The library _id to add to the OEM group
@@ -3702,6 +3776,10 @@
 			}
 
 			var oemBadge = buildOemVerifiedBadge(lib.author || '', false, lib.publisher_cert || null);
+			var convertedBadge = '';
+			if (!oemBadge && lib.converted_from_executable) {
+				convertedBadge = buildConvertedBadge(false, lib.source_certificate || null, lib.conversion_source || '');
+			}
 
 			var helpLinkHtml = buildCardHelpLinkHtml(chmHelpFiles, lib._id);
 
@@ -3712,7 +3790,7 @@
 						'<div class="flex-grow-1" style="min-width:0;">' +
 							'<h6 class="mb-0 imp-lib-card-name cursor-pointer" style="color:var(--medium2);">' + libName + comWarningBadge + deletedBadge + '</h6>' +
 							(version ? '<span class="text-muted text-sm">v' + version + '</span>' : '') +
-							(author ? '<div class="text-muted text-sm">' + author + ' ' + oemBadge + '</div>' : '') +
+							(author ? '<div class="text-muted text-sm">' + author + ' ' + oemBadge + convertedBadge + '</div>' : '') +
 						'</div>' +
 					'</div>' +
 					(shortDesc ? '<p class="text-muted mt-2 mb-1" style="font-size:0.85em;">' + shortDesc + '</p>' : '') +
@@ -4773,12 +4851,16 @@
 							}
 
 							var libSettingsOemBadge = buildOemVerifiedBadge(lib.author || '', false, lib.publisher_cert || null);
+							var libSettingsConvertedBadge = '';
+							if (!libSettingsOemBadge && lib.converted_from_executable) {
+								libSettingsConvertedBadge = buildConvertedBadge(false, lib.source_certificate || null, lib.conversion_source || '');
+							}
 
 							var libItemStr = '<div class="settings-links-method w-100 pt-2" data-id="'+lib._id+'">' +
 								libIcon +
 								'<div class="d-inline-block pb-2 link-namepath">' +
 									'<div class="name">' + libName + libVersion + '</div>' +
-									'<div class="path">' + (libAuthor ? libAuthor + ' ' + libSettingsOemBadge : '') + '</div>' +
+									'<div class="path">' + (libAuthor ? libAuthor + ' ' + libSettingsOemBadge + libSettingsConvertedBadge : '') + '</div>' +
 								'</div>' +
 							'</div>';
 							$("#collapse_"+ group_id + " .card-body").append(libItemStr);
@@ -8611,14 +8693,22 @@
 			var detailCert = lib.publisher_cert || null;
 			var detailAuthorText = lib.author || "\u2014";
 			var detailAuthorBadge = buildOemVerifiedBadge(lib.author || '', true, detailCert);
-			if (detailAuthorBadge) {
-				$("#libDetailModal .lib-detail-author").html(escapeHtml(detailAuthorText) + ' ' + detailAuthorBadge);
+			var detailConvertedAuthorBadge = '';
+			if (!detailAuthorBadge && lib.converted_from_executable) {
+				detailConvertedAuthorBadge = buildConvertedBadge(true, lib.source_certificate || null, lib.conversion_source || '');
+			}
+			if (detailAuthorBadge || detailConvertedAuthorBadge) {
+				$("#libDetailModal .lib-detail-author").html(escapeHtml(detailAuthorText) + ' ' + detailAuthorBadge + detailConvertedAuthorBadge);
 			} else {
 				$("#libDetailModal .lib-detail-author").text(detailAuthorText);
 			}
 			var detailOrgBadge = buildOemVerifiedBadge(lib.organization || '', true, detailCert);
-			if (detailOrgBadge) {
-				$("#libDetailModal .lib-detail-organization").html(escapeHtml(lib.organization || "\u2014") + ' ' + detailOrgBadge);
+			var detailConvertedOrgBadge = '';
+			if (!detailOrgBadge && lib.converted_from_executable) {
+				detailConvertedOrgBadge = buildConvertedBadge(true, lib.source_certificate || null, lib.conversion_source || '');
+			}
+			if (detailOrgBadge || detailConvertedOrgBadge) {
+				$("#libDetailModal .lib-detail-organization").html(escapeHtml(lib.organization || "\u2014") + ' ' + detailOrgBadge + detailConvertedOrgBadge);
 			} else {
 				$("#libDetailModal .lib-detail-organization").text(lib.organization || "\u2014");
 			}
@@ -8962,6 +9052,9 @@
 			var $certContent = $("#libDetailModal .lib-detail-cert-content");
 			if (detailCert && (isRestrictedAuthor(lib.author) || isRestrictedAuthor(lib.organization))) {
 				$certContent.html(buildCertDetailSection(detailCert));
+				$certSection.removeClass("d-none");
+			} else if (lib.converted_from_executable) {
+				$certContent.html(buildConvertedCertDetailSection(lib.source_certificate || null, lib.conversion_source || ''));
 				$certSection.removeClass("d-none");
 			} else {
 				$certSection.addClass("d-none");
@@ -11448,14 +11541,22 @@
 				$modal.find(".imp-preview-version").text(manifest.version ? "v" + manifest.version : "");
 				var impPreviewCert = (sigResult.code_signed && sigResult.valid && sigResult.publisher_cert) ? sigResult.publisher_cert : null;
 				var impAuthorBadge = buildOemVerifiedBadge(manifest.author || '', true, impPreviewCert);
-				if (impAuthorBadge) {
-					$modal.find(".imp-preview-author").html(escapeHtml(manifest.author || "\u2014") + ' ' + impAuthorBadge);
+				var impConvertedAuthorBadge = '';
+				if (!impAuthorBadge && sigResult.converted) {
+					impConvertedAuthorBadge = buildConvertedBadge(true, sigResult.source_certificate || null, sigResult.conversion_source || '');
+				}
+				if (impAuthorBadge || impConvertedAuthorBadge) {
+					$modal.find(".imp-preview-author").html(escapeHtml(manifest.author || "\u2014") + ' ' + impAuthorBadge + impConvertedAuthorBadge);
 				} else {
 					$modal.find(".imp-preview-author").text(manifest.author || "\u2014");
 				}
 				var impOrgBadge = buildOemVerifiedBadge(manifest.organization || '', true, impPreviewCert);
-				if (impOrgBadge) {
-					$modal.find(".imp-preview-organization").html(escapeHtml(manifest.organization || "\u2014") + ' ' + impOrgBadge);
+				var impConvertedOrgBadge = '';
+				if (!impOrgBadge && sigResult.converted) {
+					impConvertedOrgBadge = buildConvertedBadge(true, sigResult.source_certificate || null, sigResult.conversion_source || '');
+				}
+				if (impOrgBadge || impConvertedOrgBadge) {
+					$modal.find(".imp-preview-organization").html(escapeHtml(manifest.organization || "\u2014") + ' ' + impOrgBadge + impConvertedOrgBadge);
 				} else {
 					$modal.find(".imp-preview-organization").text(manifest.organization || "\u2014");
 				}
@@ -11560,7 +11661,26 @@
 				var $sigStatus = $modal.find(".imp-preview-signature-status");
 				if ($sigStatus.length > 0) {
 					$sigStatus.empty();
-					if (sigResult.code_signed && sigResult.valid && sigResult.publisher_cert) {
+					if (sigResult.converted && sigResult.valid) {
+						// Converted distribution from .exe installer
+						var convSrc = sigResult.conversion_source ? escapeHtml(sigResult.conversion_source) : 'executable installer';
+						var convCert = sigResult.source_certificate;
+						var convCertHtml = '';
+						if (convCert && convCert.present && convCert.signer_name) {
+							convCertHtml = '<div class="d-flex align-items-center" style="color:#6b7280;">' +
+								'<i class="fas fa-file-import mr-2"></i>' +
+								'<span>Converted from <strong>' + convSrc + '</strong></span></div>' +
+								'<div class="text-sm ml-4 mt-1 text-muted">EXE signed by: ' + escapeHtml(convCert.signer_name) +
+								(convCert.issuer_name ? ' (Issuer: ' + escapeHtml(convCert.issuer_name) + ')' : '') + '</div>';
+						} else {
+							convCertHtml = '<div class="d-flex align-items-center" style="color:#6b7280;">' +
+								'<i class="fas fa-file-import mr-2"></i>' +
+								'<span>Converted from <strong>' + convSrc + '</strong></span></div>' +
+								'<div class="text-sm ml-4 mt-1 text-muted">Created from official library distribution</div>';
+						}
+						$sigStatus.html(convCertHtml);
+						$modal.find(".imp-preview-signature-section").removeClass("d-none");
+					} else if (sigResult.code_signed && sigResult.valid && sigResult.publisher_cert) {
 						// Code-signed with Ed25519 publisher certificate
 						var pubName = escapeHtml(sigResult.publisher_cert.publisher);
 						var pubOrg = sigResult.publisher_cert.organization ? ' (' + escapeHtml(sigResult.publisher_cert.organization) + ')' : '';
@@ -11835,7 +11955,10 @@
 					file_hashes: fileHashes,
 					public_functions: extractPublicFunctions(libFiles, libDestDir),
 					required_dependencies: extractRequiredDependencies(libFiles, libDestDir),
-					publisher_cert: (impSigResult && impSigResult.code_signed && impSigResult.valid && impSigResult.publisher_cert) ? impSigResult.publisher_cert : null
+					publisher_cert: (impSigResult && impSigResult.code_signed && impSigResult.valid && impSigResult.publisher_cert) ? impSigResult.publisher_cert : null,
+					converted_from_executable: !!(impSigResult && impSigResult.converted),
+					source_certificate: (impSigResult && impSigResult.converted && impSigResult.source_certificate) ? impSigResult.source_certificate : null,
+					conversion_source: (impSigResult && impSigResult.converted && impSigResult.conversion_source) ? impSigResult.conversion_source : null
 				};
 				// Forward-compat: preserve unknown manifest fields in DB record
 				Object.keys(manifest).forEach(function(mk) { if (shared.KNOWN_MANIFEST_KEYS.indexOf(mk) === -1 && !(mk in dbRecord)) dbRecord[mk] = manifest[mk]; });
