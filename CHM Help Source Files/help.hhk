@@ -54,6 +54,30 @@
 		<param name="Local" value="IntegrityVerification.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="grey checkmark">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="grey badge">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="converted distribution">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="converted distribution badge">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Package From Executable">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Authenticode certificate">
+		<param name="Local" value="IntegrityVerification.html#converted-distribution">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="binary container">
 		<param name="Local" value="BinaryContainerFormat.html">
 		</OBJECT>

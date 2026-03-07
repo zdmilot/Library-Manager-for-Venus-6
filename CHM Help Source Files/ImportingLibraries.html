@@ -22,6 +22,7 @@
   <li><b>Signature verification:</b> The package's integrity signature is verified. For v2.0 packages, this includes Ed25519 digital signature verification and publisher certificate validation. The result is displayed in a <b>Signature Status</b> section of the preview modal:
     <ul>
       <li><b>Verified</b> (green) - All file hashes match, the HMAC is valid, and the Ed25519 digital signature verifies against the embedded publisher certificate</li>
+      <li><b>Converted Distribution</b> (grey) - Package was converted from an executable installer. Shows the source <code>.exe</code> filename and Authenticode signer info (if signed), or &ldquo;Created from official library distribution&rdquo; (if unsigned). HMAC integrity is still verified.</li>
       <li><b>Unsigned</b> (yellow) - No signature found (legacy/third-party package). Import proceeds normally.</li>
       <li><b>Failed</b> (red) - Package may be corrupt or tampered with, or uses a rejected legacy v1.0 HMAC-only signature. A confirmation dialog warns the user before proceeding.</li>
     </ul>
@@ -32,6 +33,7 @@
       <li>Embedded icon/image preview</li>
       <li>Signature verification status</li>
       <li>OEM verified badge <img src="images/blue-check.png" alt="Blue verified checkmark" style="height:14px; vertical-align:middle;"> next to the author/organization if the package is from a recognized OEM vendor with a valid code-signing certificate</li>
+      <li>Converted distribution badge <span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#6b7280; color:#fff; font-size:9px; vertical-align:middle;">&#10004;</span> next to the author/organization if the package was converted from an executable installer (see <a href="IntegrityVerification.html#converted-distribution">Converted Distribution Badge</a>)</li>
       <li>Lists of library files and demo method files</li>
       <li>COM DLL indicators and registration notices</li>
       <li>Destination install paths</li>

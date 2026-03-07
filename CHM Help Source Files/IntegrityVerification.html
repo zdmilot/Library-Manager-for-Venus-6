@@ -455,6 +455,95 @@ next to the author name. This badge appears across the application:</p>
 </div>
 
 <!-- ================================================================== -->
+<h2 id="converted-distribution">Converted Distribution Badge (Grey Checkmark)</h2>
+<!-- ================================================================== -->
+
+<p>Libraries that were converted from executable installers (<code>.exe</code>) using the <b>Package From Executable</b> companion tool display a <b>grey verified checkmark</b> <span style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#6b7280; color:#fff; font-size:10px; vertical-align:middle;">&#10004;</span> next to the author name. This badge is visually distinct from the <img src="images/blue-check.png" alt="Blue verified checkmark" style="height:14px; vertical-align:middle;"> <b>blue</b> OEM verified badge and indicates a different type of provenance verification.</p>
+
+<h3>Blue vs. Grey Checkmarks</h3>
+<table>
+<thead><tr><th>Badge</th><th>Color</th><th>Meaning</th><th>When Shown</th></tr></thead>
+<tbody>
+<tr>
+  <td><img src="images/blue-check.png" alt="Blue checkmark" style="height:16px; vertical-align:middle;"> OEM Verified</td>
+  <td style="color:#0a84ff;">Blue (#0a84ff)</td>
+  <td>The library was <b>code-signed with an Ed25519 publisher certificate</b> by a recognized OEM vendor (e.g., Hamilton, Tecan, Roche). The certificate holder name matches the protected author keyword.</td>
+  <td>The package was built using the Library Manager packager or CLI, signed with a matching Ed25519 keypair, and has a valid digital signature.</td>
+</tr>
+<tr>
+  <td><span style="display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#6b7280; color:#fff; font-size:10px; vertical-align:middle;">&#10004;</span> Converted Distribution</td>
+  <td style="color:#6b7280;">Grey (#6b7280)</td>
+  <td>The library was <b>converted from an executable installer</b> (<code>.exe</code>) using the Package From Executable companion tool. If the source <code>.exe</code> was Authenticode-signed, the certificate metadata is preserved and shown on hover.</td>
+  <td>The package&rsquo;s <code>signature.json</code> uses the <code>2.0-converted</code> signature format, which contains HMAC integrity plus source executable certificate metadata.</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Where the Grey Badge Appears</h3>
+<p>The grey converted distribution badge appears in the same locations as the blue OEM badge:</p>
+<ul>
+  <li><b>Library cards</b> &mdash; next to the author name on the main library grid</li>
+  <li><b>Library detail modals</b> &mdash; next to the author and organization fields</li>
+  <li><b>Import preview</b> &mdash; shown when previewing a converted package before import</li>
+  <li><b>Settings library list</b> &mdash; in the accordion list under Settings</li>
+</ul>
+<p>The grey badge is shown only when the library does <b>not</b> already qualify for a blue OEM badge. If a converted package also has a restricted OEM author and a valid Ed25519 code-signing certificate, the blue badge takes precedence.</p>
+
+<h3>Grey Badge Hover Tooltip</h3>
+<p>Hovering over the grey <span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:#6b7280; color:#fff; font-size:9px; vertical-align:middle;">&#10004;</span> badge reveals a tooltip with source executable provenance details:</p>
+
+<h4>When the Source EXE Was Authenticode-Signed</h4>
+<ul>
+  <li><b>EXE Signer</b> &mdash; the Common Name (CN) extracted from the Authenticode certificate</li>
+  <li><b>Issuer</b> &mdash; the certificate authority that issued the signing certificate</li>
+  <li><b>Thumbprint</b> &mdash; SHA-1 fingerprint of the signing certificate (truncated)</li>
+  <li><b>Serial</b> &mdash; certificate serial number</li>
+  <li><b>Status</b> &mdash; Authenticode validation status (e.g., &ldquo;Valid&rdquo;)</li>
+  <li><b>Source</b> &mdash; the original <code>.exe</code> filename</li>
+</ul>
+
+<h4>When the Source EXE Was Unsigned</h4>
+<p>If the original <code>.exe</code> did not have an Authenticode signature, the tooltip displays:</p>
+<ul>
+  <li><b>Provenance</b> &mdash; &ldquo;Created from official library distribution&rdquo;</li>
+  <li><b>Source</b> &mdash; the original <code>.exe</code> filename</li>
+</ul>
+
+<h3>Converted Distribution Certificate Section</h3>
+<p>In the library detail modal, converted packages display a <b>Converted Distribution</b> section (replacing the Code Signing Certificate section used by OEM libraries). This section uses a grey gradient background and shows the full source executable certificate metadata:</p>
+<ul>
+  <li>EXE Signer and Issuer names</li>
+  <li>Subject and Issuer distinguished names</li>
+  <li>Serial number and SHA-1 thumbprint</li>
+  <li>Validity period (Valid From / Valid Until)</li>
+  <li>Authenticode status</li>
+  <li>Timestamp signer (if present)</li>
+  <li>Source executable filename</li>
+</ul>
+<p>For unsigned source executables, this section shows &ldquo;Created from official library distribution&rdquo; as the provenance statement.</p>
+
+<h3>Signature Format: <code>2.0-converted</code></h3>
+<p>Converted packages use a distinct signature format version (<code>2.0-converted</code>) in their <code>signature.json</code> file. This format is structurally similar to the standard <code>2.0</code> format but differs in the following ways:</p>
+<table>
+<thead><tr><th>Field</th><th>Standard 2.0</th><th>2.0-converted</th></tr></thead>
+<tbody>
+<tr><td><code>signature_format_version</code></td><td><code>"2.0"</code></td><td><code>"2.0-converted"</code></td></tr>
+<tr><td><code>digital_signature</code></td><td>Ed25519 signature (Base64)</td><td>Not present</td></tr>
+<tr><td><code>publisher_certificate</code></td><td>Ed25519 publisher cert object</td><td>Not present</td></tr>
+<tr><td><code>source_certificate</code></td><td>Not present</td><td>Authenticode certificate metadata from the source <code>.exe</code></td></tr>
+<tr><td><code>conversion_source</code></td><td>Not present</td><td>Original <code>.exe</code> filename</td></tr>
+<tr><td><code>converted_from_executable</code></td><td>Not present</td><td><code>true</code></td></tr>
+<tr><td><code>hmac</code></td><td>HMAC-SHA256 of file hashes</td><td>HMAC-SHA256 of file hashes (same)</td></tr>
+<tr><td><code>file_hashes</code></td><td>SHA-256 per-file hashes</td><td>SHA-256 per-file hashes (same)</td></tr>
+</tbody>
+</table>
+<p>The HMAC integrity protection is identical to standard packages &mdash; the same key and algorithm are used. The difference is that converted packages carry Authenticode provenance data instead of an Ed25519 digital signature.</p>
+
+<div class="note">
+<p><b>Note:</b> The grey badge and blue badge are mutually exclusive on any given library. If a library was converted from an OEM executable and also has a valid Ed25519 code-signing certificate, the blue OEM badge takes precedence. The grey badge is rendered by <code>buildConvertedBadge()</code> in <code>main.js</code>, and the detail section by <code>buildConvertedCertDetailSection()</code>.</p>
+</div>
+
+<!-- ================================================================== -->
 <h2>End-to-End Integrity Lifecycle</h2>
 <!-- ================================================================== -->
 
