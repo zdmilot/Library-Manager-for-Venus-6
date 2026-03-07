@@ -48,7 +48,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 WelcomeLabel2=This will install [name/ver] on your computer.%n%nLibrary Manager for Venus 6 provides a complete solution for managing Hamilton VENUS libraries, including importing, exporting, packaging, and version control.%n%nIt is recommended that you close all other applications before continuing.
 
 ; ============================================================================
-; Custom Pages (Pascal Script tasks: Regulated Mode, Dark Mode, GitHub Links)
+; Custom Pages (Pascal Script tasks: Regulated Mode, Dark Mode)
 ; ============================================================================
 
 [Code]
@@ -56,11 +56,9 @@ var
   ConfigPage: TWizardPage;
   RegulatedCheckbox: TNewCheckBox;
   DarkModeCheckbox: TNewCheckBox;
-  GithubLinksCheckbox: TNewCheckBox;
   RegulatedInfoLabel: TNewStaticText;
   IsRegulatedMode: Boolean;
   IsDarkMode: Boolean;
-  IsGithubLinksHidden: Boolean;
   TermsPage: TWizardPage;
   TermsMemo: TNewMemo;
   AcceptCheckbox: TNewCheckBox;
@@ -183,7 +181,6 @@ begin
       'Enabling this mode has the following consequences:' + #13#10 + #13#10 +
       '  - Only users in authorized Windows groups (Lab Method Programmer, ' + #13#10 +
       '    Lab Service) or Administrators can manage libraries' + #13#10 +
-      '  - GitHub repository links will be disabled and cannot be re-enabled' + #13#10 +
       '  - Unsigned libraries will be disabled (all packages must be signed)' + #13#10 +
       '  - An audit log is maintained for all library operations' + #13#10 +
       '  - Import/export operations require authorized group membership' + #13#10 +
@@ -198,11 +195,8 @@ begin
     end
     else
     begin
-      // Force GitHub links off when regulated mode is on
-      GithubLinksCheckbox.Checked := False;
-      GithubLinksCheckbox.Enabled := False;
       RegulatedInfoLabel.Caption :=
-        'Regulated mode is ENABLED. GitHub links are disabled and unsigned ' +
+        'Regulated mode is ENABLED. Unsigned ' +
         'libraries are not permitted. Only authorized Windows group members ' +
         'can manage libraries.';
       RegulatedInfoLabel.Font.Color := $000080; // Dark red
@@ -210,7 +204,6 @@ begin
   end
   else
   begin
-    GithubLinksCheckbox.Enabled := True;
     RegulatedInfoLabel.Caption :=
       'Regulated mode is disabled. All users can manage libraries freely.';
     RegulatedInfoLabel.Font.Color := clGray;
@@ -223,7 +216,6 @@ procedure InitializeWizard();
 var
   SectionLabel: TNewStaticText;
   DividerBevel: TBevel;
-  DividerBevel2: TBevel;
   TermsText, PrivacyText: AnsiString;
 begin
   // -----------------------------------------------------------------------
@@ -302,37 +294,11 @@ begin
   DividerBevel.Height := 2;
   DividerBevel.Shape := bsBottomLine;
 
-  // === Section 2: GitHub Links ===
-  SectionLabel := TNewStaticText.Create(WizardForm);
-  SectionLabel.Parent := ConfigPage.Surface;
-  SectionLabel.Caption := 'GitHub Integration';
-  SectionLabel.Top := DividerBevel.Top + DividerBevel.Height + 12;
-  SectionLabel.Left := 0;
-  SectionLabel.Font.Style := [fsBold];
-  SectionLabel.Font.Size := 9;
-
-  GithubLinksCheckbox := TNewCheckBox.Create(WizardForm);
-  GithubLinksCheckbox.Parent := ConfigPage.Surface;
-  GithubLinksCheckbox.Caption := 'Show GitHub Repository Links';
-  GithubLinksCheckbox.Top := SectionLabel.Top + SectionLabel.Height + 8;
-  GithubLinksCheckbox.Left := 8;
-  GithubLinksCheckbox.Width := ConfigPage.SurfaceWidth - 16;
-  GithubLinksCheckbox.Checked := False;  // Hidden by default
-
-  // --- Divider ---
-  DividerBevel2 := TBevel.Create(WizardForm);
-  DividerBevel2.Parent := ConfigPage.Surface;
-  DividerBevel2.Top := GithubLinksCheckbox.Top + GithubLinksCheckbox.Height + 16;
-  DividerBevel2.Left := 0;
-  DividerBevel2.Width := ConfigPage.SurfaceWidth;
-  DividerBevel2.Height := 2;
-  DividerBevel2.Shape := bsBottomLine;
-
-  // === Section 3: Regulated Environment Mode ===
+  // === Section 2: Regulated Environment Mode ===
   SectionLabel := TNewStaticText.Create(WizardForm);
   SectionLabel.Parent := ConfigPage.Surface;
   SectionLabel.Caption := 'Regulated Environment Mode';
-  SectionLabel.Top := DividerBevel2.Top + DividerBevel2.Height + 12;
+  SectionLabel.Top := DividerBevel.Top + DividerBevel.Height + 12;
   SectionLabel.Left := 0;
   SectionLabel.Font.Style := [fsBold];
   SectionLabel.Font.Size := 9;
@@ -468,18 +434,11 @@ begin
   else
     Memo := Memo + 'Use System Setting' + NewLine;
 
-  Memo := Memo + Space + 'GitHub Repository Links: ';
-  if GithubLinksCheckbox.Checked then
-    Memo := Memo + 'Visible' + NewLine
-  else
-    Memo := Memo + 'Hidden' + NewLine;
-
   if RegulatedCheckbox.Checked then
   begin
     Memo := Memo + NewLine;
     Memo := Memo + 'IMPORTANT - Regulated Environment Mode Consequences:' + NewLine;
     Memo := Memo + Space + '- Only authorized Windows group members can manage libraries' + NewLine;
-    Memo := Memo + Space + '- GitHub links are disabled and cannot be re-enabled' + NewLine;
     Memo := Memo + Space + '- All packages must be signed (unsigned libraries disabled)' + NewLine;
     Memo := Memo + Space + '- Full audit log is maintained for all operations' + NewLine;
     Memo := Memo + Space + '- Import/export requires authorized group membership' + NewLine;
@@ -494,7 +453,7 @@ end;
 procedure WriteSettingsFile(const SettingsPath: String);
 var
   Json: String;
-  RegVal, DarkVal, GithubVal: String;
+  RegVal, DarkVal: String;
 begin
   if RegulatedCheckbox.Checked then
     RegVal := 'true'
@@ -505,11 +464,6 @@ begin
     DarkVal := 'dark'
   else
     DarkVal := 'system';
-
-  if GithubLinksCheckbox.Checked then
-    GithubVal := 'true'
-  else
-    GithubVal := 'false';
 
   Json := '[{"_id":"0",' +
     '"recent-max":"20",' +
@@ -524,7 +478,7 @@ begin
     '"chk_requireActionSignature":false,' +
     '"chk_regulatedEnvironment":' + RegVal + ',' +
     '"themeMode":"' + DarkVal + '",' +
-    '"chk_showGitHubLinks":' + GithubVal +
+    '"chk_showGitHubLinks":false' +
     '}]';
 
   // Ensure the parent directory exists (needed for the %LOCALAPPDATA% path)
