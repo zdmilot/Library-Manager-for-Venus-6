@@ -216,6 +216,7 @@ procedure InitializeWizard();
 var
   SectionLabel: TNewStaticText;
   DividerBevel: TBevel;
+  DividerBevel2: TBevel;
   TermsText, PrivacyText: AnsiString;
 begin
   // -----------------------------------------------------------------------

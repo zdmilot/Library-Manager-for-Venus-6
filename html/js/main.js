@@ -2249,6 +2249,9 @@
 		});
 
 		// ---- Secret flask icon click handler: 8 clicks to toggle OEM/developer settings ----
+		// OEM override state is session-only (in-memory); resets on app restart
+		var _oemSessionUnlocked = false;
+		var _oemSessionKeywordsEnabled = false;
 		var _flaskClickCount = 0;
 		var _flaskClickTimer = null;
 		$(document).on("click", "#about-flask-icon", function () {
@@ -2258,17 +2261,15 @@
 			if (_flaskClickCount >= 8) {
 				_flaskClickCount = 0;
 				if (_flaskClickTimer) { clearTimeout(_flaskClickTimer); _flaskClickTimer = null; }
-				var current = !!getSettingValue('_oemSettingsUnlocked');
-				var newVal = !current;
-				saveSetting('_oemSettingsUnlocked', newVal);
-				applyOemSettingsVisibility(newVal);
+				_oemSessionUnlocked = !_oemSessionUnlocked;
+				applyOemSettingsVisibility(_oemSessionUnlocked);
 				// If disabling, also turn off OEM keywords
-				if (!newVal) {
+				if (!_oemSessionUnlocked) {
 					$("#chk_oemKeywordsEnabled").prop("checked", false);
-					saveSetting('chk_oemKeywordsEnabled', false);
+					_oemSessionKeywordsEnabled = false;
 					$(".oem-keywords-status").html('');
 				}
-				var msg = newVal ? 'Developer settings enabled.' : 'Developer settings disabled.';
+				var msg = _oemSessionUnlocked ? 'Developer settings enabled.' : 'Developer settings disabled.';
 				alert(msg);
 			}
 		});
@@ -5762,18 +5763,10 @@
 			refreshSettingsSigningStatus();
 			refreshSigningUI();
 
-			// OEM/developer settings visibility
-			var oemUnlocked = !!settings['_oemSettingsUnlocked'];
-			applyOemSettingsVisibility(oemUnlocked);
-
-			// OEM keywords enabled toggle
-			var oemKwEnabled = !!settings['chk_oemKeywordsEnabled'];
-			$("#chk_oemKeywordsEnabled").prop("checked", oemKwEnabled);
-			if (oemKwEnabled) {
-				$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
-			} else {
-				$(".oem-keywords-status").html('');
-			}
+			// OEM/developer settings visibility — always start hidden (session-only)
+			applyOemSettingsVisibility(false);
+			$("#chk_oemKeywordsEnabled").prop("checked", false);
+			$(".oem-keywords-status").html('');
 
 			// Initialize system tray icon (always present when app is running)
 			initTrayIcon();
@@ -5794,7 +5787,7 @@
 
 		/** Check if OEM keywords bypass is enabled in settings */
 		function isOemKeywordsEnabled() {
-			return !!getSettingValue('chk_oemKeywordsEnabled') && !!getSettingValue('_oemSettingsUnlocked');
+			return _oemSessionKeywordsEnabled && _oemSessionUnlocked;
 		}
 
 		// ---- OEM Keywords toggle handler: require password to enable ----
@@ -5804,7 +5797,7 @@
 				// Require OEM password to enable
 				var pwOk = await promptAuthorPassword();
 				if (pwOk) {
-					saveSetting('chk_oemKeywordsEnabled', true);
+					_oemSessionKeywordsEnabled = true;
 					$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
 				} else {
 					$(this).prop("checked", false);
@@ -5812,7 +5805,7 @@
 					setTimeout(function() { $(".oem-keywords-status").html(''); }, 3000);
 				}
 			} else {
-				saveSetting('chk_oemKeywordsEnabled', false);
+				_oemSessionKeywordsEnabled = false;
 				$(".oem-keywords-status").html('');
 			}
 		});
