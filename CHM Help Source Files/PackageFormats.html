@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Package Formats</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Package Formats</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Package Formats</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Package Formats</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 uses two file formats for distributing and archiving Hamilton VENUS libraries: <code>.hxlibpkg</code> (single library package) and <code>.hxlibarch</code> (multi-library archive). Both formats use a <b>custom binary container</b> that wraps an internal ZIP archive inside a proprietary envelope. The binary container prevents the files from being opened, browsed, or extracted using standard tools such as 7-Zip, WinRAR, or Windows Explorer.</p>
+<p>Library Manager uses two file formats for distributing and archiving Hamilton VENUS libraries: <code>.hxlibpkg</code> (single library package) and <code>.hxlibarch</code> (multi-library archive). Both formats use a <b>custom binary container</b> that wraps an internal ZIP archive inside a proprietary envelope. The binary container prevents the files from being opened, browsed, or extracted using standard tools such as 7-Zip, WinRAR, or Windows Explorer.</p>
 
 <p>For full details on the binary container layer - including the header layout, XOR scrambling, HMAC-SHA256 integrity verification, and fail-closed design - see <a href="BinaryContainerFormat.html">Binary Container Format</a>.</p>
 
@@ -37,7 +37,7 @@
 <tr><td><code>description</code></td><td>string</td><td>No</td><td>Human-readable description of the library</td></tr>
 <tr><td><code>tags</code></td><td>string[]</td><td>No</td><td>Searchable keyword tags. Over 60 tag keywords are reserved (case-insensitive) and cannot be used, including OEM and laboratory automation company names. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the complete reserved list.</td></tr>
 <tr><td><code>created_date</code></td><td>string</td><td>No</td><td>ISO 8601 timestamp of package creation</td></tr>
-<tr><td><code>app_version</code></td><td>string</td><td>No</td><td>Version of Library Manager for Venus 6 that created or last exported the package (e.g., <code>"1.8.6"</code>). Used for version mismatch detection on import.</td></tr>
+<tr><td><code>app_version</code></td><td>string</td><td>No</td><td>Version of Library Manager that created or last exported the package (e.g., <code>"1.8.6"</code>). Used for version mismatch detection on import.</td></tr>
 <tr><td><code>windows_version</code></td><td>string</td><td>No</td><td>Windows OS version of the machine that created or last exported the package (e.g., <code>"Windows_NT 10.0.19045 (x64)"</code>)</td></tr>
 <tr><td><code>venus_version</code></td><td>string</td><td>No</td><td>Hamilton VENUS version installed on the machine that created or last exported the package</td></tr>
 <tr><td><code>package_lineage</code></td><td>object[]</td><td>No</td><td>Ordered array of lifecycle events that have occurred to this package. Each event records who performed the action, when, on what system, and which application/format version was used. See <b>Package Lineage</b> below.</td></tr>
@@ -52,7 +52,7 @@
 </table>
 
 <div class="note">
-<p><b>Forward Compatibility:</b> The manifest may contain additional fields not listed above. Future versions of Library Manager for Venus 6 may add new metadata without bumping the format version. Any unrecognized fields in a manifest are <b>preserved</b> during import, export, and repackaging to ensure lossless round-tripping across application versions.</p>
+<p><b>Forward Compatibility:</b> The manifest may contain additional fields not listed above. Future versions of Library Manager may add new metadata without bumping the format version. Any unrecognized fields in a manifest are <b>preserved</b> during import, export, and repackaging to ensure lossless round-tripping across application versions.</p>
 </div>
 
 <h3>Example Manifest</h3>
@@ -117,10 +117,10 @@
 <p>When a library is <b>exported</b>, an <code>"exported"</code> event is appended to the existing lineage from the database record. This means a package that was created on Machine A, exported on Machine B, imported on Machine C, and exported again on Machine D will contain four lineage entries &mdash; one for each lifecycle event. The environmental context (Windows version, VENUS version, hostname, operator) of every machine in the chain is permanently recorded.</p>
 
 <h3>Package Signature (<code>signature.json</code>)</h3>
-<p>Every <code>.hxlibpkg</code> created by Library Manager for Venus 6 includes a <code>signature.json</code> entry in the internal ZIP. The current v2.0 signature format includes both an HMAC-SHA256 integrity hash and an Ed25519 digital signature with an embedded publisher certificate. This inner signature covers every other entry in the ZIP and provides per-file integrity verification, complementing the outer container-level HMAC that covers the entire file. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for how these two integrity layers work together.</p>
+<p>Every <code>.hxlibpkg</code> created by Library Manager includes a <code>signature.json</code> entry in the internal ZIP. The current v2.0 signature format includes both an HMAC-SHA256 integrity hash and an Ed25519 digital signature with an embedded publisher certificate. This inner signature covers every other entry in the ZIP and provides per-file integrity verification, complementing the outer container-level HMAC that covers the entire file. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for how these two integrity layers work together.</p>
 
 <h4>v2.0 Signature Format (Current)</h4>
-<p>The current signature format used by Library Manager for Venus 6. Provides both HMAC-SHA256 tamper detection and Ed25519 cryptographic publisher identity verification.</p>
+<p>The current signature format used by Library Manager. Provides both HMAC-SHA256 tamper detection and Ed25519 cryptographic publisher identity verification.</p>
 
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
@@ -197,7 +197,7 @@
 <tr><td><code>format_version</code></td><td>string</td><td>Archive format version (<code>"2.0"</code>)</td></tr>
 <tr><td><code>archive_type</code></td><td>string</td><td>Always <code>"hxlibarch"</code></td></tr>
 <tr><td><code>created_date</code></td><td>string</td><td>ISO 8601 timestamp of archive creation</td></tr>
-<tr><td><code>app_version</code></td><td>string</td><td>Version of Library Manager for Venus 6 that created the archive</td></tr>
+<tr><td><code>app_version</code></td><td>string</td><td>Version of Library Manager that created the archive</td></tr>
 <tr><td><code>windows_version</code></td><td>string</td><td>Windows OS version of the machine that created the archive</td></tr>
 <tr><td><code>venus_version</code></td><td>string</td><td>Hamilton VENUS version installed on the creating machine</td></tr>
 <tr><td><code>library_count</code></td><td>integer</td><td>Number of packages in the archive</td></tr>
@@ -245,7 +245,7 @@
 </div>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

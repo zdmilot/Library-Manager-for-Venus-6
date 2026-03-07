@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>System Architecture</title>
@@ -26,12 +26,12 @@
 <body>
 <div class="header">System Architecture</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; System Architecture</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; System Architecture</div>
 
 <h2>Overview</h2>
-<p>This page provides a comprehensive architectural reference for the Library Manager for Venus 6 application. It documents all major system components, data flows, security mechanisms, and user-facing features using structured diagrams and process tables.</p>
+<p>This page provides a comprehensive architectural reference for the Library Manager application. It documents all major system components, data flows, security mechanisms, and user-facing features using structured diagrams and process tables.</p>
 
-<p>Library Manager for Venus 6 is a dual-interface application (GUI + CLI) built on <b>NW.js</b> and <b>Node.js</b>. It manages Hamilton VENUS HSL libraries through a custom binary container format with HMAC-SHA256 integrity protection, package signing, role-based access control, and a JSON-file database.</p>
+<p>Library Manager is a dual-interface application (GUI + CLI) built on <b>NW.js</b> and <b>Node.js</b>. It manages Hamilton VENUS HSL libraries through a custom binary container format with HMAC-SHA256 integrity protection, package signing, role-based access control, and a JSON-file database.</p>
 
 <!-- ================================================================== -->
 <h2>Table of Contents</h2>
@@ -79,7 +79,7 @@
 <h2>2. Data Model &amp; Storage</h2>
 <!-- ================================================================== -->
 
-<p>All persistent data is stored as JSON files managed by <b>diskdb</b>. The database is split into two directories: <code>db/</code> contains shipped read-only reference data (system library definitions, integrity hashes), and <code>local/</code> contains all mutable state that changes during operation. By default, <code>local/</code> is stored under <code>C:\Program Files (x86)\Library Manager for Venus 6\local\</code> and is shared across all user accounts on the PC. See <a href="FileStorage.html">File Storage &amp; Data Management</a> for the complete directory layout and <a href="DataModel.html">Data Model</a> for the full specification.</p>
+<p>All persistent data is stored as JSON files managed by <b>diskdb</b>. The database is split into two directories: <code>db/</code> contains shipped read-only reference data (system library definitions, integrity hashes), and <code>local/</code> contains all mutable state that changes during operation. By default, <code>local/</code> is stored under <code>C:\Program Files (x86)\Library Manager\local\</code> and is shared across all user accounts on the PC. See <a href="FileStorage.html">File Storage &amp; Data Management</a> for the complete directory layout and <a href="DataModel.html">Data Model</a> for the full specification.</p>
 
 <h3>Settings (local/settings.json)</h3>
 <table class="entity-table">
@@ -835,7 +835,7 @@
 
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

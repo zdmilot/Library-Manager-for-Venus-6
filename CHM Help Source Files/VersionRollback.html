@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Version Rollback</title>
@@ -7,14 +7,14 @@
 <body>
 <div class="header">Version Rollback</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Version Rollback</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Version Rollback</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 automatically caches every imported <code>.hxlibpkg</code> file in a <b>package store</b>. This enables you to roll back any library to a previously installed version at any time, without needing to locate the original package file.</p>
+<p>Library Manager automatically caches every imported <code>.hxlibpkg</code> file in a <b>package store</b>. This enables you to roll back any library to a previously installed version at any time, without needing to locate the original package file.</p>
 
 <h2>Package Store</h2>
 <p>The package store is a local directory that holds copies of all imported packages, organized by library name. By default, it is located in the application install directory at:</p>
-<div class="code"><pre>C:\Program Files (x86)\Library Manager for Venus 6\local\packages\</pre></div>
+<div class="code"><pre>C:\Program Files (x86)\Library Manager\local\packages\</pre></div>
 <p>You can override this location using the <code>--store-dir</code> CLI flag.</p>
 
 <h3>Storage Organization</h3>
@@ -90,7 +90,7 @@
 <p>Every rollback operation is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username, Windows OS version, VENUS version, hostname, library name, and the version rolled back to. When configured for GUI destructive actions, <code>action_comment</code> and <code>action_signature</code> are also recorded. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

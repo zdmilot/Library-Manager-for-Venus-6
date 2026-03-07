@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>File Storage &amp; Data Management</title>
@@ -7,19 +7,19 @@
 <body>
 <div class="header">File Storage &amp; Data Management</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; File Storage &amp; Data Management</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; File Storage &amp; Data Management</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 stores all persistent application data in a single <code>local/</code> directory within the application&rsquo;s own install folder under <code>Program Files (x86)</code>. This design ensures that all settings, library registries, audit trails, package backups, and exports are globally accessible to every user account on the PC &mdash; which is essential because VENUS libraries must span the entire workstation and are not per-user resources.</p>
+<p>Library Manager stores all persistent application data in a single <code>local/</code> directory within the application&rsquo;s own install folder under <code>Program Files (x86)</code>. This design ensures that all settings, library registries, audit trails, package backups, and exports are globally accessible to every user account on the PC &mdash; which is essential because VENUS libraries must span the entire workstation and are not per-user resources.</p>
 
 <h2>Installation Directory</h2>
 <p>The application is installed to:</p>
-<pre>C:\Program Files (x86)\Library Manager for Venus 6\</pre>
+<pre>C:\Program Files (x86)\Library Manager\</pre>
 <p>This uses the 32-bit Program Files directory (<code>x86</code>) because the application is built on a 32-bit architecture (NW.js ia32). The install directory is used for application binaries and static assets.</p>
 
 <h2>Local Data Directory</h2>
 <p>All mutable application data is stored under:</p>
-<pre>C:\Program Files (x86)\Library Manager for Venus 6\local\</pre>
+<pre>C:\Program Files (x86)\Library Manager\local\</pre>
 
 <h3>Directory Structure</h3>
 <table>
@@ -82,7 +82,7 @@
 </table>
 
 <h2>Night Mode (Dark Theme)</h2>
-<p>Library Manager for Venus 6 supports a night mode (dark theme) that can be toggled in two ways:</p>
+<p>Library Manager supports a night mode (dark theme) that can be toggled in two ways:</p>
 <ul>
   <li><b>Overflow menu</b> &mdash; click the three-dot menu (<i class="fas fa-ellipsis-v"></i>) and select <b>Night Mode</b> / <b>Day Mode</b></li>
   <li><b>Settings dialog</b> &mdash; check or uncheck <b>Enable night mode (dark theme)</b> under the Display section</li>
@@ -90,7 +90,7 @@
 <p>The dark mode preference is stored in <code>local/settings.json</code> as <code>chk_darkMode</code> and is persisted between application sessions. Because settings are global, the theme preference applies to all users on the PC.</p>
 
 <h2>Migration from Previous Versions</h2>
-<p>When upgrading from an earlier version of Library Manager for Venus 6, the application automatically migrates data from legacy storage locations:</p>
+<p>When upgrading from an earlier version of Library Manager, the application automatically migrates data from legacy storage locations:</p>
 
 <table>
 <thead><tr><th>Legacy Location</th><th>Version</th><th>Migration Action</th></tr></thead>
@@ -125,7 +125,7 @@
 
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

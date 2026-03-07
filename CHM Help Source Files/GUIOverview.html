@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>GUI Overview</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">GUI Overview</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; GUI Overview</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; GUI Overview</div>
 
 <h2>Main Window Layout</h2>
-<p>The Library Manager for Venus 6 graphical user interface is built around a card-based library browser with navigation tabs, a sidebar for groups and VENUS tool shortcuts, and contextual detail modals.</p>
+<p>The Library Manager graphical user interface is built around a card-based library browser with navigation tabs, a sidebar for groups and VENUS tool shortcuts, and contextual detail modals.</p>
 <img src="images/main-window-labeled.png" alt="Main window with labeled regions" class="doc-screenshot">
 
 <h2>Navigation Tabs</h2>
@@ -158,7 +158,7 @@
 <p>The sidebar provides quick-launch shortcuts to Hamilton VENUS utilities. See <a href="VENUSIntegration.html">VENUS Integration</a> for the full list.</p>
 
 <h2>Help Menu</h2>
-<p>Access the compiled help file (<code>Library Manager for Venus 6.chm</code>) from the overflow menu. Video tutorial infrastructure is also available for in-app help playback.</p>
+<p>Access the compiled help file (<code>Library Manager.chm</code>) from the overflow menu. Video tutorial infrastructure is also available for in-app help playback.</p>
 
 <h2>Verify &amp; Repair Tool</h2>
 <p>The overflow menu includes a <b>Verify &amp; Repair</b> tool that provides a comprehensive integrity scan and one-click repair for <b>all</b> libraries - both Hamilton system libraries and user-installed libraries. See <a href="IntegrityVerification.html">Integrity Verification</a> for the full technical documentation.</p>
@@ -177,7 +177,7 @@
 </ol>
 
 <h3>First-Run System Library Backup</h3>
-<p>On the very first launch, Library Manager for Venus 6 automatically creates a signed <code>.hxlibpkg</code> backup for every Hamilton system library and stores it in the package store. This ensures that system libraries can always be repaired even though they were not originally imported through the application. See <a href="IntegrityVerification.html#repair">Integrity Verification - First-Run System Library Backup</a> for details.</p>
+<p>On the very first launch, Library Manager automatically creates a signed <code>.hxlibpkg</code> backup for every Hamilton system library and stores it in the package store. This ensures that system libraries can always be repaired even though they were not originally imported through the application. See <a href="IntegrityVerification.html#repair">Integrity Verification - First-Run System Library Backup</a> for details.</p>
 
 <h3>Repair from the Detail Modal</h3>
 <p>You can also repair a single library directly from its detail modal. Open any library card and scroll to the <b>File Integrity</b> section. If errors are detected and a backup/cached package exists, a <b>Repair from Backup</b> button appears below the error list. This works for both system and user-installed libraries.</p>
@@ -202,7 +202,7 @@
 <tr><td colspan="2"><hr style="margin:4px 0;border-color:#ccc"></td></tr>
 <tr><td><b>Export Archive</b></td><td>Opens the multi-library archive export modal. See <a href="ExportingLibraries.html">Exporting Libraries</a></td></tr>
 <tr><td><b>Settings</b></td><td>Opens the Settings modal</td></tr>
-<tr><td><b>Help</b></td><td>Opens this compiled help file (<code>Library Manager for Venus 6.chm</code>)</td></tr>
+<tr><td><b>Help</b></td><td>Opens this compiled help file (<code>Library Manager.chm</code>)</td></tr>
 </tbody>
 </table>
 
@@ -256,7 +256,7 @@
 <p>Click the <b>Export</b> button to save the currently visible (filtered) events as a CSV file. The export includes columns for Timestamp, Event, Category, User, Hostname, and Details.</p>
 
 <h2>Run Log Cleanup</h2>
-<p>Library Manager for Venus 6 can automatically clean up old VENUS run log files at startup. This feature is controlled by settings in the Settings modal:</p>
+<p>Library Manager can automatically clean up old VENUS run log files at startup. This feature is controlled by settings in the Settings modal:</p>
 <table>
 <thead><tr><th>Setting</th><th>Description</th></tr></thead>
 <tbody>
@@ -279,7 +279,7 @@
 <p>Window position (x,&nbsp;y coordinates) is not persisted.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

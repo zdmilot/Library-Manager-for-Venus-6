@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Library Manager for Venus 6 CLI  v1.9.8
+ * Library Manager CLI  v1.9.8
  * Command-line interface for managing Hamilton VENUS libraries.
  *
  * Copyright (c) 2026 Zachary Milot
@@ -2271,7 +2271,7 @@ function cmdRollbackLib(args) {
 /** Print CLI usage information and available commands to stdout. */
 function printHelp() {
     console.log(`
-Library Manager for Venus 6 CLI  v1.9.8
+Library Manager CLI  v1.9.8
 Hamilton VENUS Library Package Management
 
 USAGE
@@ -2296,7 +2296,7 @@ COMMANDS
 
 GLOBAL OPTIONS
   --db-path <dir>    Path to user data directory (default: from settings.json
-                     or <Hamilton Library>\\LibraryManagerForVenus6)
+                     or <Hamilton Library>\\LibraryManager)
   --store-dir <dir>  Override package store location
                      (default: <app_root>\\local\\packages)
 

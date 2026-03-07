@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Integrity Verification</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Integrity Verification</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Integrity Verification</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Integrity Verification</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 provides a multi-layered integrity system to detect when library files have been modified, tampered with, or deleted. The system uses four complementary mechanisms depending on the context:</p>
+<p>Library Manager provides a multi-layered integrity system to detect when library files have been modified, tampered with, or deleted. The system uses four complementary mechanisms depending on the context:</p>
 <ol>
   <li><b>Binary container HMAC</b> - cryptographic whole-file integrity check on every <code>.hxlibpkg</code> and <code>.hxlibarch</code> file (see <a href="BinaryContainerFormat.html">Binary Container Format</a>)</li>
   <li><b>HMAC-SHA256 package signing</b> - per-file integrity signature (<code>signature.json</code>) inside each package's internal ZIP</li>
@@ -23,7 +23,7 @@
 <h2>User-Installed Libraries (SHA-256 File Hashing)</h2>
 <!-- ================================================================== -->
 
-<p>For libraries imported through Library Manager for Venus 6 (via GUI or CLI), SHA-256 cryptographic hashes are computed at install time and stored in the database record's <code>file_hashes</code> field. On each subsequent view of the library card or detail modal, the current file hashes are recomputed and compared against the stored baseline.</p>
+<p>For libraries imported through Library Manager (via GUI or CLI), SHA-256 cryptographic hashes are computed at install time and stored in the database record's <code>file_hashes</code> field. On each subsequent view of the library card or detail modal, the current file hashes are recomputed and compared against the stored baseline.</p>
 
 <h3>How Hashing Works</h3>
 <p>The hash computation varies by file type:</p>
@@ -69,7 +69,7 @@
 <h2>System Libraries (Hamilton Metadata Footer)</h2>
 <!-- ================================================================== -->
 
-<p>Hamilton system libraries (the built-in libraries shipped with VENUS) use a different integrity mechanism. Instead of SHA-256 hashing, Library Manager for Venus 6 reads Hamilton's own metadata footer embedded at the end of HSL-type files. See <a href="HSLFileArchitecture.html">HSL File Architecture</a> for a detailed explanation of the footer format.</p>
+<p>Hamilton system libraries (the built-in libraries shipped with VENUS) use a different integrity mechanism. Instead of SHA-256 hashing, Library Manager reads Hamilton's own metadata footer embedded at the end of HSL-type files. See <a href="HSLFileArchitecture.html">HSL File Architecture</a> for a detailed explanation of the footer format.</p>
 
 <h3>How System Library Verification Works</h3>
 <ol>
@@ -115,7 +115,7 @@
 <h2>Package Signing (HMAC-SHA256)</h2>
 <!-- ================================================================== -->
 
-<p>In addition to file-level integrity checking after installation, Library Manager for Venus 6 embeds a cryptographic signature in every <code>.hxlibpkg</code> package at creation time. This <b>inner package signing</b> provides per-file integrity verification within the package's internal ZIP archive, complementing the <a href="BinaryContainerFormat.html">binary container HMAC</a> that protects the file as a whole.</p>
+<p>In addition to file-level integrity checking after installation, Library Manager embeds a cryptographic signature in every <code>.hxlibpkg</code> package at creation time. This <b>inner package signing</b> provides per-file integrity verification within the package's internal ZIP archive, complementing the <a href="BinaryContainerFormat.html">binary container HMAC</a> that protects the file as a whole.</p>
 
 <h3>How Package Signing Works</h3>
 <ol>
@@ -165,7 +165,7 @@
 <h2>First-Run System Library Backup</h2>
 <!-- ================================================================== -->
 
-<p>On the very first launch of Library Manager for Venus 6 (or whenever the <code>sysLibBackupComplete</code> setting has not been set), the application automatically creates a signed backup package for every Hamilton system library. This provides a known-good recovery point if system library files are later modified or corrupted.</p>
+<p>On the very first launch of Library Manager (or whenever the <code>sysLibBackupComplete</code> setting has not been set), the application automatically creates a signed backup package for every Hamilton system library. This provides a known-good recovery point if system library files are later modified or corrupted.</p>
 
 <h3>What Happens at First Run</h3>
 <ol>
@@ -209,7 +209,7 @@
 <h2>Repair</h2>
 <!-- ================================================================== -->
 
-<p>When integrity errors are detected for any library (user-installed or system), Library Manager for Venus 6 can restore the library to a known-good state by re-extracting files from a cached or backup <code>.hxlibpkg</code> package in the package store.</p>
+<p>When integrity errors are detected for any library (user-installed or system), Library Manager can restore the library to a known-good state by re-extracting files from a cached or backup <code>.hxlibpkg</code> package in the package store.</p>
 
 <h3>How Repair Works</h3>
 <p>The repair process follows the same steps regardless of whether the library is a user-installed library or a system library:</p>
@@ -333,7 +333,7 @@
 <!-- ================================================================== -->
 
 <p>The package store is the central repository for cached and backup <code>.hxlibpkg</code> files. It serves both <a href="VersionRollback.html">version rollback</a> and the repair functionality. By default, it is located in the application install directory at:</p>
-<div class="code"><pre>C:\Program Files (x86)\Library Manager for Venus 6\local\packages\</pre></div>
+<div class="code"><pre>C:\Program Files (x86)\Library Manager\local\packages\</pre></div>
 
 <h3>How Packages Enter the Store</h3>
 <table>
@@ -602,7 +602,7 @@ next to the author name. This badge appears across the application:</p>
 
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

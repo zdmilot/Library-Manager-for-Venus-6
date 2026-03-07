@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Binary Container Format</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Binary Container Format</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Binary Container Format</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Binary Container Format</div>
 
 <h2>Overview</h2>
-<p>All <code>.hxlibpkg</code> and <code>.hxlibarch</code> files produced by Library Manager for Venus 6 use a <b>custom binary container format</b>. The container wraps an internal ZIP archive inside a proprietary binary envelope that is <b>not readable or extractable</b> using standard tools such as Notepad, 7-Zip, WinRAR, or Windows Explorer. This is a deliberate design decision: package files are application-internal artifacts, not general-purpose ZIP archives.</p>
+<p>All <code>.hxlibpkg</code> and <code>.hxlibarch</code> files produced by Library Manager use a <b>custom binary container format</b>. The container wraps an internal ZIP archive inside a proprietary binary envelope that is <b>not readable or extractable</b> using standard tools such as Notepad, 7-Zip, WinRAR, or Windows Explorer. This is a deliberate design decision: package files are application-internal artifacts, not general-purpose ZIP archives.</p>
 
 <p>The binary container provides two key properties:</p>
 <ul>
@@ -19,7 +19,7 @@
 </ul>
 
 <div class="warning">
-<p><b>Important:</b> Although the file extensions remain <code>.hxlibpkg</code> and <code>.hxlibarch</code>, these files are <b>not</b> ZIP archives. Attempting to open them with ZIP tools will fail. They can only be read by Library Manager for Venus 6 (GUI or CLI).</p>
+<p><b>Important:</b> Although the file extensions remain <code>.hxlibpkg</code> and <code>.hxlibarch</code>, these files are <b>not</b> ZIP archives. Attempting to open them with ZIP tools will fail. They can only be read by Library Manager (GUI or CLI).</p>
 </div>
 
 <!-- ================================================================== -->
@@ -114,7 +114,7 @@
 <h2>Dual Integrity: Container + Inner Signature</h2>
 <!-- ================================================================== -->
 
-<p>Library Manager for Venus 6 provides <b>defense-in-depth</b> through two independent integrity layers:</p>
+<p>Library Manager provides <b>defense-in-depth</b> through two independent integrity layers:</p>
 
 <table>
 <thead><tr><th>Layer</th><th>Scope</th><th>Mechanism</th><th>What It Catches</th></tr></thead>
@@ -166,7 +166,7 @@
 <thead><tr><th>Error Message</th><th>Cause</th><th>Resolution</th></tr></thead>
 <tbody>
 <tr><td>"Container too small"</td><td>File is less than 48 bytes (minimum header size)</td><td>The file is severely truncated or is not a valid package file. Re-obtain the file from the original source.</td></tr>
-<tr><td>"Unrecognized container format"</td><td>The first 8 bytes do not match any known magic value</td><td>The file is not a Library Manager for Venus 6 package or has been renamed from a different format. Verify you selected the correct file.</td></tr>
+<tr><td>"Unrecognized container format"</td><td>The first 8 bytes do not match any known magic value</td><td>The file is not a Library Manager package or has been renamed from a different format. Verify you selected the correct file.</td></tr>
 <tr><td>"Container integrity check failed - file may be corrupted or tampered with"</td><td>HMAC-SHA256 mismatch - one or more bytes of the file have been changed since it was created</td><td>The file has been corrupted (e.g., disk error, incomplete network transfer) or manually edited. Re-obtain an intact copy from the original source.</td></tr>
 <tr><td>"Container payload truncated"</td><td>The header declares a payload length, but the file does not contain enough bytes</td><td>The file was partially downloaded or truncated during copy. Re-obtain the complete file.</td></tr>
 </tbody>
@@ -216,7 +216,7 @@
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

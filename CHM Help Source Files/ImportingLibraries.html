@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Importing Libraries</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Importing Libraries</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Importing Libraries</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Importing Libraries</div>
 
 <h2>Overview</h2>
-<p>Importing is the primary way to install new VENUS libraries. Library Manager for Venus 6 supports importing a single library package (<code>.hxlibpkg</code>) or a multi-library archive (<code>.hxlibarch</code>). Both file types use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Both the GUI and the CLI provide full import capabilities.</p>
+<p>Importing is the primary way to install new VENUS libraries. Library Manager supports importing a single library package (<code>.hxlibpkg</code>) or a multi-library archive (<code>.hxlibarch</code>). Both file types use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Both the GUI and the CLI provide full import capabilities.</p>
 
 <h2>Single Package Import (<code>.hxlibpkg</code>)</h2>
 
@@ -18,7 +18,7 @@
 <ol>
   <li>Navigate to the <b>Import</b> tab in the main window</li>
   <li>Browse and select a <code>.hxlibpkg</code> file</li>
-  <li>Library Manager for Venus 6 validates the <a href="BinaryContainerFormat.html">binary container</a> integrity (HMAC-SHA256), then reads the package contents and validates that a <code>manifest.json</code> is present</li>
+  <li>Library Manager validates the <a href="BinaryContainerFormat.html">binary container</a> integrity (HMAC-SHA256), then reads the package contents and validates that a <code>manifest.json</code> is present</li>
   <li><b>Signature verification:</b> The package's integrity signature is verified. For v2.0 packages, this includes Ed25519 digital signature verification and publisher certificate validation. The result is displayed in a <b>Signature Status</b> section of the preview modal:
     <ul>
       <li><b>Verified</b> (green) - All file hashes match, the HMAC is valid, and the Ed25519 digital signature verifies against the embedded publisher certificate</li>
@@ -49,7 +49,7 @@
 <img src="images/import-preview-modal.png" alt="Import preview modal with library metadata and signature status" class="doc-screenshot">
 
 <h3>What Happens During Import</h3>
-<p>When an import is confirmed, Library Manager for Venus 6 performs the following steps in order:</p>
+<p>When an import is confirmed, Library Manager performs the following steps in order:</p>
 <ol>
   <li><b>Version Mismatch Check:</b> If the package's <code>app_version</code> differs from the running application version, a warning is shown. A higher-severity warning appears when the package was created with a <b>newer major version</b>, as it may contain unsupported features. Legacy packages (without an <code>app_version</code>) are accepted silently with a console notice.</li>
   <li><b>Directory Creation:</b> Creates the target library directory at <code>&lt;Library Root&gt;\&lt;LibraryName&gt;</code> and the demo methods directory at <code>&lt;Methods Root&gt;\Library Demo Methods\&lt;LibraryName&gt;</code> if they do not exist</li>
@@ -75,7 +75,7 @@
 <ol>
   <li>Use the <b>Import Archive</b> workflow from the Import tab</li>
   <li>Select a <code>.hxlibarch</code> file</li>
-  <li>Library Manager for Venus 6 validates the archive and lists all contained <code>.hxlibpkg</code> entries</li>
+  <li>Library Manager validates the archive and lists all contained <code>.hxlibpkg</code> entries</li>
   <li>If conflicts are detected (same library already installed), a conflict-resolution modal requires an explicit decision per library: <b>Skip</b> or <b>Overwrite</b></li>
   <li>The import cannot continue until every conflict row has an explicit action</li>
   <li>If at least one conflict is set to overwrite and audit-enforcement settings are enabled, the modal also requires audit comment/signature fields before continuing</li>
@@ -117,14 +117,14 @@
 </div>
 
 <h2 id="com-dll-registration">COM DLL Registration</h2>
-<p>Some libraries include .NET DLLs that must be registered as COM objects for use in VENUS methods. The manifest's <code>com_register_dlls</code> field identifies which DLLs require this. <b>COM DLL registration is a key feature</b> of Library Manager for Venus 6, automating what would otherwise be a manual, error-prone process.</p>
+<p>Some libraries include .NET DLLs that must be registered as COM objects for use in VENUS methods. The manifest's <code>com_register_dlls</code> field identifies which DLLs require this. <b>COM DLL registration is a key feature</b> of Library Manager, automating what would otherwise be a manual, error-prone process.</p>
 
 <div class="warning">
 <p><b>Critical: 32-bit (x86) Only</b></p>
 <p>Hamilton VENUS 6 is a <b>32-bit (x86) application</b>. All COM DLLs <b>must</b> be registered using the <b>32-bit</b> <code>RegAsm.exe</code> located at:</p>
 <div class="code"><pre>C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe</pre></div>
 <p>Do <b>NOT</b> use the 64-bit version at <code>C:\Windows\Microsoft.NET\Framework<b>64</b>\</code>. The 64-bit <code>RegAsm.exe</code> registers COM objects in the 64-bit registry hive (HKLM\SOFTWARE\Classes), which is <b>invisible</b> to 32-bit VENUS. Using the wrong bitness will cause VENUS methods to fail at runtime with "Class not registered" or similar errors, even though the registration appeared to succeed.</p>
-<p>The Library Manager for Venus 6 GUI <b>automatically selects the correct 32-bit RegAsm.exe</b> and includes a defensive guard that blocks any accidental use of the 64-bit version.</p>
+<p>The Library Manager GUI <b>automatically selects the correct 32-bit RegAsm.exe</b> and includes a defensive guard that blocks any accidental use of the 64-bit version.</p>
 </div>
 
 <ul>
@@ -158,7 +158,7 @@
 <p>In addition to Library Manager packages, you can also import libraries from Hamilton VENUS native <code>.pkg</code> files. This allows extracting and selectively importing library content from VENUS installation packages. See <a href="ImportingHamPkg.html">Importing from VENUS Packages (.pkg)</a> for the full workflow.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

@@ -1,14 +1,14 @@
 ; ============================================================================
-; Inno Setup Script for Library Manager for Venus 6
+; Inno Setup Script for Library Manager
 ; Version: 1.9.8
 ; ============================================================================
 
-#define MyAppName "Library Manager for Venus 6"
+#define MyAppName "Library Manager"
 #define MyAppVersion "1.9.8"
 #define MyAppPublisher "Zachary Milot"
 #define MyAppURL "https://github.com/zdmilot/Library-Manager-for-Venus-6"
-#define MyAppExeName "Library Manager for Venus 6.exe"
-#define MyAppIcon "LibraryManagerForVenus6.ico"
+#define MyAppExeName "Library Manager.exe"
+#define MyAppIcon "LibraryManager.ico"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=LibraryManagerForVenus6_v{#MyAppVersion}_Setup
+OutputBaseFilename=LibraryManager_v{#MyAppVersion}_Setup
 SetupIconFile={#MyAppIcon}
 UninstallDisplayIcon={app}\{#MyAppIcon}
 UninstallFilesDir={app}
@@ -45,7 +45,7 @@ ChangesAssociations=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-WelcomeLabel2=This will install [name/ver] on your computer.%n%nLibrary Manager for Venus 6 provides a complete solution for managing Hamilton VENUS libraries, including importing, exporting, packaging, and version control.%n%nIt is recommended that you close all other applications before continuing.
+WelcomeLabel2=This will install [name/ver] on your computer.%n%nLibrary Manager provides a complete solution for managing Hamilton VENUS libraries, including importing, exporting, packaging, and version control.%n%nIt is recommended that you close all other applications before continuing.
 
 ; ============================================================================
 ; Custom Pages (Pascal Script tasks: Regulated Mode, Dark Mode)
@@ -145,12 +145,12 @@ begin
   begin
     MsgBox(
       'Hamilton VENUS version 6 or later is required to install ' +
-      'Library Manager for Venus 6.' + #13#10 + #13#10 +
+      'Library Manager.' + #13#10 + #13#10 +
       'The installer could not detect a Hamilton VENUS 6 (or later) ' +
       'installation on this computer.' + #13#10 + #13#10 +
       'Please install Hamilton VENUS 6 or a newer version and then ' +
       'run this installer again.' + #13#10 + #13#10 +
-      'Setup will now exit.',
+      'Setup will now exit',
       mbCriticalError, MB_OK);
     Result := False;
   end
@@ -266,7 +266,7 @@ begin
   ConfigPage := CreateCustomPage(
     wpSelectDir,
     'Application Configuration',
-    'Choose the default settings for Library Manager for Venus 6.'
+    'Choose the default settings for Library Manager.'
   );
 
   // === Section 1: Appearance ===
@@ -765,11 +765,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Main NW.js executable
-Source: "Library Manager for Venus 6.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Library Manager.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Application icon
-Source: "LibraryManagerForVenus6.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "LibraryManagerForVenus6.png"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LibraryManager.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LibraryManager.png"; DestDir: "{app}"; Flags: ignoreversion
 
 ; File type association icon (greyscale - separate from internal app icons)
 Source: "hxlib_filetype.ico"; DestDir: "{app}"; Flags: ignoreversion
@@ -852,7 +852,7 @@ Source: "local\unsigned_libs.json"; DestDir: "{app}\local"; Flags: ignoreversion
 Source: "local\publisher_registry.json"; DestDir: "{app}\local"; Flags: ignoreversion uninsneveruninstall
 
 ; Help file
-Source: "Library Manager for Venus 6.chm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Library Manager.chm"; DestDir: "{app}"; Flags: ignoreversion
 
 ; README
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
@@ -881,13 +881,13 @@ Name: "{app}\local\exports"; Permissions: users-modify
 ; --------------------------------------------------------------------------
 ; .hxlibpkg  ->  HxLibPkg file type
 Root: HKLM; Subkey: "Software\Classes\.hxlibpkg"; ValueType: string; ValueName: ""; ValueData: "HxLibPkg"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "Software\Classes\HxLibPkg"; ValueType: string; ValueName: ""; ValueData: "Venus Library Package"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\HxLibPkg"; ValueType: string; ValueName: ""; ValueData: "Library Package"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Classes\HxLibPkg\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\hxlib_filetype.ico,0"
 Root: HKLM; Subkey: "Software\Classes\HxLibPkg\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
 ; .hxlibarch  ->  HxLibArch file type
 Root: HKLM; Subkey: "Software\Classes\.hxlibarch"; ValueType: string; ValueName: ""; ValueData: "HxLibArch"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "Software\Classes\HxLibArch"; ValueType: string; ValueName: ""; ValueData: "Venus Library Archive"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\HxLibArch"; ValueType: string; ValueName: ""; ValueData: "Library Archive"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\Classes\HxLibArch\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\hxlib_filetype.ico,0"
 Root: HKLM; Subkey: "Software\Classes\HxLibArch\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 

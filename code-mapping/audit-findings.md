@@ -1,6 +1,6 @@
 ﻿# Audit Findings
 
-Comprehensive audit findings for Library Manager for Venus 6 v1.8.6.
+Comprehensive audit findings for Library Manager v1.8.6.
 Last updated after full pre-release audit.
 
 ---

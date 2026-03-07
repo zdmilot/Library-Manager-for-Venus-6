@@ -1,6 +1,6 @@
-﻿# Library Manager for Venus 6
+﻿# Library Manager
 
-Library Manager for Venus 6 is a desktop tool (NW.js + Node.js) for managing Hamilton VENUS libraries and related assets.
+Library Manager is a desktop tool (NW.js + Node.js) for managing Hamilton VENUS libraries and related assets.
 It supports full package lifecycle workflows for `.hxlibpkg` and `.hxlibarch` files, including package creation, import, export, archive bundling, integrity checks, COM registration workflows, grouping, and visualization of installed libraries.
 
 ---
@@ -220,7 +220,7 @@ The **OEM** group (`gOEM`) is a special protected group that ships with the appl
 
 ## 12) Help and UX support
 
-- Opens local compiled help file (`Library Manager for Venus 6.chm`) from overflow menu.
+- Opens local compiled help file (`Library Manager.chm`) from overflow menu.
 - Includes video modal infrastructure for in-app help/tutorial playback.
 - Responsive UI behavior for window resize + nav overflow handling.
 
@@ -250,7 +250,7 @@ The **OEM** group (`gOEM`) is a special protected group that ships with the appl
 
 ## 15) Visual identity and static assets
 
-Library Manager for Venus 6 uses a consistent visual branding system across packages and archives. All visual assets are pre-rendered and stored in the `assets/` directory to avoid runtime conversion overhead.
+Library Manager uses a consistent visual branding system across packages and archives. All visual assets are pre-rendered and stored in the `assets/` directory to avoid runtime conversion overhead.
 
 ### Assets folder (`assets/`)
 
@@ -290,7 +290,7 @@ Multi-library archive files (`.hxlibarch`) embed a distinctive **purple archive 
 
 ## Command Line Interface (CLI)
 
-Library Manager for Venus 6 ships a full-featured command-line tool (`cli.js`) that mirrors the GUI workflows, enabling scripted automation, CI/CD integration, and headless testing.
+Library Manager ships a full-featured command-line tool (`cli.js`) that mirrors the GUI workflows, enabling scripted automation, CI/CD integration, and headless testing.
 
 ### Prerequisites
 

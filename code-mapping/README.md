@@ -1,4 +1,4 @@
-﻿# Code Mapping - Library Manager for Venus 6
+﻿# Code Mapping - Library Manager
 
 This directory contains structured code maps for every source file in the project.
 These maps serve as a quick reference for understanding the codebase architecture,

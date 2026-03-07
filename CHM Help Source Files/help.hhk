@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+﻿<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <HTML>
 <HEAD>
 <meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
@@ -390,7 +390,7 @@
 		<param name="Local" value="Overview.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
-		<param name="Name" value="Library Manager for Venus 6">
+		<param name="Name" value="Library Manager">
 		<param name="Local" value="Overview.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">

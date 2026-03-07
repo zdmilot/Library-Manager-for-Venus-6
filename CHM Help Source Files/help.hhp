@@ -1,13 +1,13 @@
-[OPTIONS]
+﻿[OPTIONS]
 Compatibility=1.1 or later
-Compiled file=Library Manager for Venus 6.chm
+Compiled file=Library Manager.chm
 Contents file=help.hhc
 Default topic=index.html
 Display compile progress=No
 Full-text search=Yes
 Index file=help.hhk
 Language=0x409 English (United States)
-Title=Library Manager for Venus 6 Help
+Title=Library Manager Help
 
 [FILES]
 index.html

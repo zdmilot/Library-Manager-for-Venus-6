@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>CLI: export-archive</title>
@@ -7,7 +7,7 @@
 <body>
 <div class="header">CLI: export-archive</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; export-archive</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; export-archive</div>
 
 <h2>Description</h2>
 <p>Bundles one or more installed libraries into a single <code>.hxlibarch</code> archive file. Each library is re-packed from its current disk state, so the archive reflects any post-install modifications. System libraries and deleted libraries are automatically excluded. Each inner <code>.hxlibpkg</code> is individually signed with an HMAC-SHA256 integrity signature. Optionally, each inner package can be code-signed with an Ed25519 publisher certificate using <code>--sign-key</code>.</p>
@@ -60,7 +60,7 @@ node cli.js export-archive --all --output backup\all-libs.hxlibarch --sign-key p
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

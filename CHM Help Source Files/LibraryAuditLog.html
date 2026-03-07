@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Library Audit Log</title>
@@ -7,7 +7,7 @@
 <body>
 <div class="header">Library Audit Log</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Library Audit Log</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Library Audit Log</div>
 
 <h2>Overview</h2>
 <p>The Library Audit Log generates a comprehensive, tamper-evident report of every library installed in the VENUS environment. The report covers both user-installed libraries and Hamilton system libraries, recording their metadata, file integrity status, and cryptographic hashes at the moment the audit is run.</p>
@@ -115,7 +115,7 @@
 </ul>
 
 <h2>Audit Trail</h2>
-<p>In addition to the on-demand point-in-time audit log, Library Manager for Venus 6 maintains a <b>persistent audit trail</b> that automatically records every lifecycle event as it occurs. This trail provides a chronological record of all library operations across the lifetime of the installation.</p>
+<p>In addition to the on-demand point-in-time audit log, Library Manager maintains a <b>persistent audit trail</b> that automatically records every lifecycle event as it occurs. This trail provides a chronological record of all library operations across the lifetime of the installation.</p>
 
 <h3>When Events Are Recorded</h3>
 <p>An audit trail entry is appended automatically whenever any of the following operations completes (in both the GUI and the CLI):</p>
@@ -162,7 +162,7 @@
 
 <h3>Storage Location</h3>
 <p>The audit trail is saved as <code>audit_trail.json</code> in the <b>local data directory</b>:</p>
-<pre>C:\Program Files (x86)\Library Manager for Venus 6\local\audit_trail.json</pre>
+<pre>C:\Program Files (x86)\Library Manager\local\audit_trail.json</pre>
 <p>The audit trail file is stored alongside other application data (installed library records, groups, package cache, etc.) in the <code>local/</code> data directory within the application install folder. No data is written to the VENUS <code>HAMILTON\Library</code> directory &mdash; that directory is used only for storing unpacked library files.</p>
 
 <h3>Traceability</h3>
@@ -185,7 +185,7 @@
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

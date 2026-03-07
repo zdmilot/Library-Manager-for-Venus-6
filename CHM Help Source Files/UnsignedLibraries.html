@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Unsigned Libraries</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Unsigned Libraries</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Unsigned Libraries</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Unsigned Libraries</div>
 
 <h2>Overview</h2>
-<p>The <b>Unsigned Libraries</b> feature provides a convenience mechanism for discovering and working with <code>.hsl</code> and <code>.smt</code> files in the Library folder that were <b>not</b> installed through Library Manager for Venus 6 and are <b>not</b> part of any Hamilton system library. These are files that were placed in the Library folder manually, by another tool, or by an older VENUS installation - they exist on disk but have no corresponding database record or signed package.</p>
+<p>The <b>Unsigned Libraries</b> feature provides a convenience mechanism for discovering and working with <code>.hsl</code> and <code>.smt</code> files in the Library folder that were <b>not</b> installed through Library Manager and are <b>not</b> part of any Hamilton system library. These are files that were placed in the Library folder manually, by another tool, or by an older VENUS installation - they exist on disk but have no corresponding database record or signed package.</p>
 
 <p>This feature is purely for convenience. It performs <b>no hashing, integrity checking, or validation</b> of unsigned files. Its purpose is to make these libraries visible within the application so users can:</p>
 <ul>
@@ -73,7 +73,7 @@
 <tr>
   <td>Legacy reserved directory names</td>
   <td>Directories only</td>
-  <td><code>LibraryManagerForVenus6</code>, <code>LibraryPackages</code>, <code>.LibraryManagerForVenus6</code>, <code>LibraryIntegrityAudit</code></td>
+  <td><code>LibraryManager</code>, <code>LibraryManagerForVenus6</code>, <code>LibraryPackages</code>, <code>.LibraryManagerForVenus6</code>, <code>LibraryIntegrityAudit</code></td>
   <td>Legacy directories from older versions of Library Manager that may still exist in the VENUS Library folder. Excluded to prevent false positives. (Current versions store all application data in the <code>local/</code> directory within the app&rsquo;s own install folder, not in the VENUS Library directory.)</td>
 </tr>
 </tbody>
@@ -209,7 +209,7 @@
 <h2 id="exporting-as-a-package">Exporting as a Package</h2>
 <p>The Export function converts an unsigned library into a proper <code>.hxlibpkg</code> package. This is useful for:</p>
 <ul>
-  <li>Distributing a library to colleagues who use Library Manager for Venus 6</li>
+  <li>Distributing a library to colleagues who use Library Manager</li>
   <li>Creating a backup with metadata and integrity signing</li>
   <li>Bringing an unmanaged library under full version and package management</li>
 </ul>
@@ -316,7 +316,7 @@
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

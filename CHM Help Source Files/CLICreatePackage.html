@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>CLI: create-package</title>
@@ -7,7 +7,7 @@
 <body>
 <div class="header">CLI: create-package</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; create-package</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; create-package</div>
 
 <h2>Description</h2>
 <p>Creates a <code>.hxlibpkg</code> from library source files and metadata defined in a JSON specification file. This is the CLI equivalent of the GUI Library Packager, ideal for automated builds and CI/CD pipelines. The resulting package is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>). Optionally, the package can be code-signed with an Ed25519 publisher certificate for cryptographic origin verification.</p>
@@ -105,7 +105,7 @@ node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign
 <p>The following fields are <b>automatically added</b> to the generated <code>manifest.json</code> and are <b>not</b> part of the spec file:</p>
 <ul>
   <li><code>format_version</code> &mdash; the current package format version (<code>"2.0"</code>)</li>
-  <li><code>app_version</code> &mdash; the version of Library Manager for Venus 6</li>
+  <li><code>app_version</code> &mdash; the version of Library Manager</li>
   <li><code>windows_version</code> &mdash; the Windows OS version of the build machine</li>
   <li><code>venus_version</code> &mdash; the Hamilton VENUS version installed at build time</li>
   <li><code>package_lineage</code> &mdash; an initial <code>"created"</code> event with operator and environment details</li>
@@ -121,7 +121,7 @@ node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

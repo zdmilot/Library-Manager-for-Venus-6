@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>CLI: export-lib</title>
@@ -7,7 +7,7 @@
 <body>
 <div class="header">CLI: export-lib</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; export-lib</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; export-lib</div>
 
 <h2>Description</h2>
 <p>Rebuilds a <code>.hxlibpkg</code> from the currently installed files on disk for a single named library. This is a <b>mutable export</b> - it captures the current on-disk state, including any changes made since the original import. The exported package is automatically signed with an HMAC-SHA256 integrity signature. Optionally, the package can be code-signed with an Ed25519 publisher certificate using <code>--sign-key</code>.</p>
@@ -77,7 +77,7 @@ node cli.js export-lib --name "MyLibrary" --output MyLibrary.hxlibpkg --sign-key
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

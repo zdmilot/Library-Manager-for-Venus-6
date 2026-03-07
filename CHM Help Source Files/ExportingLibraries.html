@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Exporting Libraries</title>
@@ -7,11 +7,11 @@
 <body>
 <div class="header">Exporting Libraries</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Exporting Libraries</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Exporting Libraries</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 can export installed libraries back into portable package files. All exported files use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
-<p>When exporting from the Library Detail Modal, Library Manager for Venus 6 presents an <b>Export Choice Modal</b> that lets you choose between exporting just the library itself, or exporting the library together with all of its dependencies. If an Ed25519 key pair and publisher certificate have been configured in <a href="CodeSigning.html">Settings &rarr; Code Signing</a>, the Export Choice Modal also provides a <b>Code Sign</b> toggle that lets you digitally sign the exported package.</p>
+<p>Library Manager can export installed libraries back into portable package files. All exported files use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
+<p>When exporting from the Library Detail Modal, Library Manager presents an <b>Export Choice Modal</b> that lets you choose between exporting just the library itself, or exporting the library together with all of its dependencies. If an Ed25519 key pair and publisher certificate have been configured in <a href="CodeSigning.html">Settings &rarr; Code Signing</a>, the Export Choice Modal also provides a <b>Code Sign</b> toggle that lets you digitally sign the exported package.</p>
 
 <h2>Export Choice Modal</h2>
 <p>Clicking the <b>Export Library</b> button on the Library Detail Modal opens the Export Choice Modal with two options:</p>
@@ -38,7 +38,7 @@
   <li>Click the <b>Export Library</b> button</li>
   <li>In the Export Choice Modal, select <b>Export Single Library</b></li>
   <li>Choose a save location - the suggested filename is <code>&lt;LibraryName&gt;.hxlibpkg</code></li>
-  <li>Library Manager for Venus 6 verifies that all expected library files exist on disk before exporting</li>
+  <li>Library Manager verifies that all expected library files exist on disk before exporting</li>
   <li>A new <code>.hxlibpkg</code> is built from the current files and metadata</li>
   <li>If <b>Code Sign</b> is enabled, the package is digitally signed with the configured Ed25519 private key and publisher certificate</li>
 </ol>
@@ -81,12 +81,12 @@
   <li>Click the <b>Export Library</b> button</li>
   <li>In the Export Choice Modal, select <b>Export with All Dependencies</b></li>
   <li>Choose a save location - the suggested filename is <code>&lt;LibraryName&gt;_with_dependencies.hxlibarch</code></li>
-  <li>Library Manager for Venus 6 recursively resolves all dependencies and packages everything into a single archive</li>
+  <li>Library Manager recursively resolves all dependencies and packages everything into a single archive</li>
 </ol>
 <img src="images/export-choice-with-deps.png" alt="Export choice modal with dependencies listed" class="doc-screenshot">
 
 <h3>How Recursive Dependency Resolution Works</h3>
-<p>When you choose to export with dependencies, Library Manager for Venus 6 performs the following steps:</p>
+<p>When you choose to export with dependencies, Library Manager performs the following steps:</p>
 <ol>
   <li><b>Scans HSL source files:</b> All <code>.hsl</code> and <code>.hs_</code> files in the library are scanned for <code>#include</code> directives</li>
   <li><b>Resolves includes:</b> Each <code>#include</code> target is resolved to a user-installed library by matching file names against the installed library database</li>
@@ -161,7 +161,7 @@
 <p>The exported package includes all discovered files, a generated manifest, an icon (if a <code>.bmp</code> was found), and an HMAC-SHA256 integrity signature. If code signing is enabled, the package also includes an Ed25519 digital signature and publisher certificate. See <a href="UnsignedLibraries.html">Unsigned Libraries</a> for full details.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

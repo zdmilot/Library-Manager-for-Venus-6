@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Installation</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Installation</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Installation</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Installation</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 is distributed as a single Windows installer (<code>LibraryManagerForVenus6_v&lt;version&gt;_Setup.exe</code>) built with Inno Setup. The installer requires <b>administrator privileges</b> and targets <b>64-bit Windows 10 or later</b>. A working installation of <b>Hamilton VENUS version 6 or later</b> is a mandatory prerequisite &mdash; the installer will refuse to run if VENUS 6+ is not detected on the system.</p>
+<p>Library Manager is distributed as a single Windows installer (<code>LibraryManager_v&lt;version&gt;_Setup.exe</code>) built with Inno Setup. The installer requires <b>administrator privileges</b> and targets <b>64-bit Windows 10 or later</b>. A working installation of <b>Hamilton VENUS version 6 or later</b> is a mandatory prerequisite &mdash; the installer will refuse to run if VENUS 6+ is not detected on the system.</p>
 
 <h2>System Requirements</h2>
 <table>
@@ -20,12 +20,12 @@
 <tr><td>Operating System</td><td>Windows 10 or later (64-bit)</td></tr>
 <tr><td>Privileges</td><td>Administrator rights required for installation</td></tr>
 <tr><td>Disk Space</td><td>Approximately 200&nbsp;MB (varies with library content)</td></tr>
-<tr><td>Default Install Path</td><td><code>C:\Program Files (x86)\Library Manager for Venus 6</code></td></tr>
+<tr><td>Default Install Path</td><td><code>C:\Program Files (x86)\Library Manager</code></td></tr>
 </tbody>
 </table>
 
 <div class="note" style="border-left:4px solid #c00; background:#fff4f4; padding:8px 12px; margin:12px 0;">
-<b>Important:</b> If Hamilton VENUS 6 (or later) is not detected on the target machine, the installer will display an error message and exit immediately. This applies to both interactive and silent installation modes. You must install Hamilton VENUS 6 or a newer version before installing Library Manager for Venus 6.
+<b>Important:</b> If Hamilton VENUS 6 (or later) is not detected on the target machine, the installer will display an error message and exit immediately. This applies to both interactive and silent installation modes. You must install Hamilton VENUS 6 or a newer version before installing Library Manager.
 </div>
 
 <h2>Installation Wizard Steps</h2>
@@ -39,7 +39,7 @@
 
 <h3>3. Select Destination Directory</h3>
 <p>Choose the installation folder. The default location is:</p>
-<pre>C:\Program Files (x86)\Library Manager for Venus 6</pre>
+<pre>C:\Program Files (x86)\Library Manager</pre>
 <p>You may change this to any writable directory. The installer will create the folder if it does not exist.</p>
 
 <h3>4. Application Configuration</h3>
@@ -93,7 +93,7 @@
 </table>
 
 <h3>5. Additional Tasks</h3>
-<p>Optionally create a desktop shortcut for Library Manager for Venus 6. This is unchecked by default.</p>
+<p>Optionally create a desktop shortcut for Library Manager. This is unchecked by default.</p>
 
 <h3>6. Ready to Install</h3>
 <p>Displays a summary of all selected options &mdash; install directory, Start Menu group, and the configuration choices made on the Application Configuration page. If Regulated Environment Mode is enabled, a prominent notice lists the consequences. Review the summary and click <b>Install</b> to begin.</p>
@@ -106,7 +106,7 @@
 </ul>
 
 <h3>8. Completion</h3>
-<p>Once installation finishes you may choose to launch Library Manager for Venus 6 immediately.</p>
+<p>Once installation finishes you may choose to launch Library Manager immediately.</p>
 
 <h2>What Gets Installed</h2>
 <p>The installer deploys the following components into the chosen directory:</p>
@@ -114,7 +114,7 @@
 <table>
 <thead><tr><th>Component</th><th>Contents</th></tr></thead>
 <tbody>
-<tr><td>Application executable</td><td><code>Library Manager for Venus 6.exe</code>, application icon files</td></tr>
+<tr><td>Application executable</td><td><code>Library Manager.exe</code>, application icon files</td></tr>
 <tr><td>NW.js runtime</td><td><code>nw.dll</code>, <code>node.dll</code>, <code>nw_elf.dll</code>, DirectX/OpenGL DLLs, resource paks, ICU data, V8 snapshots, notification helper</td></tr>
 <tr><td>SwiftShader</td><td>Software rendering fallback (<code>swiftshader\</code>)</td></tr>
 <tr><td>Locales</td><td>Language resource packs (<code>locales\</code>)</td></tr>
@@ -126,7 +126,7 @@
 <tr><td>Assets &amp; icons</td><td>Image resources (<code>assets\</code>, <code>icons\</code>)</td></tr>
 <tr><td>Database templates</td><td>Initial-state JSON files (<code>db\</code>) &mdash; system library definitions, baseline hashes, seed data</td></tr>
 <tr><td>Local data directory</td><td>Mutable application state (<code>local\</code>) &mdash; settings, library registry, groups, tree, links, publisher registry, package store, exports folder</td></tr>
-<tr><td>Help file</td><td><code>Library Manager for Venus 6.chm</code></td></tr>
+<tr><td>Help file</td><td><code>Library Manager.chm</code></td></tr>
 <tr><td>Legal documents</td><td><code>README.md</code>, <code>PRIVACY_POLICY.txt</code>, <code>TERMS_OF_USE.txt</code></td></tr>
 </tbody>
 </table>
@@ -134,15 +134,15 @@
 <h2>Start Menu &amp; Desktop Shortcuts</h2>
 <p>The installer creates a Start Menu group containing:</p>
 <ul>
-  <li><b>Library Manager for Venus 6</b> &mdash; launches the application</li>
-  <li><b>Uninstall Library Manager for Venus 6</b> &mdash; runs the uninstaller</li>
+  <li><b>Library Manager</b> &mdash; launches the application</li>
+  <li><b>Uninstall Library Manager</b> &mdash; runs the uninstaller</li>
 </ul>
 <p>A desktop shortcut is created only if the corresponding checkbox was selected during installation.</p>
 
 <h2>Silent / Unattended Installation</h2>
 <p>The installer supports Inno Setup&rsquo;s standard silent-install switches:</p>
-<div class="code"><pre>LibraryManagerForVenus6_v1.8.6_Setup.exe /SILENT
-LibraryManagerForVenus6_v1.8.6_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
+<div class="code"><pre>LibraryManager_v1.8.6_Setup.exe /SILENT
+LibraryManager_v1.8.6_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
 <p>In silent mode, default configuration values are used (Regulated Mode off, system theme, GitHub links hidden). To create a desktop shortcut in silent mode, add <code>/TASKS="desktopicon"</code>.</p>
 <p><b>Note:</b> The Hamilton VENUS 6+ prerequisite check runs in both interactive and silent modes. If VENUS 6 or later is not installed, the silent installer will exit with a non-zero return code without installing anything.</p>
 
@@ -160,7 +160,7 @@ LibraryManagerForVenus6_v1.8.6_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></di
 
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

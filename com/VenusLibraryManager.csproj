@@ -12,9 +12,9 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\</OutputPath>
     <Version>1.9.8</Version>
-    <Description>COM-visible .NET class library for Library Manager for Venus 6. Provides 1:1 parity with CLI operations for managing Hamilton VENUS libraries.</Description>
+    <Description>COM-visible .NET class library for Library Manager. Provides 1:1 parity with CLI operations for managing Hamilton VENUS libraries.</Description>
     <Company>Zachary Milot</Company>
-    <Product>Library Manager for Venus 6</Product>
+    <Product>Library Manager</Product>
     <Copyright>Copyright (c) 2026 Zachary Milot</Copyright>
   </PropertyGroup>
   <ItemGroup>

@@ -35,7 +35,7 @@ Sign the main application binary before packaging it into the installer:
 # Using Windows SDK signtool.exe
 signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 ^
   /n "Zachary Milot" ^
-  "Library Manager for Venus 6.exe"
+  "Library Manager.exe"
 ```
 
 If using a hardware token (EV cert), `signtool` will prompt for the token PIN. For CI/CD, use the CA's cloud signing tools.
@@ -78,7 +78,7 @@ $cert = "Zachary Milot"
 $ts = "http://timestamp.digicert.com"
 
 # 1. Sign the main app EXE
-signtool sign /fd SHA256 /tr $ts /td SHA256 /n $cert "Library Manager for Venus 6.exe"
+signtool sign /fd SHA256 /tr $ts /td SHA256 /n $cert "Library Manager.exe"
 
 # 2. Sign the COM DLL
 signtool sign /fd SHA256 /tr $ts /td SHA256 /n $cert "com\VenusLibraryManager.dll"
@@ -87,8 +87,8 @@ signtool sign /fd SHA256 /tr $ts /td SHA256 /n $cert "com\VenusLibraryManager.dl
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 
 # 4. Verify signatures
-signtool verify /pa /v "Library Manager for Venus 6.exe"
-signtool verify /pa /v "Output\LibraryManagerForVenus6_v1.9.8_Setup.exe"
+signtool verify /pa /v "Library Manager.exe"
+signtool verify /pa /v "Output\LibraryManager_v1.9.8_Setup.exe"
 ```
 
 ### Key Points

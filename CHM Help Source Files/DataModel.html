@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Data Model</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Data Model</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Data Model</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Data Model</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 uses <b>diskdb</b>, a lightweight JSON-backed database, to persist all application state. The database resides in the <code>db/</code> directory within the application folder. Each collection is stored as a separate <code>.json</code> file.</p>
+<p>Library Manager uses <b>diskdb</b>, a lightweight JSON-backed database, to persist all application state. The database resides in the <code>db/</code> directory within the application folder. Each collection is stored as a separate <code>.json</code> file.</p>
 
 <img src="images/diagram-data-model-folders.png" alt="Database directory structure: db/ (read-only) and local/ (user data) folders with JSON collections and packages/ cache" class="doc-diagram">
 
@@ -56,7 +56,7 @@
 <tr><td><code>tags</code></td><td>string[]</td><td>Searchable keyword tags. Over 60 tag keywords are reserved (case-insensitive) and rejected during package creation, including OEM and laboratory automation company names. See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the complete reserved list.</td></tr>
 <tr><td><code>created_date</code></td><td>string (ISO 8601)</td><td>Date the package was originally created</td></tr>
 <tr><td><code>format_version</code></td><td>string</td><td>Package format version from the manifest (e.g., <code>"2.0"</code>)</td></tr>
-<tr><td><code>app_version</code></td><td>string</td><td>Version of Library Manager for Venus 6 that created the package</td></tr>
+<tr><td><code>app_version</code></td><td>string</td><td>Version of Library Manager that created the package</td></tr>
 <tr><td><code>windows_version</code></td><td>string</td><td>Windows OS version of the machine that created the package (e.g., <code>"Windows_NT 10.0.19045 (x64)"</code>)</td></tr>
 <tr><td><code>venus_version</code></td><td>string</td><td>Hamilton VENUS version installed on the machine that created the package</td></tr>
 <tr><td><code>package_lineage</code></td><td>object[]</td><td>Ordered array of lifecycle events from the package manifest. Each event records who performed the action, when, on what system. See <a href="PackageFormats.html">Package Formats: Package Lineage</a>.</td></tr>
@@ -274,7 +274,7 @@
 
 <h2>Local Data Directory</h2>
 <p>All mutable application data is stored in the <code>local/</code> directory within the application install folder:</p>
-<div class="code"><pre>C:\Program Files (x86)\Library Manager for Venus 6\local\</pre></div>
+<div class="code"><pre>C:\Program Files (x86)\Library Manager\local\</pre></div>
 <p>This directory contains the live, mutable copy of the database that reflects the current installation state. It also contains:</p>
 <ul>
   <li><code>audit_trail.json</code> - A persistent audit trail recording all library lifecycle events (package creation, import, delete, rollback) with environmental context such as the Windows username, Windows OS version, VENUS version, and hostname. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</li>
@@ -292,7 +292,7 @@
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

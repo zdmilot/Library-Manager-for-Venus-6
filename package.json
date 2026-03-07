@@ -1,7 +1,7 @@
 {
-  "name": "LibraryManagerForVenus6",
+  "name": "LibraryManager",
   "main": "html/index.html",
-  "description": "Library Manager for Venus 6",
+  "description": "Library Manager",
   "version": "1.9.8",
   "license": "Apache-2.0",
   "author": "Zachary Milot",
@@ -21,7 +21,7 @@
   "chromium-args": "--disable-logging --enable-logging=stderr --log-level=3 --disable-crash-reporter --default-background-color=002e48",
   "window": {
     "title": "Library Manager",
-    "icon": "/LibraryManagerForVenus6.png",
+    "icon": "/LibraryManager.png",
     "show": false,
     "toolbar": true,
     "frame": true,

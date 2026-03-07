@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Code Map Generator for Library Manager for Venus 6
+ * Code Map Generator for Library Manager
  *
  * Scans all source files and generates a structured JSON code map at
  * code-mapping/generated-map.json.  This script can be run without an
@@ -345,7 +345,7 @@ function buildCrossReferences(fileResults) {
 // ---------------------------------------------------------------------------
 
 function main() {
-    console.log('Code Map Generator - Library Manager for Venus 6');
+    console.log('Code Map Generator - Library Manager');
     console.log('='.repeat(52));
     console.log('');
 

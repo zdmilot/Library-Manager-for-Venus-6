@@ -38,14 +38,14 @@
 		function initTrayIcon() {
 			if (_tray) return; // already initialized
 			try {
-				var trayIconPath = path.join(path.dirname(process.execPath), 'LibraryManagerForVenus6.png');
+				var trayIconPath = path.join(path.dirname(process.execPath), 'LibraryManager.png');
 				if (!fs.existsSync(trayIconPath)) {
-					trayIconPath = path.resolve(__dirname, '..', '..', 'LibraryManagerForVenus6.png');
+					trayIconPath = path.resolve(__dirname, '..', '..', 'LibraryManager.png');
 				}
 				_tray = new nw.Tray({
-					title: 'Library Manager for Venus 6',
+					title: 'Library Manager',
 					icon: trayIconPath,
-					tooltip: 'Library Manager for Venus 6'
+					tooltip: 'Library Manager'
 				});
 				_tray.on('click', function() {
 					win.show();
@@ -1985,7 +1985,7 @@
 				function dismissSplashIfReady() {
 					if (!_splashAnimDone || !_splashInitDone) return;
 					// Set window title bar to full name, taskbar to short name
-					win.title = 'Library Manager for Venus 6';
+					win.title = 'Library Manager';
 					// Restore scrolling now that splash is leaving
 					document.documentElement.style.overflow = '';
 					document.body.style.overflow = '';
@@ -2251,7 +2251,7 @@
 		$(document).on("click", ".overflow-help", function () {
 			$(".btn-overflow-menu .dropdown-menu").removeClass("show");
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
-			var chmPath = path.join(path.dirname(process.execPath), 'Library Manager for Venus 6.chm');
+			var chmPath = path.join(path.dirname(process.execPath), 'Library Manager.chm');
 			if (fs.existsSync(chmPath)) {
 				nw.Shell.openItem(chmPath);
 			} else {
@@ -4162,7 +4162,7 @@
 					try { stat = fs.statSync(fullPath); } catch(e) { return; }
 					if (stat.isDirectory()) {
 						var lowerEntry = entry.toLowerCase();
-						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarymanager' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
 						scanDir(fullPath, relPath);
 						return;
 					}
@@ -4194,7 +4194,7 @@
 					try { stat = fs.statSync(fullPath); } catch(e) { return; }
 					if (stat.isDirectory()) {
 						var lowerEntry = entry.toLowerCase();
-						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+						if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarymanager' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
 						if (entry.charAt(0) === '.') return;
 						scanDirFlat(fullPath, relPath, result);
 					} else if (stat.isFile()) {
@@ -13575,6 +13575,7 @@
 							// Skip special directories
 							var lowerEntry = entry.toLowerCase();
 							if (lowerEntry === 'librarymanagerforvenus6' ||
+								lowerEntry === 'librarymanager' ||
 								lowerEntry === 'librarypackages' ||
 								lowerEntry === '.librarymanagerforvenus6' ||
 								lowerEntry === 'libraryintegrityaudit') return;
@@ -13625,7 +13626,7 @@
 						try { stat = fs.statSync(fullPath); } catch(e) { return; }
 						if (stat.isDirectory()) {
 							var lowerEntry = entry.toLowerCase();
-							if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
+							if (lowerEntry === 'librarymanagerforvenus6' || lowerEntry === 'librarymanager' || lowerEntry === 'librarypackages' || lowerEntry === '.librarymanagerforvenus6' || lowerEntry === 'libraryintegrityaudit') return;
 							// Skip dot-prefixed directories (temp/hidden)
 							if (entry.charAt(0) === '.') return;
 							scanDirFlat(fullPath, relPath, result);

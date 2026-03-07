@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Creating Packages</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Creating Packages</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Creating Packages</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Creating Packages</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and optionally code-signed with an Ed25519 digital signature and publisher certificate. The entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
+<p>Library Manager provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and optionally code-signed with an Ed25519 digital signature and publisher certificate. The entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
 
 <h2>GUI Library Packager</h2>
 <img src="images/packager-main.png" alt="Library Packager main view" class="doc-screenshot">
@@ -139,7 +139,7 @@
 <p>The resulting <code>.hxlibpkg</code> is a <a href="BinaryContainerFormat.html">binary container file</a> - not a plain ZIP archive. The container wraps an internal ZIP with the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the integrity signature. If code signing was used, the signature includes an Ed25519 digital signature and embedded publisher certificate (v2.0 format); otherwise, HMAC-SHA256 only. The outer binary container adds a second integrity layer (container-level HMAC-SHA256) and XOR scrambling that prevents the file from being opened by standard archive tools. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for full technical details.</p>
 
 <h2>Environment Stamping &amp; Package Lineage</h2>
-<p>Every package created by Library Manager for Venus 6 is automatically stamped with environmental metadata:</p>
+<p>Every package created by Library Manager is automatically stamped with environmental metadata:</p>
 <ul>
   <li><b>Application version</b> (<code>app_version</code>) &mdash; the version of Library Manager that built the package</li>
   <li><b>Windows version</b> (<code>windows_version</code>) &mdash; the OS type, release, and architecture of the build machine</li>
@@ -160,7 +160,7 @@
 <p>Every package build is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username of the packager, the Windows OS version, the installed VENUS version, the computer hostname, and the package metadata (library name, version, author). This enables full traceability of who created each package and on which system. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

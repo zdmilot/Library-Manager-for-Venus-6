@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>CLI: import-archive</title>
@@ -7,7 +7,7 @@
 <body>
 <div class="header">CLI: import-archive</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; import-archive</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; import-archive</div>
 
 <h2>Description</h2>
 <p>Extracts every <code>.hxlibpkg</code> embedded inside a <code>.hxlibarch</code> ZIP archive and installs each one sequentially. This is the batch import command for multi-library distribution bundles. Each inner package's integrity signature is verified before installation (HMAC-SHA256 and Ed25519 digital signature for v2.0 packages) - packages that fail verification are automatically skipped.</p>
@@ -72,7 +72,7 @@ node cli.js import-archive --file bundle.hxlibarch ^
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

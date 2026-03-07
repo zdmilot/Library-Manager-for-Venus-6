@@ -1,6 +1,6 @@
 ﻿Field,Type,English
-ProductName,Text,Library Manager for Venus 6
-Description,Text,"Library Manager for Venus 6 is a powerful desktop application for managing, versioning, importing, exporting, and packaging Hamilton VENUS liquid handling libraries.
+ProductName,Text,Library Manager
+Description,Text,"Library Manager is a powerful desktop application for managing, versioning, importing, exporting, and packaging Hamilton VENUS liquid handling libraries.
 
 Designed for laboratory automation professionals, it provides a complete solution for organizing HSL libraries used with Hamilton VENUS 6 software. Whether you work in a regulated environment or an open research lab, Library Manager adapts to your workflow.
 
@@ -17,7 +17,7 @@ Key capabilities include:
 • Dark mode support for comfortable extended use
 • Built-in CHM help documentation
 
-Library Manager for Venus 6 runs as a native Windows desktop application built on NW.js. It requires no internet connection and stores all data locally on your machine.
+Library Manager runs as a native Windows desktop application built on NW.js. It requires no internet connection and stores all data locally on your machine.
 
 This tool is ideal for:
 - Lab automation engineers managing Hamilton VENUS method libraries

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>COM Object Reference</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">COM Object Reference</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; COM Object Reference</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; COM Object Reference</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 includes a .NET COM object (<code>VenusLibraryManager.dll</code>) that enables integration with Hamilton VENUS HSL methods, VBScript, and any COM-capable language. The COM object provides complete 1:1 parity with the CLI commands.</p>
+<p>Library Manager includes a .NET COM object (<code>VenusLibraryManager.dll</code>) that enables integration with Hamilton VENUS HSL methods, VBScript, and any COM-capable language. The COM object provides complete 1:1 parity with the CLI commands.</p>
 
 <div class="warning">
 <p><b>32-bit Only:</b> The COM DLL is compiled as <b>x86</b> (32-bit) and <b>must</b> be registered using the 32-bit <code>RegAsm.exe</code>. Hamilton VENUS is a 32-bit application &mdash; using the 64-bit RegAsm will make the COM object invisible to VENUS, causing "Class not registered" errors.</p>
@@ -35,10 +35,10 @@
 
 <h3>Manual Registration</h3>
 <div class="code"><pre>REM Register (requires Administrator)
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe /codebase "C:\Program Files (x86)\Library Manager for Venus 6\com\VenusLibraryManager.dll"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe /codebase "C:\Program Files (x86)\Library Manager\com\VenusLibraryManager.dll"
 
 REM Unregister
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe /unregister "C:\Program Files (x86)\Library Manager for Venus 6\com\VenusLibraryManager.dll"</pre></div>
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe /unregister "C:\Program Files (x86)\Library Manager\com\VenusLibraryManager.dll"</pre></div>
 
 <div class="warning">
 <p><b>Do NOT use <code>Framework64</code>.</b> Always use <code>C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe</code> (the 32-bit version).</p>
@@ -46,7 +46,7 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe /unregister "C:\Program
 
 <h3>Verify Registration</h3>
 <p>Run the included verification script:</p>
-<div class="code"><pre>"C:\Program Files (x86)\Library Manager for Venus 6\com\verify-com.bat"</pre></div>
+<div class="code"><pre>"C:\Program Files (x86)\Library Manager\com\verify-com.bat"</pre></div>
 
 <h2>Architecture</h2>
 <p>The COM object communicates with the application&rsquo;s service layer via a lightweight bridge process (<code>com-bridge.js</code>). When you call a COM method, it:</p>
@@ -248,7 +248,7 @@ End If</pre></div>
 
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

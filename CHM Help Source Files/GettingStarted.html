@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Getting Started</title>
@@ -7,13 +7,13 @@
 <body>
 <div class="header">Getting Started</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Getting Started</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Getting Started</div>
 
 <h2>Introduction</h2>
-<p>This guide walks you through the initial setup of Library Manager for Venus 6 and the most common workflows you will perform when managing Hamilton VENUS libraries.</p>
+<p>This guide walks you through the initial setup of Library Manager and the most common workflows you will perform when managing Hamilton VENUS libraries.</p>
 
 <h2>Installation</h2>
-<p>Library Manager for Venus 6 is distributed as a Windows installer. For complete installation instructions &mdash; including wizard steps, configuration options, and silent install switches &mdash; see <a href="Installation.html">Installation</a>. For removal options see <a href="Uninstallation.html">Uninstallation</a>.</p>
+<p>Library Manager is distributed as a Windows installer. For complete installation instructions &mdash; including wizard steps, configuration options, and silent install switches &mdash; see <a href="Installation.html">Installation</a>. For removal options see <a href="Uninstallation.html">Uninstallation</a>.</p>
 
 <h3>Directory Structure</h3>
 <p>The application directory contains:</p>
@@ -33,13 +33,13 @@
 <h2>Launching the Application</h2>
 
 <h3>Graphical User Interface</h3>
-<p>Double-click the Library Manager for Venus 6 application shortcut or executable. The main window opens displaying your installed libraries as visual cards.</p>
-<img src="images/main-window.png" alt="Library Manager for Venus 6 main window" class="doc-screenshot">
+<p>Double-click the Library Manager application shortcut or executable. The main window opens displaying your installed libraries as visual cards.</p>
+<img src="images/main-window.png" alt="Library Manager main window" class="doc-screenshot">
 <p>After importing a signed library package, the main window shows the newly installed library card with its metadata, signature badge, and organization icon:</p>
 <img src="images/main-page-with-user-imported-signed-package-installed-library.png" alt="Main window with an imported signed library installed" class="doc-screenshot">
 
 <h3>Command-Line Interface</h3>
-<p>Open a terminal (Command Prompt or PowerShell) and navigate to the Library Manager for Venus 6 directory:</p>
+<p>Open a terminal (Command Prompt or PowerShell) and navigate to the Library Manager directory:</p>
 <div class="code"><pre>cd "C:\Users\admin\Documents\GitHub\Library Manager"
 node cli.js help</pre></div>
 <p>This displays the full list of available CLI commands and options. See <a href="CLIReference.html">CLI Reference</a> for complete documentation.</p>
@@ -47,14 +47,14 @@ node cli.js help</pre></div>
 <h2>First-Time Setup</h2>
 
 <h3>Local Data Directory</h3>
-<p>Library Manager for Venus 6 stores its working data (installed library records, group assignments, navigation tree, audit trail) in a <b>local data directory</b> within the application&rsquo;s install folder. By default, this is located at:</p>
-<div class="code"><pre>C:\Program Files (x86)\Library Manager for Venus 6\local\</pre></div>
+<p>Library Manager stores its working data (installed library records, group assignments, navigation tree, audit trail) in a <b>local data directory</b> within the application&rsquo;s install folder. By default, this is located at:</p>
+<div class="code"><pre>C:\Program Files (x86)\Library Manager\local\</pre></div>
 <p>This directory is created automatically on first run and seeded with empty JSON files for each data collection (<code>installed_libs.json</code>, <code>groups.json</code>, <code>tree.json</code>, <code>links.json</code>).</p>
 <p>You can override this directory for CLI operations by passing <code>--db-path</code>.</p>
 
 <h3>Package Store</h3>
 <p>Every imported <code>.hxlibpkg</code> file is automatically cached in the <b>package store</b> for future repair and version rollback. The package store is located at:</p>
-<div class="code"><pre>C:\Program Files (x86)\Library Manager for Venus 6\local\packages\</pre></div>
+<div class="code"><pre>C:\Program Files (x86)\Library Manager\local\packages\</pre></div>
 <p>Packages are organized into subdirectories by library name, with timestamped filenames for version tracking. See <a href="VersionRollback.html">Version Rollback</a> for details.</p>
 
 <h2>Basic Workflows</h2>
@@ -97,7 +97,7 @@ node cli.js help</pre></div>
 </ul>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

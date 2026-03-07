@@ -1,9 +1,9 @@
-Privacy Policy - Library Manager for VENUS 6
+Privacy Policy - Library Manager
 
 Effective date: March 1, 2026
 Last updated: March 3, 2026
 
-Library Manager for VENUS 6 ("the App") is a desktop application for managing Hamilton VENUS library packages and related files. This policy explains what information the App processes, where it is stored, and when information may leave your device.
+Library Manager ("the App") is a desktop application for managing Hamilton VENUS library packages and related files. This policy explains what information the App processes, where it is stored, and when information may leave your device.
 
 1) Summary
 

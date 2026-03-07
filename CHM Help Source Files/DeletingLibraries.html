@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <title>Deleting Libraries</title>
@@ -7,10 +7,10 @@
 <body>
 <div class="header">Deleting Libraries</div>
 <div class="main">
-<div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Deleting Libraries</div>
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Deleting Libraries</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 provides a safe, controlled delete workflow that removes library files from disk, handles COM DLL deregistration considerations, and maintains deletion history by default.</p>
+<p>Library Manager provides a safe, controlled delete workflow that removes library files from disk, handles COM DLL deregistration considerations, and maintains deletion history by default.</p>
 
 <h2>GUI Delete Workflow</h2>
 <ol>
@@ -78,7 +78,7 @@
 </div>
 
 <h2>Recovery Options</h2>
-<p>Once library files are deleted from disk, they cannot be recovered through Library Manager for Venus 6 unless:</p>
+<p>Once library files are deleted from disk, they cannot be recovered through Library Manager unless:</p>
 <ul>
   <li>The original <code>.hxlibpkg</code> file is available for re-import</li>
   <li>A cached version exists in the <a href="VersionRollback.html">package store</a> from a previous import</li>
@@ -89,7 +89,7 @@
 <p>Every deletion (both GUI and CLI) is automatically recorded in the persistent <b>audit trail</b> (<code>audit_trail.json</code>). The entry captures the Windows username, Windows OS version, VENUS version, hostname, library name, version, and delete type (soft or hard). When configured for GUI destructive actions, <code>action_comment</code> and <code>action_signature</code> are also recorded. See <a href="LibraryAuditLog.html">Library Audit Log</a> for details.</p>
 </div>
 <div class="footer">
-<p>Library Manager for Venus 6 Help</p>
+<p>Library Manager Help</p>
 </div>
 <script src="help.js"></script>
 </body>

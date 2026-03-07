@@ -6,7 +6,7 @@
 // Author: Zachary Milot
 //
 // COM-visible .NET class library that provides programmatic access to all
-// Library Manager for Venus 6 operations.  This object invokes the com-bridge.js
+// Library Manager operations.  This object invokes the com-bridge.js
 // command dispatcher via a child process, passing JSON arguments and receiving
 // JSON results on stdout.
 //
@@ -34,9 +34,9 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 
 [assembly: AssemblyTitle("VenusLibraryManager")]
-[assembly: AssemblyDescription("COM object for Library Manager for Venus 6")]
+[assembly: AssemblyDescription("COM object for Library Manager")]
 [assembly: AssemblyCompany("Zachary Milot")]
-[assembly: AssemblyProduct("Library Manager for Venus 6")]
+[assembly: AssemblyProduct("Library Manager")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Zachary Milot")]
 [assembly: AssemblyVersion("1.9.8.0")]
 [assembly: AssemblyFileVersion("1.9.8.0")]
