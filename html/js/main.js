@@ -10659,27 +10659,16 @@
 						registerPublisher(manifest.organization || '');
 						registerTags(manifest.tags || []);
 
-						// Attempt COM registration for DLLs (best-effort, non-blocking).
-						// NOTE: This is intentionally not awaited because the enclosing
-						// forEach is synchronous. The promise chain updates the DB record
-						// on completion/failure, which is sufficient for archive import.
+						// Collect COM DLL paths for deferred batch registration
+						// (all DLLs across all packages are registered in one UAC prompt after the loop)
 						if (comDlls.length > 0) {
-							var dllPaths = comDlls.map(function(d) { return path.join(libDestDir, d); });
-							comRegisterMultipleDlls(dllPaths, true).then(function(comResult) {
-								if (comResult.allSuccess) {
-									// Clear the warning flag and mark as registered
-									db_installed_libs.installed_libs.update(
-										{"_id": saved._id},
-										{"com_warning": false, "com_registered": true},
-										{multi: false, upsert: false}
-									);
-								} else {
-									console.warn('COM registration failed for ' + libName + ' (archive import): ' +
-										comResult.results.filter(function(r) { return !r.success; }).map(function(r) { return r.error; }).join('; '));
-								}
-							}).catch(function(err) {
-								console.warn('COM registration error for ' + libName + ': ' + err.message);
-							});
+							var dllPaths = comDlls.map(function(d) { return path.join(libDestDir, d); })
+								.filter(function(p) { return fs.existsSync(p); });
+							for (var cdi = 0; cdi < dllPaths.length; cdi++) {
+								allComDllPaths.push({dllPath: dllPaths[cdi], libName: libName, savedId: saved._id});
+							}
+							if (!comDllLibMap[libName]) comDllLibMap[libName] = [];
+							comDllLibMap[libName] = comDllLibMap[libName].concat(dllPaths);
 						}
 
 						// Auto-add to group
@@ -10731,7 +10720,61 @@
 					} catch(e) {
 						results.failed.push(pkgEntry.entryName + ": " + e.message);
 					}
-				});
+				})(); }
+
+				// ---- Batch COM registration: register ALL COM DLLs in one UAC prompt ----
+				if (allComDllPaths.length > 0) {
+					var allDllPathsFlat = allComDllPaths.map(function(c) { return c.dllPath; });
+					try {
+						var batchComResult = await comRegisterMultipleDlls(allDllPathsFlat, true);
+
+						// Build a lookup: dllPath -> success
+						var comResultMap = {};
+						for (var cri = 0; cri < batchComResult.results.length; cri++) {
+							comResultMap[batchComResult.results[cri].dll] = batchComResult.results[cri];
+						}
+
+						// Update each library's DB record based on per-DLL results
+						var processedLibs = {};
+						for (var cli = 0; cli < allComDllPaths.length; cli++) {
+							var comEntry = allComDllPaths[cli];
+							if (!processedLibs[comEntry.libName]) {
+								processedLibs[comEntry.libName] = { savedId: comEntry.savedId, allOk: true };
+							}
+							var dllResult = comResultMap[comEntry.dllPath];
+							if (!dllResult || !dllResult.success) {
+								processedLibs[comEntry.libName].allOk = false;
+							}
+						}
+
+						Object.keys(processedLibs).forEach(function(pLibName) {
+							var pInfo = processedLibs[pLibName];
+							if (pInfo.allOk) {
+								db_installed_libs.installed_libs.update(
+									{"_id": pInfo.savedId},
+									{"com_warning": false, "com_registered": true},
+									{multi: false, upsert: false}
+								);
+							} else {
+								console.warn('COM registration failed for ' + pLibName + ' (archive import)');
+							}
+						});
+
+						if (!batchComResult.allSuccess) {
+							var failedComDlls = batchComResult.results.filter(function(r) { return !r.success; });
+							console.warn('[archive-import] COM registration: ' + failedComDlls.length + ' of ' + allDllPathsFlat.length + ' DLL(s) failed');
+							var comWarningLibs = [];
+							Object.keys(processedLibs).forEach(function(pLibName) {
+								if (!processedLibs[pLibName].allOk) comWarningLibs.push(pLibName);
+							});
+							if (comWarningLibs.length > 0) {
+								results.comWarnings = comWarningLibs;
+							}
+						}
+					} catch(comErr) {
+						console.warn('[archive-import] COM batch registration error: ' + comErr.message);
+					}
+				}
 
 				// Show results
 				var archImpListHtml = '<div style="text-align:left;">';
@@ -10749,10 +10792,20 @@
 
 				var archImpTitle = results.failed.length > 0 ? "Archive Import Complete" : "Archive Imported Successfully!";
 
+				var archImpStatusHtml = null;
+				var archImpStatusClass = null;
+				if (results.comWarnings && results.comWarnings.length > 0) {
+					archImpStatusHtml = '<i class="fas fa-exclamation-triangle mr-1"></i>COM registration failed for: ' + results.comWarnings.map(function(n) { return escapeHtml(n); }).join(', ');
+					archImpStatusClass = 'com-warning';
+					archImpTitle = "Archive Import Complete";
+				}
+
 				showGenericSuccessModal({
 					title: archImpTitle,
 					detail: results.success.length + " succeeded" + (results.failed.length > 0 ? ", " + results.failed.length + " failed" : ""),
-					listHtml: archImpListHtml
+					listHtml: archImpListHtml,
+					statusHtml: archImpStatusHtml,
+					statusClass: archImpStatusClass
 				});
 
 				// ---- Audit trail entry ----
