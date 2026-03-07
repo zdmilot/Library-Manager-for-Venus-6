@@ -1525,6 +1525,52 @@ body {
 	text-decoration: underline !important;
 }
 
+/* Multi-CHM help dropdown on library cards */
+.imp-help-dropdown .dropdown-toggle::after {
+	margin-left: 0.3em;
+	vertical-align: 0.15em;
+	font-size: 0.7em;
+}
+
+.imp-help-dropdown-menu {
+	min-width: 10rem;
+	max-height: 220px;
+	overflow-y: auto;
+	font-size: 0.85rem;
+	padding: 0.25rem 0;
+	z-index: 1060;
+}
+
+.imp-help-dropdown-menu .dropdown-item {
+	padding: 0.35rem 0.85rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 0.82rem;
+}
+
+.imp-help-dropdown-menu .dropdown-item:hover {
+	background-color: #f0f4f8;
+}
+
+.imp-help-dropdown-menu .dropdown-item i {
+	color: var(--medium);
+}
+
+body.dark-mode .imp-help-dropdown-menu {
+	background-color: #2a2d31;
+	border-color: #444;
+}
+
+body.dark-mode .imp-help-dropdown-menu .dropdown-item {
+	color: #ccc;
+}
+
+body.dark-mode .imp-help-dropdown-menu .dropdown-item:hover {
+	background-color: #3a3d41;
+	color: #fff;
+}
+
 .imp-lib-star {
 	cursor: pointer;
 	font-size: 1rem;

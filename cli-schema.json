@@ -126,6 +126,12 @@
         ["MyLibraryCOM.dll"],
         ["HelperA.dll", "HelperB.dll"]
       ]
+    },
+
+    "install_to_library_root": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, library files are installed directly into the Library root directory instead of a subdirectory named after the library. Some libraries require this for compatibility. The user can override this setting at import time."
     }
 
   },

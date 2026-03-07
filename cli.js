@@ -1656,7 +1656,7 @@ function cmdCreatePackage(args) {
     // ---- Auto-detect library name ----
     let libName = spec.library_name || null;
     if (!libName) {
-        const priority = ['.hsl', '.hs_', '.smt'];
+        const priority = ['.hsl', '.hsi', '.hs_', '.smt'];
         for (const ext of priority) {
             const match = resolvedLibFiles.find(f => path.extname(f).toLowerCase() === ext);
             if (match) { libName = path.basename(match, path.extname(match)); break; }
