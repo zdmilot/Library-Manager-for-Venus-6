@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; export-lib</div>
 
 <h2>Description</h2>
-<p>Rebuilds a <code>.hxlibpkg</code> from the currently installed files on disk for a single named library. This is a <b>mutable export</b> - it captures the current on-disk state, including any changes made since the original import. The exported package is automatically signed with an HMAC-SHA256 integrity signature.</p>
+<p>Rebuilds a <code>.hxlibpkg</code> from the currently installed files on disk for a single named library. This is a <b>mutable export</b> - it captures the current on-disk state, including any changes made since the original import. The exported package is automatically signed with an HMAC-SHA256 integrity signature. Optionally, the package can be code-signed with an Ed25519 publisher certificate using <code>--sign-key</code>.</p>
 
 <h2>Usage</h2>
 <div class="code"><pre>node cli.js export-lib (--name &lt;name&gt; | --id &lt;id&gt;) --output &lt;path&gt;</pre></div>
@@ -22,6 +22,8 @@
 <tr><td><code>--name &lt;name&gt;</code></td><td><span class="badge badge-required">Required*</span></td><td>Library name (as shown in <code>list-libs</code>). *Use either <code>--name</code> or <code>--id</code>.</td></tr>
 <tr><td><code>--id &lt;id&gt;</code></td><td><span class="badge badge-required">Required*</span></td><td>Library database ID. *Use either <code>--name</code> or <code>--id</code>.</td></tr>
 <tr><td><code>--output &lt;path&gt;</code></td><td><span class="badge badge-required">Required</span></td><td>Output <code>.hxlibpkg</code> file path</td></tr>
+<tr><td><code>--sign-key &lt;path&gt;</code></td><td>No</td><td>Path to an Ed25519 private key PEM file for code signing. When provided, the exported package receives both HMAC and Ed25519 digital signatures. The matching <code>.cert.json</code> is auto-detected from the key filename unless <code>--sign-cert</code> is specified.</td></tr>
+<tr><td><code>--sign-cert &lt;path&gt;</code></td><td>No</td><td>Path to the publisher <code>.cert.json</code> certificate. Only needed if the certificate filename does not match the key filename. Requires <code>--sign-key</code>.</td></tr>
 <tr><td><code>--db-path &lt;dir&gt;</code></td><td>No</td><td>Override the user data directory path</td></tr>
 </tbody>
 </table>
@@ -41,8 +43,8 @@
   <li>Any forward-compatible fields in the database record that are not part of the known schema are preserved in the exported manifest</li>
   <li>All library files and help files are packed into <code>library/</code></li>
   <li>All demo method files are packed into <code>demo_methods/</code></li>
-  <li>The ZIP is signed with HMAC-SHA256 and wrapped in a binary container</li>
-  <li>The container is written to the specified output path</li>
+  <li>If <code>--sign-key</code> is provided, the ZIP is code-signed with an Ed25519 digital signature and the publisher certificate is embedded in <code>signature.json</code>. Otherwise, the ZIP is signed with HMAC-SHA256 only.</li>
+  <li>The ZIP is wrapped in a binary container and written to the specified output path</li>
 </ol>
 
 <h2>Examples</h2>
@@ -50,7 +52,13 @@
 node cli.js export-lib --name "MyLibrary" --output MyLibrary.hxlibpkg
 
 :: Export by database ID
-node cli.js export-lib --id a1b2c3d4 --output dist\MyLibrary.hxlibpkg</pre></div>
+node cli.js export-lib --id a1b2c3d4 --output dist\MyLibrary.hxlibpkg
+
+:: Export with Ed25519 code signing
+node cli.js export-lib --name "MyLibrary" --output MyLibrary.hxlibpkg --sign-key publisher.key.pem
+
+:: Export with explicit certificate path
+node cli.js export-lib --name "MyLibrary" --output MyLibrary.hxlibpkg --sign-key keys/publisher.key.pem --sign-cert certs/publisher.cert.json</pre></div>
 
 <h2>Error Conditions</h2>
 <ul>

@@ -114,14 +114,14 @@
 </ul>
 
 <h3>Package signature verification failed</h3>
-<p><b>Cause:</b> The <code>.hxlibpkg</code> file has been corrupted during transfer, modified after creation, or tampered with. The HMAC-SHA256 signature embedded in <code>signature.json</code> does not match the actual contents.</p>
+<p><b>Cause:</b> The <code>.hxlibpkg</code> file has been corrupted during transfer, modified after creation, or tampered with. The integrity signature embedded in <code>signature.json</code> does not match the actual contents. For v2.0 packages, this means the Ed25519 digital signature or HMAC-SHA256 hash is invalid. Legacy v1.0 packages (HMAC-only) are rejected on import.</p>
 <p><b>Solution:</b></p>
 <ul>
   <li>Re-download or re-copy the package from the original source</li>
   <li>Use <code>node cli.js verify-package --file &lt;path&gt;</code> to check the package before importing</li>
   <li><b>CLI:</b> Use <code>--force</code> to override the signature check when importing (use with caution)</li>
   <li><b>GUI:</b> A confirmation dialog allows you to proceed despite the failure</li>
-  <li>If the package was created by an older version of Library Manager for Venus 6, it may not have a signature. Unsigned packages are accepted - this error only applies to packages that <em>have</em> a signature that doesn't match</li>
+  <li>If the package was created by an older version of Library Manager for Venus 6, it may use the legacy v1.0 HMAC-only signature format, which is now rejected. Re-export the library using the current version to produce a v2.0 Ed25519-signed package. Truly unsigned packages (no <code>signature.json</code> at all) are still accepted.</li>
 </ul>
 
 <h3>Package shows as "unsigned"</h3>

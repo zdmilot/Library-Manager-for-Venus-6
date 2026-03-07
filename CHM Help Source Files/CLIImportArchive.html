@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; import-archive</div>
 
 <h2>Description</h2>
-<p>Extracts every <code>.hxlibpkg</code> embedded inside a <code>.hxlibarch</code> ZIP archive and installs each one sequentially. This is the batch import command for multi-library distribution bundles. Each inner package's HMAC-SHA256 signature is verified before installation - packages that fail verification are automatically skipped.</p>
+<p>Extracts every <code>.hxlibpkg</code> embedded inside a <code>.hxlibarch</code> ZIP archive and installs each one sequentially. This is the batch import command for multi-library distribution bundles. Each inner package's integrity signature is verified before installation (HMAC-SHA256 and Ed25519 digital signature for v2.0 packages) - packages that fail verification are automatically skipped.</p>
 
 <h2>Usage</h2>
 <div class="code"><pre>node cli.js import-archive --file &lt;path&gt; [options]</pre></div>
@@ -38,7 +38,7 @@
   <li>If no <code>.hxlibpkg</code> entries are found, the command fails</li>
   <li>Each <code>.hxlibpkg</code> entry is processed sequentially:
     <ul>
-      <li>The inner ZIP is opened in memory and its HMAC-SHA256 signature is verified (failed packages are skipped)</li>
+      <li>The inner ZIP is opened in memory and its integrity signature is verified (HMAC-SHA256 and Ed25519 for v2.0 packages; failed packages are skipped)</li>
       <li>The inner ZIP's <code>manifest.json</code> is read</li>
       <li>If a library with the same name exists without <code>--force</code>, that entry is skipped as an error</li>
       <li>Files are extracted, hashes computed, functions parsed, and the database record created (including <code>app_version</code>, <code>format_version</code>, <code>windows_version</code>, <code>venus_version</code>, <code>package_lineage</code>, and any forward-compatible fields)</li>

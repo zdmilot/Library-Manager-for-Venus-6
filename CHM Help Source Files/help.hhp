@@ -43,6 +43,8 @@ CLIRollbackLib.html
 CLIGenerateSyslibHashes.html
 CLIVerifySyslibHashes.html
 CLIVerifyPackage.html
+CLIGenerateKeypair.html
+CLIListPublishers.html
 LibraryAuditLog.html
 UnsignedLibraries.html
 VisualIdentity.html

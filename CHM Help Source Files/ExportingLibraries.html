@@ -11,7 +11,7 @@
 
 <h2>Overview</h2>
 <p>Library Manager for Venus 6 can export installed libraries back into portable package files. All exported files use the <a href="BinaryContainerFormat.html">binary container format</a> - they are not plain ZIP files and cannot be opened by standard archive tools. Exports always reflect the <b>current on-disk state</b> of the library files (mutable export), so any changes made since the original import are captured in the exported package.</p>
-<p>When exporting from the Library Detail Modal, Library Manager for Venus 6 presents an <b>Export Choice Modal</b> that lets you choose between exporting just the library itself, or exporting the library together with all of its dependencies.</p>
+<p>When exporting from the Library Detail Modal, Library Manager for Venus 6 presents an <b>Export Choice Modal</b> that lets you choose between exporting just the library itself, or exporting the library together with all of its dependencies. If an Ed25519 key pair and publisher certificate have been configured in <a href="CodeSigning.html">Settings &rarr; Code Signing</a>, the Export Choice Modal also provides a <b>Code Sign</b> toggle that lets you digitally sign the exported package.</p>
 
 <h2>Export Choice Modal</h2>
 <p>Clicking the <b>Export Library</b> button on the Library Detail Modal opens the Export Choice Modal with two options:</p>
@@ -40,6 +40,7 @@
   <li>Choose a save location - the suggested filename is <code>&lt;LibraryName&gt;.hxlibpkg</code></li>
   <li>Library Manager for Venus 6 verifies that all expected library files exist on disk before exporting</li>
   <li>A new <code>.hxlibpkg</code> is built from the current files and metadata</li>
+  <li>If <b>Code Sign</b> is enabled, the package is digitally signed with the configured Ed25519 private key and publisher certificate</li>
 </ol>
 <img src="images/export-button-detail-modal.png" alt="Export button in library detail modal" class="doc-screenshot">
 <p>The export form pre-fills with the library's current metadata. Review the details and choose a save location:</p>
@@ -55,7 +56,7 @@
   <li>Environment stamps: <code>app_version</code>, <code>windows_version</code>, <code>venus_version</code> of the exporting machine</li>
   <li><code>package_lineage</code> with an <code>"exported"</code> event appended to the existing lineage history</li>
   <li>Any forward-compatible fields from the original manifest that were preserved during import</li>
-  <li><code>signature.json</code> - HMAC-SHA256 integrity signature covering all package entries</li>
+  <li><code>signature.json</code> - integrity signature covering all package entries. If code signing is enabled, this includes an Ed25519 digital signature and embedded publisher certificate (v2.0 format); otherwise, HMAC-SHA256 only</li>
 </ul>
 <p>The resulting file is wrapped in a <a href="BinaryContainerFormat.html">binary container</a> with its own HMAC-SHA256 digest and XOR scrambling, ensuring the package cannot be opened or modified by standard tools.</p>
 
@@ -99,7 +100,7 @@
 <ul>
   <li>The <b>root library</b> (the library you clicked Export on)</li>
   <li>All <b>user-installed dependency libraries</b> found via recursive resolution</li>
-  <li>Each library is individually packaged as an inner <code>.hxlibpkg</code> <a href="BinaryContainerFormat.html">binary container</a> with its own manifest, payload files, and HMAC-SHA256 integrity signature</li>
+  <li>Each library is individually packaged as an inner <code>.hxlibpkg</code> <a href="BinaryContainerFormat.html">binary container</a> with its own manifest, payload files, and integrity signature (Ed25519 v2.0 if code signing is enabled, or HMAC-SHA256 only)</li>
   <li>An <code>archive_manifest.json</code> listing all included libraries</li>
 </ul>
 
@@ -133,7 +134,7 @@
 <p>The resulting <code>.hxlibarch</code> file contains:</p>
 <ul>
   <li>An <code>archive_manifest.json</code> with archive metadata, library count, included library names, and a base64-encoded purple archive icon</li>
-  <li>One <code>.hxlibpkg</code> entry per selected library - each is a full <a href="BinaryContainerFormat.html">binary container</a> with its own <code>manifest.json</code>, payload, and <code>signature.json</code> integrity signature</li>
+  <li>One <code>.hxlibpkg</code> entry per selected library - each is a full <a href="BinaryContainerFormat.html">binary container</a> with its own <code>manifest.json</code>, payload, and <code>signature.json</code> integrity signature (Ed25519 v2.0 if code signing is enabled, or HMAC-SHA256 only)</li>
   <li>An <code>icon/archive_icon.png</code> file - a distinctive purple icon (three stacked purple diamonds) that visually identifies the file as a multi-library archive</li>
 </ul>
 <p>The archive icon is loaded from the static asset <code>assets/archive_icon_128.png</code> at export time. See <a href="VisualIdentity.html">Visual Identity &amp; Assets</a> for details.</p>
@@ -157,7 +158,7 @@
   <li>Fill in the metadata fields (Author, Version, Description, etc.)</li>
   <li>Click <b>Export as Package</b> and choose a save location</li>
 </ol>
-<p>The exported package includes all discovered files, a generated manifest, an icon (if a <code>.bmp</code> was found), and an HMAC-SHA256 integrity signature. See <a href="UnsignedLibraries.html">Unsigned Libraries</a> for full details.</p>
+<p>The exported package includes all discovered files, a generated manifest, an icon (if a <code>.bmp</code> was found), and an HMAC-SHA256 integrity signature. If code signing is enabled, the package also includes an Ed25519 digital signature and publisher certificate. See <a href="UnsignedLibraries.html">Unsigned Libraries</a> for full details.</p>
 </div>
 <div class="footer">
 <p>Library Manager for Venus 6 Help</p>

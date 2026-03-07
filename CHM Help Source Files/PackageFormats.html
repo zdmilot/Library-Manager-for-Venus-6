@@ -117,23 +117,42 @@
 <p>When a library is <b>exported</b>, an <code>"exported"</code> event is appended to the existing lineage from the database record. This means a package that was created on Machine A, exported on Machine B, imported on Machine C, and exported again on Machine D will contain four lineage entries &mdash; one for each lifecycle event. The environmental context (Windows version, VENUS version, hostname, operator) of every machine in the chain is permanently recorded.</p>
 
 <h3>Package Signature (<code>signature.json</code>)</h3>
-<p>Every <code>.hxlibpkg</code> created by Library Manager for Venus 6 includes a <code>signature.json</code> entry in the internal ZIP containing an HMAC-SHA256 cryptographic signature. This inner signature covers every other entry in the ZIP and provides per-file integrity verification, complementing the outer container-level HMAC that covers the entire file. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for how these two integrity layers work together.</p>
+<p>Every <code>.hxlibpkg</code> created by Library Manager for Venus 6 includes a <code>signature.json</code> entry in the internal ZIP. The current v2.0 signature format includes both an HMAC-SHA256 integrity hash and an Ed25519 digital signature with an embedded publisher certificate. This inner signature covers every other entry in the ZIP and provides per-file integrity verification, complementing the outer container-level HMAC that covers the entire file. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for how these two integrity layers work together.</p>
+
+<h4>v2.0 Signature Format (Current)</h4>
+<p>The current signature format used by Library Manager for Venus 6. Provides both HMAC-SHA256 tamper detection and Ed25519 cryptographic publisher identity verification.</p>
 
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><code>signature_format_version</code></td><td>string</td><td>Always <code>"1.0"</code></td></tr>
-<tr><td><code>algorithm</code></td><td>string</td><td>Always <code>"HMAC-SHA256"</code></td></tr>
+<tr><td><code>signature_format_version</code></td><td>string</td><td><code>"2.0"</code></td></tr>
+<tr><td><code>algorithm</code></td><td>string</td><td><code>"Ed25519+HMAC-SHA256"</code></td></tr>
 <tr><td><code>signed_date</code></td><td>string</td><td>ISO 8601 timestamp of when the signature was generated</td></tr>
 <tr><td><code>file_hashes</code></td><td>object</td><td>Sorted map of <code>{ "entryName": "sha256hex" }</code> for every ZIP entry except <code>signature.json</code></td></tr>
 <tr><td><code>hmac</code></td><td>string</td><td>HMAC-SHA256 computed over the canonical JSON representation of the <code>file_hashes</code> map</td></tr>
+<tr><td><code>digital_signature</code></td><td>string</td><td>Ed25519 digital signature (base64) computed over the canonical JSON representation of the <code>file_hashes</code> map</td></tr>
+<tr><td><code>publisher_certificate</code></td><td>object</td><td>Embedded publisher certificate containing identity and public key. See fields below.</td></tr>
 </tbody>
 </table>
 
-<h3>Example Signature</h3>
+<h4>Embedded Publisher Certificate Fields</h4>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>cert_format</code></td><td>string</td><td>Certificate format identifier (<code>"hxlibpkg-publisher-cert/1.0"</code>)</td></tr>
+<tr><td><code>publisher</code></td><td>string</td><td>Publisher name (signer identity)</td></tr>
+<tr><td><code>organization</code></td><td>string</td><td>Organization name (if set)</td></tr>
+<tr><td><code>public_key</code></td><td>string</td><td>Base64-encoded raw Ed25519 public key (32 bytes)</td></tr>
+<tr><td><code>fingerprint</code></td><td>string</td><td>SHA-256 hex of the raw public key bytes</td></tr>
+<tr><td><code>key_id</code></td><td>string</td><td>First 16 characters of the fingerprint (short identifier)</td></tr>
+<tr><td><code>created_date</code></td><td>string</td><td>ISO 8601 timestamp of certificate generation</td></tr>
+</tbody>
+</table>
+
+<h3>Example v2.0 Signature</h3>
 <div class="code"><pre>{
-  "signature_format_version": "1.0",
-  "algorithm": "HMAC-SHA256",
+  "signature_format_version": "2.0",
+  "algorithm": "Ed25519+HMAC-SHA256",
   "signed_date": "2026-01-15T10:30:00.000Z",
   "file_hashes": {
     "demo_methods/Demo_MyVenusLibrary.hsl": "b2c3d4e5...",
@@ -142,11 +161,25 @@
     "library/MyVenusLibrary.hs_": "e5f6a7b8...",
     "manifest.json": "a1b2c3d4..."
   },
-  "hmac": "9f8e7d6c..."
+  "hmac": "9f8e7d6c...",
+  "digital_signature": "MEUCIQD...",
+  "publisher_certificate": {
+    "cert_format": "hxlibpkg-publisher-cert/1.0",
+    "publisher": "Jane Smith",
+    "organization": "Acme Pharma",
+    "public_key": "MCowBQYDK2VwAyEA...",
+    "fingerprint": "a7e3f9d1c6b24e92b516a30de768f42c...",
+    "key_id": "a7e3f9d1c6b24e92",
+    "created_date": "2026-01-10T08:00:00.000Z"
+  }
 }</pre></div>
 
+<div class="warning">
+<p><b>v1.0 HMAC-only signatures are rejected.</b> Legacy packages created with signature format version 1.0 (HMAC-SHA256 only, no Ed25519 digital signature) are no longer accepted on import. Only v2.0 code-signed packages pass signature verification. To update a legacy package, re-create it using <a href="CLICreatePackage.html"><code>create-package</code></a> with <code>--sign-key</code>.</p>
+</div>
+
 <div class="note">
-<p><b>Note:</b> The inner <code>signature.json</code> provides per-file integrity checking within the ZIP. The outer binary container HMAC provides whole-file integrity checking. Together they form a defense-in-depth strategy. See <a href="BinaryContainerFormat.html">Binary Container Format</a> and <a href="IntegrityVerification.html">Integrity Verification</a> for details.</p>
+<p><b>Note:</b> The inner <code>signature.json</code> provides per-file integrity checking and publisher identity verification within the ZIP. The outer binary container HMAC provides whole-file integrity checking. Together they form a defense-in-depth strategy. See <a href="BinaryContainerFormat.html">Binary Container Format</a> and <a href="IntegrityVerification.html">Integrity Verification</a> for details.</p>
 </div>
 
 <p>See <a href="IntegrityVerification.html">Integrity Verification</a> for details on how signing relates to file-level integrity checking, and <a href="CLIVerifyPackage.html">CLI: verify-package</a> for standalone package verification.</p>

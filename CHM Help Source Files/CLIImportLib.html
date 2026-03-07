@@ -34,7 +34,7 @@
 <h2>Import Process</h2>
 <ol>
   <li>The <code>.hxlibpkg</code> file is opened as a ZIP archive</li>
-  <li><b>Signature verification:</b> If a <code>signature.json</code> is present, the package's HMAC-SHA256 signature is verified. If verification fails, the command exits with an error unless <code>--force</code> is set. Unsigned (legacy) packages are accepted with a notice.</li>
+  <li><b>Signature verification:</b> If a <code>signature.json</code> is present, the package's integrity signature is verified. For v2.0 packages, this includes Ed25519 digital signature verification and publisher certificate validation. If the package is code-signed by a recognized OEM publisher, an <b>OEM Verified</b> badge is shown. If verification fails, the command exits with an error unless <code>--force</code> is set. Unsigned (legacy) packages are accepted with a notice.</li>
   <li><code>manifest.json</code> is read and validated (missing manifest = error)</li>
   <li><b>Version mismatch check:</b> If the package's <code>app_version</code> differs from the running Library Manager version, a warning is printed. A stronger warning is issued when the package was created by a <b>newer major version</b>. Legacy packages (no <code>app_version</code>) are noted in the console.</li>
   <li>If a library with the same name exists and is not deleted, the command fails unless <code>--force</code> is set</li>

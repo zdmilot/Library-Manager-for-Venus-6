@@ -104,7 +104,7 @@
 <h3>Single Package Import (<code>.hxlibpkg</code>)</h3>
 <ol>
   <li>Browse and select a <code>.hxlibpkg</code> file</li>
-  <li>The package's HMAC-SHA256 signature is automatically verified</li>
+  <li>The package's integrity signature is automatically verified (Ed25519 + HMAC-SHA256 for v2.0 packages)</li>
   <li>Review the pre-install preview modal showing metadata, file lists, install paths, signature verification status, and COM DLL notices</li>
   <li>If the signature verification fails, a warning dialog prompts you to confirm or cancel the import</li>
   <li>If the library is already installed, an overwrite/update warning is displayed</li>
@@ -172,7 +172,7 @@
     </ul>
   </li>
   <li><b>Report:</b> Results are displayed in two sections - <b>System Libraries</b> (with a [System] badge) followed by <b>Installed Libraries</b>. Each library shows one of three statuses: <b>OK</b> (green), <b>WARNING</b> (yellow), or <b>FAILED</b> (red), along with specific error details per file.</li>
-  <li><b>Repair:</b> For any library with issues, if a cached or backup <code>.hxlibpkg</code> exists in the package store, a <b>Repair</b> button re-extracts the original files. The cached package's HMAC-SHA256 signature is verified before repair to prevent restoring from a corrupt source.</li>
+  <li><b>Repair:</b> For any library with issues, if a cached or backup <code>.hxlibpkg</code> exists in the package store, a <b>Repair</b> button re-extracts the original files. The cached package's integrity signature is verified before repair to prevent restoring from a corrupt source.</li>
   <li><b>Batch Repair:</b> A <b>Repair Selected</b> button repairs all failed libraries (system and user) in one operation. A confirmation dialog lists the libraries before proceeding, and a summary is shown afterward.</li>
 </ol>
 

@@ -223,7 +223,7 @@
   <li>Library files are added to the <code>library/</code> directory inside the ZIP</li>
   <li>Demo method files are added to the <code>demo_methods/</code> directory inside the ZIP</li>
   <li>If a <code>.bmp</code> icon exists, it is included in the <code>icon/</code> directory</li>
-  <li>The package is signed using <code>signPackageZip()</code> (HMAC-SHA256 integrity signature)</li>
+  <li>The package is signed with an integrity signature. If an Ed25519 key pair is configured in Settings &rarr; Code Signing, the package is also code-signed with the publisher certificate (v2.0 format); otherwise, HMAC-SHA256 only</li>
   <li>An audit trail entry is recorded with source type <code>"unsigned_library"</code>, including library and demo file counts</li>
   <li><b>The library is automatically registered into Library Manager</b> as a signed/installed library (identical to clicking "Register to Library Manager" - see <a href="#registering-libraries">Registering Libraries</a> above). The source package field in the database record is set to the exported package filename.</li>
 </ol>

@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; Creating Packages</div>
 
 <h2>Overview</h2>
-<p>Library Manager for Venus 6 provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and the entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
+<p>Library Manager for Venus 6 provides two ways to create a <code>.hxlibpkg</code> package from raw library source files: the GUI Library Packager and the CLI <code>create-package</code> command. Both produce identical output - a <code>.hxlibpkg</code> file in the <a href="BinaryContainerFormat.html">binary container format</a>, ready for distribution and import. The internal ZIP archive is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>), and optionally code-signed with an Ed25519 digital signature and publisher certificate. The entire file is wrapped in a tamper-resistant binary container with its own HMAC-SHA256 digest.</p>
 
 <h2>GUI Library Packager</h2>
 <img src="images/packager-main.png" alt="Library Packager main view" class="doc-screenshot">
@@ -42,6 +42,7 @@
   <li><b>Select Library Image</b> (optional): Choose an icon or image file (<code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.bmp</code>, <code>.ico</code>, <code>.gif</code>, <code>.svg</code>). If no image is selected, the packager looks for a <code>.bmp</code> file among your library files whose name <b>exactly</b> matches the library name (e.g., <code>MyLibrary.bmp</code> for a library named <code>MyLibrary</code>). Partial matches like <code>MyLibrary.extra.bmp</code> are not considered.</li>
   <li><b>Mark COM DLLs</b> (optional): If your library includes <code>.dll</code> files that need COM registration, select them individually from the payload list to mark them for COM registration. During import, the GUI will register these DLLs using the <b>32-bit</b> <code>RegAsm.exe /codebase</code> with UAC elevation. <b>Note:</b> Hamilton VENUS is a 32-bit application &mdash; only the 32-bit .NET Framework <code>RegAsm.exe</code> is used. See <a href="ImportingLibraries.html">COM DLL Registration</a> for details on the 32-bit requirement.</li>
   <li><b>Build the Package:</b> Choose a save location and build the <code>.hxlibpkg</code> file.</li>
+  <li><b>Code Sign</b> (optional): If an Ed25519 key pair and publisher certificate have been configured in <a href="CodeSigning.html">Settings &rarr; Code Signing</a>, a <b>Code Sign</b> toggle is available. When enabled, the package is digitally signed with the configured Ed25519 private key and the publisher certificate is embedded in the <code>signature.json</code>.</li>
 </ol>
 <img src="images/packager-filled.png" alt="Packager with filled metadata and file list" class="doc-screenshot">
 <p>After a successful build, a success confirmation dialog is displayed showing the package output location and file details:</p>
@@ -67,6 +68,9 @@
 <p>The CLI uses a <b>JSON specification file</b> to define all metadata and source file paths. This is ideal for automated builds and CI/CD pipelines.</p>
 
 <div class="code"><pre>node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg</pre></div>
+
+<p>To code-sign the package with an Ed25519 publisher certificate:</p>
+<div class="code"><pre>node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign-key mykey.key.pem</pre></div>
 
 <p>See <a href="CLICreatePackage.html">CLI: create-package</a> for full command documentation and <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the specification file format.</p>
 
@@ -132,7 +136,7 @@
 <p>If any validation fails, the build is aborted with a descriptive error message.</p>
 
 <h2>Output Structure</h2>
-<p>The resulting <code>.hxlibpkg</code> is a <a href="BinaryContainerFormat.html">binary container file</a> - not a plain ZIP archive. The container wraps an internal ZIP with the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the per-file HMAC-SHA256 integrity signature. The outer binary container adds a second integrity layer (container-level HMAC-SHA256) and XOR scrambling that prevents the file from being opened by standard archive tools. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for full technical details.</p>
+<p>The resulting <code>.hxlibpkg</code> is a <a href="BinaryContainerFormat.html">binary container file</a> - not a plain ZIP archive. The container wraps an internal ZIP with the standard package structure described in <a href="PackageFormats.html">Package Formats</a>, including a <code>signature.json</code> entry with the integrity signature. If code signing was used, the signature includes an Ed25519 digital signature and embedded publisher certificate (v2.0 format); otherwise, HMAC-SHA256 only. The outer binary container adds a second integrity layer (container-level HMAC-SHA256) and XOR scrambling that prevents the file from being opened by standard archive tools. See <a href="BinaryContainerFormat.html">Binary Container Format</a> for full technical details.</p>
 
 <h2>Environment Stamping &amp; Package Lineage</h2>
 <p>Every package created by Library Manager for Venus 6 is automatically stamped with environmental metadata:</p>

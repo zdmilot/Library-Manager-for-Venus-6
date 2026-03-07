@@ -621,19 +621,22 @@
 
 <h3>Layer 1: Package Signing (at creation time)</h3>
 <table class="phase-table">
-<tr><th colspan="2">signPackageZip() &mdash; Creating the Signature</th></tr>
+<tr><th colspan="2">signPackageZipWithCert() &mdash; Creating the Signature (v2.0)</th></tr>
 <tr><td class="step-label">1. Hash all ZIP entries</td><td>SHA-256 hash of each file in the ZIP (excluding signature.json itself)</td></tr>
 <tr><td class="step-label">2. Sort by filename</td><td>Alphabetical sort to ensure deterministic ordering</td></tr>
 <tr><td class="step-label">3. Stringify</td><td><code>JSON.stringify(sortedHashes)</code> creates the payload to be signed</td></tr>
 <tr><td class="step-label">4. Compute HMAC</td><td>HMAC-SHA256 over the stringified payload using <code>PKG_SIGNING_KEY</code></td></tr>
-<tr><td class="step-label">5. Embed signature</td><td>Add <code>signature.json</code> to ZIP containing: signature_format_version, algorithm, signed_date, file_hashes, hmac</td></tr>
+<tr><td class="step-label">5. Ed25519 digital signature</td><td>Sign the HMAC with the publisher's Ed25519 private key</td></tr>
+<tr><td class="step-label">6. Embed signature</td><td>Add <code>signature.json</code> to ZIP containing: signature_format_version ("2.0"), algorithm ("Ed25519+HMAC-SHA256"), signed_date, file_hashes, hmac, ed25519_signature, publisher_certificate</td></tr>
 </table>
 
 <h3>Layer 2: Package Verification (at import time)</h3>
 <table class="phase-table">
 <tr><th colspan="2">verifyPackageSignature() &mdash; Verifying the Signature</th></tr>
-<tr><td class="step-label">1. Read signature.json</td><td>Extract stored file hashes and HMAC from the ZIP</td></tr>
-<tr><td class="step-label">2. Recompute HMAC</td><td>HMAC-SHA256 over the stored hash payload</td></tr>
+<tr><td class="step-label">1. Read signature.json</td><td>Extract stored file hashes, HMAC, and Ed25519 signature from the ZIP</td></tr>
+<tr><td class="step-label">2. Check format version</td><td>v2.0 (Ed25519+HMAC) proceeds; v1.0 (HMAC-only) is <b>rejected</b></td></tr>
+<tr><td class="step-label">3. Verify Ed25519 signature</td><td>Validate the digital signature against the embedded publisher certificate's public key</td></tr>
+<tr><td class="step-label">4. Recompute HMAC</td><td>HMAC-SHA256 over the stored hash payload</td></tr>
 <tr class="decision"><td class="step-label">HMAC match?</td><td>
   <b>No &rarr;</b> ERROR: signature has been tampered with<br/>
   <b>Yes &rarr;</b> Continue to per-file verification

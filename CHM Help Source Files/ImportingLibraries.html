@@ -19,11 +19,11 @@
   <li>Navigate to the <b>Import</b> tab in the main window</li>
   <li>Browse and select a <code>.hxlibpkg</code> file</li>
   <li>Library Manager for Venus 6 validates the <a href="BinaryContainerFormat.html">binary container</a> integrity (HMAC-SHA256), then reads the package contents and validates that a <code>manifest.json</code> is present</li>
-  <li><b>Signature verification:</b> The package's HMAC-SHA256 signature is checked. The result is displayed in a <b>Signature Status</b> section of the preview modal:
+  <li><b>Signature verification:</b> The package's integrity signature is verified. For v2.0 packages, this includes Ed25519 digital signature verification and publisher certificate validation. The result is displayed in a <b>Signature Status</b> section of the preview modal:
     <ul>
-      <li><b>Verified</b> (green) - All file hashes match and the HMAC is valid</li>
+      <li><b>Verified</b> (green) - All file hashes match, the HMAC is valid, and the Ed25519 digital signature verifies against the embedded publisher certificate</li>
       <li><b>Unsigned</b> (yellow) - No signature found (legacy/third-party package). Import proceeds normally.</li>
-      <li><b>Failed</b> (red) - Package may be corrupt or tampered with. A confirmation dialog warns the user before proceeding.</li>
+      <li><b>Failed</b> (red) - Package may be corrupt or tampered with, or uses a rejected legacy v1.0 HMAC-only signature. A confirmation dialog warns the user before proceeding.</li>
     </ul>
   </li>
   <li>A <b>pre-install preview modal</b> appears showing:
@@ -82,7 +82,7 @@
 <h3>Archive Processing</h3>
 <p>Each embedded <code>.hxlibpkg</code> is extracted and installed sequentially using the same process as single-package import. For each package:</p>
 <ul>
-  <li>The inner <code>.hxlibpkg</code> binary container is validated, opened, and its HMAC-SHA256 signature is verified - packages that fail container or signature verification are <b>automatically rejected</b> and skipped</li>
+  <li>The inner <code>.hxlibpkg</code> binary container is validated, opened, and its integrity signature is verified (HMAC-SHA256 and Ed25519 for v2.0 packages) - packages that fail container or signature verification are <b>automatically rejected</b> and skipped</li>
   <li>The inner package's <code>manifest.json</code> is read</li>
   <li>Files are extracted to the appropriate directories</li>
   <li>Integrity hashes are computed</li>

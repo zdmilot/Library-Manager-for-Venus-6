@@ -78,6 +78,14 @@
 		<param name="Local" value="IntegrityVerification.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="code signing">
+		<param name="Local" value="CLIGenerateKeypair.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="keypair">
+		<param name="Local" value="CLIGenerateKeypair.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="chip">
 		<param name="Local" value="SearchFeatures.html">
 		</OBJECT>
@@ -142,6 +150,14 @@
 		<param name="Local" value="CLIExportArchive.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Ed25519">
+		<param name="Local" value="CLIGenerateKeypair.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Ed25519 code signing">
+		<param name="Local" value="IntegrityVerification.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="export-lib">
 		<param name="Local" value="CLIExportLib.html">
 		</OBJECT>
@@ -180,6 +196,10 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="first-run backup">
 		<param name="Local" value="IntegrityVerification.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="generate-keypair">
+		<param name="Local" value="CLIGenerateKeypair.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="generate-syslib-hashes">
@@ -352,6 +372,10 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="list-libs">
 		<param name="Local" value="CLIListLibs.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="list-publishers">
+		<param name="Local" value="CLIListPublishers.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="list-versions">

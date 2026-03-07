@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager for Venus 6</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; verify-package</div>
 
 <h2>Description</h2>
-<p>Verifies the integrity of a <code>.hxlibpkg</code> or <code>.hxlibarch</code> file without importing it. This command validates both the outer <a href="BinaryContainerFormat.html">binary container</a> (HMAC-SHA256 over the entire file) and the inner <code>signature.json</code> (per-file integrity hashes). This is useful for validating packages before distribution, after file transfer, or in CI/CD pipelines.</p>
+<p>Verifies the integrity of a <code>.hxlibpkg</code> or <code>.hxlibarch</code> file without importing it. This command validates both the outer <a href="BinaryContainerFormat.html">binary container</a> (HMAC-SHA256 over the entire file) and the inner <code>signature.json</code> (per-file integrity hashes and optional Ed25519 digital signature). For code-signed packages, publisher identity and OEM verification status are also reported. This is useful for validating packages before distribution, after file transfer, or in CI/CD pipelines.</p>
 
 <h2>Usage</h2>
 <div class="code"><pre>node cli.js verify-package --file &lt;path&gt; [--json]</pre></div>
@@ -35,9 +35,11 @@
       <li>SHA-256 hashes are recomputed for every non-signature entry in the ZIP</li>
       <li>Each recomputed hash is compared against the stored hash in <code>signature.json</code></li>
       <li>The HMAC-SHA256 is recomputed from the file hash map and compared against the stored HMAC</li>
+      <li>If the signature includes an Ed25519 digital signature (<code>signature_format_version: "2.0"</code>), the Ed25519 signature is verified against the embedded publisher certificate's public key</li>
+      <li>If the publisher name matches a restricted OEM keyword, the package receives an <b>OEM Verified</b> badge</li>
     </ul>
   </li>
-  <li>If all hashes and the HMAC match, the result is <b>VALID</b> (exit code <code>0</code>)</li>
+  <li>If all hashes, the HMAC, and any Ed25519 signature match, the result is <b>VALID</b> (exit code <code>0</code>)</li>
   <li>If any hash or the HMAC does not match, the result is <b>FAILED</b> (exit code <code>1</code>)</li>
 </ol>
 
@@ -45,9 +47,10 @@
 <table>
 <thead><tr><th>Result</th><th>Exit Code</th><th>Meaning</th></tr></thead>
 <tbody>
-<tr><td><b>VALID</b></td><td><code>0</code></td><td>Signature is present and valid - all file hashes match and the HMAC is correct</td></tr>
+<tr><td><b>VALID [Ed25519]</b></td><td><code>0</code></td><td>Ed25519 digital signature and all file hashes are valid. Publisher identity is confirmed.</td></tr>
+<tr><td><b>VALID [HMAC-only]</b></td><td><code>0</code></td><td>HMAC signature is present and valid but no Ed25519 code signature (v1.0 format)</td></tr>
 <tr><td><b>UNSIGNED</b></td><td><code>0</code></td><td>No <code>signature.json</code> found - the package is a legacy or third-party package created before signing was implemented</td></tr>
-<tr><td><b>FAILED</b></td><td><code>1</code></td><td>One or more file hashes do not match, or the HMAC is invalid - the package may be corrupt or tampered with</td></tr>
+<tr><td><b>FAILED</b></td><td><code>1</code></td><td>One or more file hashes do not match, the HMAC is invalid, or the Ed25519 signature verification failed - the package may be corrupt or tampered with</td></tr>
 </tbody>
 </table>
 
@@ -68,6 +71,14 @@ node cli.js verify-package --file "\\server\share\packages\LibraryA.hxlibpkg"</p
     "package": "MyLibrary.hxlibpkg",
     "signed": true,
     "valid": true,
+    "code_signed": true,
+    "publisher_cert": {
+      "publisher": "Jane Smith",
+      "organization": "Acme Pharma",
+      "key_id": "a7e3f9d1c6b24e92",
+      "fingerprint": "a7e3f9d1c6b24e92b516a30de768f42c..."
+    },
+    "oem_verified": false,
     "errors": [],
     "warnings": []
   }
@@ -78,20 +89,55 @@ node cli.js verify-package --file "\\server\share\packages\LibraryA.hxlibpkg"</p
 <tr><td><code>package</code></td><td>string</td><td>Filename (or entry name for archives) of the package</td></tr>
 <tr><td><code>signed</code></td><td>boolean</td><td><code>true</code> if a <code>signature.json</code> was found</td></tr>
 <tr><td><code>valid</code></td><td>boolean</td><td><code>true</code> if all hashes and the HMAC matched</td></tr>
+<tr><td><code>code_signed</code></td><td>boolean</td><td><code>true</code> if the package has an Ed25519 digital signature (v2.0 format)</td></tr>
+<tr><td><code>publisher_cert</code></td><td>object|null</td><td>Publisher certificate details (publisher name, organization, key_id, fingerprint) or <code>null</code> if not code-signed</td></tr>
+<tr><td><code>oem_verified</code></td><td>boolean</td><td><code>true</code> if the publisher name matches a restricted OEM keyword, confirming OEM origin</td></tr>
 <tr><td><code>errors</code></td><td>string[]</td><td>Error messages (e.g., hash mismatches, read failures)</td></tr>
 <tr><td><code>warnings</code></td><td>string[]</td><td>Non-fatal warnings</td></tr>
 </tbody>
 </table>
 
+<h2>Human-Readable Output</h2>
+<p>When <code>--json</code> is not specified, each package is printed on a single status line followed by publisher details (if code-signed):</p>
+<div class="code"><pre>MyLibrary.hxlibpkg: VALID [Ed25519]
+  Publisher  : Jane Smith (Acme Pharma)
+  Key ID     : a7e3f9d1c6b24e92
+  Fingerprint: a7e3f9d1c6b24e92b516a30de768f42c...
+  OEM Verified: NO
+
+Result: ALL PACKAGES VERIFIED (code signed)</pre></div>
+<p>Unsigned packages display as:</p>
+<div class="code"><pre>LegacyLib.hxlibpkg: UNSIGNED
+
+Result: NO SIGNED PACKAGES FOUND</pre></div>
+
 <h2>Signature Format</h2>
 <p>The <code>signature.json</code> entry inside a signed <code>.hxlibpkg</code> contains:</p>
+
+<h3>v2.0 Format (Ed25519 Code-Signed)</h3>
+<p>Current format used by Library Manager for Venus 6. Includes both HMAC-SHA256 integrity and Ed25519 digital signature with publisher identity.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><code>signature_format_version</code></td><td>string</td><td>Always <code>"1.0"</code></td></tr>
-<tr><td><code>algorithm</code></td><td>string</td><td>Always <code>"HMAC-SHA256"</code></td></tr>
+<tr><td><code>signature_format_version</code></td><td>string</td><td><code>"2.0"</code></td></tr>
+<tr><td><code>algorithm</code></td><td>string</td><td><code>"Ed25519+HMAC-SHA256"</code></td></tr>
 <tr><td><code>signed_date</code></td><td>string</td><td>ISO 8601 timestamp of when the signature was generated</td></tr>
 <tr><td><code>file_hashes</code></td><td>object</td><td>Map of <code>{ "entryName": "sha256hex", ... }</code> for every entry in the ZIP except <code>signature.json</code> itself</td></tr>
+<tr><td><code>hmac</code></td><td>string</td><td>HMAC-SHA256 computed over the canonical JSON representation of the <code>file_hashes</code> map</td></tr>
+<tr><td><code>ed25519_signature</code></td><td>string</td><td>Ed25519 digital signature (base64) computed over the HMAC value</td></tr>
+<tr><td><code>publisher_cert</code></td><td>object</td><td>Embedded publisher certificate containing: <code>publisher</code>, <code>organization</code>, <code>public_key</code> (base64 raw Ed25519), <code>fingerprint</code> (SHA-256 hex), <code>key_id</code> (first 16 hex chars of fingerprint)</td></tr>
+</tbody>
+</table>
+
+<h3>v1.0 Format (HMAC-Only, Legacy)</h3>
+<p>Older format with HMAC integrity but no cryptographic publisher identity. Packages with this format are reported as <b>[HMAC-only]</b> and are rejected on import.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>signature_format_version</code></td><td>string</td><td><code>"1.0"</code></td></tr>
+<tr><td><code>algorithm</code></td><td>string</td><td><code>"HMAC-SHA256"</code></td></tr>
+<tr><td><code>signed_date</code></td><td>string</td><td>ISO 8601 timestamp of when the signature was generated</td></tr>
+<tr><td><code>file_hashes</code></td><td>object</td><td>Map of <code>{ "entryName": "sha256hex", ... }</code> for every ZIP entry except <code>signature.json</code></td></tr>
 <tr><td><code>hmac</code></td><td>string</td><td>HMAC-SHA256 computed over the canonical JSON representation of the <code>file_hashes</code> map</td></tr>
 </tbody>
 </table>
@@ -100,6 +146,7 @@ node cli.js verify-package --file "\\server\share\packages\LibraryA.hxlibpkg"</p
 <ul>
   <li><a href="IntegrityVerification.html">Integrity Verification</a> - Overview of all integrity mechanisms</li>
   <li><a href="CLIImportLib.html">CLI: import-lib</a> - Signature verification during import</li>
+  <li><a href="CLIGenerateKeypair.html">CLI: generate-keypair</a> - Generate Ed25519 signing keys</li>
   <li><a href="PackageFormats.html">Package Formats</a> - Package structure including <code>signature.json</code></li>
 </ul>
 </div>

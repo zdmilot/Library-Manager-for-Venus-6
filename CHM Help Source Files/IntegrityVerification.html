@@ -122,16 +122,22 @@
   <li>When a <code>.hxlibpkg</code> is created (via the GUI Library Packager, CLI <code>create-package</code>, or single-library export), SHA-256 hashes are computed for every entry in the internal ZIP archive except the signature itself.</li>
   <li>The hashes are collected into a sorted map of <code>{ "entryName": "sha256hex" }</code>.</li>
   <li>An HMAC-SHA256 is computed over the canonical JSON serialization of that map using a fixed application key.</li>
+  <li>If an Ed25519 private key and publisher certificate are provided, the HMAC is digitally signed with the private key, and the publisher certificate is embedded in the signature.</li>
   <li>A <code>signature.json</code> file is added to the ZIP containing:
     <ul>
-      <li><code>signature_format_version</code> - always <code>"1.0"</code></li>
-      <li><code>algorithm</code> - always <code>"HMAC-SHA256"</code></li>
+      <li><code>signature_format_version</code> - <code>"2.0"</code> for code-signed packages</li>
+      <li><code>algorithm</code> - <code>"Ed25519+HMAC-SHA256"</code></li>
       <li><code>signed_date</code> - ISO 8601 timestamp</li>
       <li><code>file_hashes</code> - the per-entry SHA-256 hash map</li>
       <li><code>hmac</code> - the HMAC-SHA256 digest</li>
+      <li><code>digital_signature</code> - Base64-encoded Ed25519 signature over the HMAC payload</li>
+      <li><code>publisher_certificate</code> - embedded publisher identity (publisher name, organization, public key, fingerprint, key ID, creation date)</li>
     </ul>
   </li>
 </ol>
+<div class="note">
+<p><b>Note:</b> Legacy v1.0 packages (HMAC-SHA256 only, no Ed25519 signature) are <b>rejected</b> on import. Only unsigned packages (no <code>signature.json</code>) or v2.0 code-signed packages are accepted.</p>
+</div>
 
 <h3>Three-Phase Verification</h3>
 <p>When a package is imported or used for repair, the binary container is first validated (see <a href="BinaryContainerFormat.html">Binary Container Format</a>), then three inner verification phases run in sequence:</p>
@@ -190,9 +196,9 @@
 <tr><td><code>manifest.json</code></td><td>Package metadata: library name, author, version (<code>"system"</code>), description, tags, file lists, optional Base64 image</td></tr>
 <tr><td><code>library/</code></td><td>All non-CHM library files: <code>.hsl</code>, <code>.hs_</code>, <code>.bmp</code>, <code>.ico</code>, <code>.stp</code>, <code>.sub</code>, etc.</td></tr>
 <tr><td><code>help_files/</code></td><td>All <code>.chm</code> help files</td></tr>
-<tr><td><code>signature.json</code></td><td>HMAC-SHA256 integrity signature covering all entries</td></tr>
 </tbody>
 </table>
+<p>System library backups are wrapped in a <a href="BinaryContainerFormat.html">binary container</a> for tamper resistance but do not include an internal <code>signature.json</code>. The binary container's own HMAC-SHA256 digest provides integrity protection.</p>
 
 <div class="note">
 <p><b>Note:</b> System libraries already present in the package store (e.g., from a previous installation) are skipped during backup. The first-run backup only creates packages for libraries that have no existing cached version.</p>
@@ -209,7 +215,7 @@
 <p>The repair process follows the same steps regardless of whether the library is a user-installed library or a system library:</p>
 <ol>
   <li>The newest cached <code>.hxlibpkg</code> for the library is located in the package store.</li>
-  <li>The package's HMAC-SHA256 signature is verified. If the signature is present and <b>invalid</b>, the repair is aborted - repairing from a corrupt source would make matters worse.</li>
+  <li>The package's integrity signature is verified (HMAC-SHA256 and Ed25519 for v2.0 packages). If the signature is present and <b>invalid</b>, the repair is aborted - repairing from a corrupt source would make matters worse.</li>
   <li>The package's <code>manifest.json</code> is read and validated.</li>
   <li>Files are extracted from the ZIP back to their original locations, overwriting the modified or corrupted files on disk:
     <ul>
@@ -312,7 +318,7 @@
 </ul>
 
 <div class="note">
-<p><b>Note:</b> The cached package's HMAC-SHA256 signature is always verified before repair. If the backup package itself is corrupted, repair is aborted to prevent restoring bad files.</p>
+<p><b>Note:</b> The cached package's integrity signature is always verified before repair. If the backup package itself is corrupted, repair is aborted to prevent restoring bad files.</p>
 </div>
 
 <h3>Summary Bar</h3>
@@ -467,7 +473,7 @@ next to the author name. This badge appears across the application:</p>
 <ul>
   <li><a href="CLIGenerateSyslibHashes.html">CLI: generate-syslib-hashes</a> - Generate system library integrity baseline from a known-good VENUS installation</li>
   <li><a href="CLIVerifySyslibHashes.html">CLI: verify-syslib-hashes</a> - Verify system libraries against the stored baseline</li>
-  <li><a href="CLIVerifyPackage.html">CLI: verify-package</a> - Verify a <code>.hxlibpkg</code> file's HMAC-SHA256 signature</li>
+  <li><a href="CLIVerifyPackage.html">CLI: verify-package</a> - Verify a <code>.hxlibpkg</code> file's integrity signature (HMAC-SHA256 and Ed25519)</li>
 </ul>
 
 <!-- ================================================================== -->
