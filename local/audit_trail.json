@@ -26,5 +26,39 @@
       "custom_install_subdir": "",
       "icon_file": "ASWGlobal.ico"
     }
+  },
+  {
+    "event": "library_imported",
+    "timestamp": "2026-03-08T03:39:44.253Z",
+    "username": "admin",
+    "windows_version": "Windows_NT 10.0.26200 (ia32)",
+    "venus_version": "6.2.2.4006",
+    "hostname": "DESKTOP-HR02679",
+    "details": {
+      "library_name": "ASWStandard",
+      "version": "v2.0",
+      "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "organization": "Hamilton",
+      "source_file": "D:\\Hamilton\\Library Package Files\\ASWStandard_vv2.0.hxlibpkg",
+      "lib_install_path": "C:\\Program Files (x86)\\Hamilton\\Library\\ASWStandard",
+      "demo_install_path": "C:\\Program Files (x86)\\Hamilton\\Methods\\Library Demo Methods\\ASWStandard",
+      "files_extracted": 10,
+      "signature_status": "unsigned",
+      "com_warning": false
+    }
+  },
+  {
+    "event": "library_deleted",
+    "timestamp": "2026-03-08T03:40:54.111Z",
+    "username": "admin",
+    "windows_version": "Windows_NT 10.0.26200 (ia32)",
+    "venus_version": "6.2.2.4006",
+    "hostname": "DESKTOP-HR02679",
+    "details": {
+      "library_name": "ASWStandard",
+      "version": "v2.0",
+      "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "delete_type": "soft"
+    }
   }
 ]

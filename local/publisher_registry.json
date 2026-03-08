@@ -3,8 +3,21 @@
     {
       "name": "Hamilton",
       "maxSpaces": 0
+    },
+    {
+      "name": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "maxSpaces": 5
     }
   ],
-  "tags": [],
-  "maxPublisherSpaces": 0
+  "tags": [
+    "constants",
+    "logging",
+    "tracing",
+    "diagnostics",
+    "debugging",
+    "utilities",
+    "enumerations",
+    "globals"
+  ],
+  "maxPublisherSpaces": 5
 }

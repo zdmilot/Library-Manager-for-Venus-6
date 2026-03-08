@@ -12591,24 +12591,7 @@
 					}
 				}
 
-				// Install paths + root install checkbox
-				var $rootChk = $modal.find("#chk_installToLibraryRoot");
-				$rootChk.prop("checked", installToRoot);
-				$rootChk.off("change.impRoot").on("change.impRoot", function() {
-					var checked = $(this).is(":checked");
-					var updatedLibDestDir;
-					if (checked) {
-						updatedLibDestDir = libBasePath;
-					} else if (customSubdir) {
-						updatedLibDestDir = path.join(libBasePath, customSubdir);
-					} else {
-						updatedLibDestDir = path.join(libBasePath, libName);
-					}
-					$modal.find(".imp-preview-lib-path").text("Library \u2192 " + updatedLibDestDir);
-					$modal.data("imp-libDestDir", updatedLibDestDir);
-					$modal.data("imp-installToRoot", checked);
-				});
-				$modal.data("imp-installToRoot", installToRoot);
+				// Install paths (determined by manifest)
 				$modal.find(".imp-preview-lib-path").text("Library \u2192 " + libDestDir);
 				$modal.find(".imp-preview-demo-path").text("Demo Methods \u2192 " + demoDestDir);
 
@@ -15409,7 +15392,7 @@
 			$modal.find("#hampkg-lib-venus").val("");
 			$modal.find("#hampkg-lib-tags").val("");
 			$modal.find("#hampkg-lib-desc").val("");
-			$modal.find("#chk_hampkg_installToRoot").prop("checked", false);
+
 			$modal.find(".hampkg-cat-btn").removeClass("active");
 			$modal.find('.hampkg-cat-btn[data-cat="all"]').addClass("active");
 		}
@@ -15669,8 +15652,7 @@
 			var libFolder = db_links.links.findOne({"_id":"lib-folder"});
 			var libBasePath = libFolder ? libFolder.path : "C:\\Program Files (x86)\\HAMILTON\\Library";
 			var libName = $("#hampkg-lib-name").val().trim() || "LibraryName";
-			var installToRoot = $("#chk_hampkg_installToRoot").is(":checked");
-			var destPath = installToRoot ? libBasePath : path.join(libBasePath, libName);
+			var destPath = path.join(libBasePath, libName);
 			$(".hampkg-install-path").text(destPath);
 		}
 
@@ -15786,9 +15768,7 @@
 			hampkgValidateForm();
 			hampkgUpdateInstallPath();
 		});
-		$(document).on("change", "#chk_hampkg_installToRoot", function() {
-			hampkgUpdateInstallPath();
-		});
+
 
 		// ---- Modal reset on close ----
 		$(document).on("hidden.bs.modal", "#importHamPkgModal", function() {
@@ -15817,7 +15797,7 @@
 				var venusCompat = $("#hampkg-lib-venus").val().trim();
 				var description = $("#hampkg-lib-desc").val().trim();
 				var tagsRaw = $("#hampkg-lib-tags").val().trim();
-				var installToRoot = $("#chk_hampkg_installToRoot").is(":checked");
+				var installToRoot = false;
 
 				// Validate required fields
 				if (!libName) { alert("Library name is required."); $btn.prop("disabled", false); return; }
