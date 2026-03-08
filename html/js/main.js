@@ -12375,8 +12375,11 @@
 					libFiles.forEach(function(f) {
 						var isCom = comDlls.indexOf(f) !== -1;
 						var comBadge = isCom ? '<span class="badge badge-info ml-2" title="This DLL will be registered as a COM object using RegAsm.exe /codebase. Administrator rights are required."><i class="fas fa-cog mr-1"></i>COM</span>' : '';
+						var destFile = path.join(libDestDir, f);
 						$libFilesList.append(
-							'<div class="pkg-file-item"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>' + comBadge + '</div>'
+							'<div class="pkg-file-item" style="flex-wrap:wrap;"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>' + comBadge
+							+ '<div class="hampkg-file-dirs"><span class="hampkg-file-to" title="' + escapeHtml(destFile) + '"><i class="fas fa-sign-in-alt mr-1"></i>' + escapeHtml(destFile) + '</span></div>'
+							+ '</div>'
 						);
 					});
 				}
@@ -12396,8 +12399,11 @@
 					$demoFilesList.html('<div class="text-muted text-center py-2 pkg-empty-msg"><i class="fas fa-inbox mr-1"></i>None</div>');
 				} else {
 					demoFiles.forEach(function(f) {
+						var destFile = path.join(demoDestDir, f);
 						$demoFilesList.append(
-							'<div class="pkg-file-item"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span></div>'
+							'<div class="pkg-file-item" style="flex-wrap:wrap;"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>'
+							+ '<div class="hampkg-file-dirs"><span class="hampkg-file-to" title="' + escapeHtml(destFile) + '"><i class="fas fa-sign-in-alt mr-1"></i>' + escapeHtml(destFile) + '</span></div>'
+							+ '</div>'
 						);
 					});
 				}
@@ -12407,8 +12413,11 @@
 				$helpFilesList.empty();
 				if (helpFiles.length > 0) {
 					helpFiles.forEach(function(f) {
+						var destFile = path.join(libDestDir, f);
 						$helpFilesList.append(
-							'<div class="pkg-file-item"><i class="fas fa-question-circle pkg-file-icon" style="color:var(--medium);"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span></div>'
+							'<div class="pkg-file-item" style="flex-wrap:wrap;"><i class="fas fa-question-circle pkg-file-icon" style="color:var(--medium);"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>'
+							+ '<div class="hampkg-file-dirs"><span class="hampkg-file-to" title="' + escapeHtml(destFile) + '"><i class="fas fa-sign-in-alt mr-1"></i>' + escapeHtml(destFile) + '</span></div>'
+							+ '</div>'
 						);
 					});
 					$modal.find(".imp-preview-help-section").removeClass("d-none");
@@ -15346,6 +15355,37 @@
 		}
 
 		/**
+		 * Compute the relative path within the destination directory from a file's relPath.
+		 * Strips the Hamilton category prefix (Library\, Methods\, etc.) and the library name prefix
+		 * to yield the subdir + filename relative to the install root.
+		 * E.g. "Library\ASW Standard\ASW Global\ASWGlobal.hsl" with libName "ASW Standard"
+		 *   → "ASW Global\ASWGlobal.hsl"
+		 */
+		function hampkgRelativeInstallPath(f, libName) {
+			var rel = f.relPath || f.fileName;
+			// Normalize separators
+			rel = rel.replace(/\//g, '\\');
+			var parts = rel.split('\\');
+			// Strip known Hamilton top-level folders: Library, Methods, Labware, Config, System
+			var topFolders = ['library', 'methods', 'labware', 'config', 'system', 'dependencies'];
+			if (parts.length > 1 && topFolders.indexOf(parts[0].toLowerCase()) >= 0) {
+				parts = parts.slice(1);
+			}
+			// Strip library name folder if it matches
+			if (parts.length > 1 && libName && parts[0].toLowerCase() === libName.toLowerCase()) {
+				parts = parts.slice(1);
+			}
+			// For methods/demo: also strip "Library Demo Methods" prefix if present
+			if (parts.length > 1 && parts[0].toLowerCase() === 'library demo methods') {
+				parts = parts.slice(1);
+				if (parts.length > 1 && libName && parts[0].toLowerCase() === libName.toLowerCase()) {
+					parts = parts.slice(1);
+				}
+			}
+			return parts.join('\\');
+		}
+
+		/**
 		 * Build the file list HTML from _hampkgFiles, respecting the active category filter.
 		 */
 		function hampkgBuildFileList() {
@@ -15384,12 +15424,17 @@
 
 				// Determine from (source) and to (destination) directories
 				var fromDir = f.absPath ? path.dirname(f.absPath) : path.dirname(f.relPath);
+				var relInstall = hampkgRelativeInstallPath(f, libName);
 				var toDir;
 				if (f.pathCategory === 'methods' || f.category.group === 'demo') {
-					toDir = demoDestDir;
+					toDir = path.join(demoDestDir, path.dirname(relInstall));
 				} else {
-					toDir = libDestDir;
+					toDir = path.join(libDestDir, path.dirname(relInstall));
 				}
+				// Clean up trailing separator from path.dirname when relInstall is just a filename
+				if (toDir.endsWith('\\') || toDir.endsWith('/')) toDir = toDir.slice(0, -1);
+				if (toDir.endsWith('.')) toDir = toDir.slice(0, -1);
+				if (toDir.endsWith('\\') || toDir.endsWith('/')) toDir = toDir.slice(0, -1);
 
 				var html = '<div class="hampkg-file-item' + selectedClass + '" data-idx="' + i + '">'
 					+ '<span class="hampkg-file-check"><i class="far ' + checkIcon + '"></i></span>'
@@ -15804,32 +15849,34 @@
 				var helpFileNames = [];
 				var demoFileNames = [];
 
-				// Extract library files (including other/labware/config - all go to library dir)
+				// Extract library files (including other/labware/config - preserve subdirectory structure)
 				var allLibEntries = selectedLibFiles.concat(selectedHelpFiles).concat(selectedOtherFiles);
 				for (var li = 0; li < allLibEntries.length; li++) {
 					var lf = allLibEntries[li];
-					var outPath = path.join(libDestDir, lf.fileName);
+					var relInstallPath = hampkgRelativeInstallPath(lf, libName);
+					var outPath = path.join(libDestDir, relInstallPath);
 					var parentDir = path.dirname(outPath);
 					if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
 					fs.writeFileSync(outPath, lf.data);
 					extractedCount++;
 
 					if (lf.category.group === 'help') {
-						helpFileNames.push(lf.fileName);
+						helpFileNames.push(relInstallPath);
 					} else {
-						libFileNames.push(lf.fileName);
+						libFileNames.push(relInstallPath);
 					}
 				}
 
-				// Extract demo files
+				// Extract demo files (preserve subdirectory structure)
 				for (var di = 0; di < selectedDemoFiles.length; di++) {
 					var df = selectedDemoFiles[di];
-					var demoOutPath = path.join(demoDestDir, df.fileName);
+					var demoRelPath = hampkgRelativeInstallPath(df, libName);
+					var demoOutPath = path.join(demoDestDir, demoRelPath);
 					var demoParentDir = path.dirname(demoOutPath);
 					if (!fs.existsSync(demoParentDir)) fs.mkdirSync(demoParentDir, { recursive: true });
 					fs.writeFileSync(demoOutPath, df.data);
 					extractedCount++;
-					demoFileNames.push(df.fileName);
+					demoFileNames.push(demoRelPath);
 				}
 
 				// Compute integrity hashes

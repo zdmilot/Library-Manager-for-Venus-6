@@ -122,5 +122,53 @@
       "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
       "delete_type": "soft"
     }
+  },
+  {
+    "event": "package_created",
+    "timestamp": "2026-03-08T15:22:01.511Z",
+    "username": "admin",
+    "windows_version": "Windows_NT 10.0.26200 (ia32)",
+    "venus_version": "6.2.2.4006",
+    "hostname": "DESKTOP-HR02679",
+    "details": {
+      "library_name": "ASW Standard",
+      "version": "V2.0",
+      "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "organization": "Hamilton",
+      "description": "Provides configurable multi-level trace logging and diagnostic output for variables, arrays, sequences, and function execution flow to support method development, debugging, and validation on Hamilton liquid handling platforms.",
+      "venus_compatibility": "4.7+",
+      "github_url": "",
+      "tags": "trace, logging, debug, diagnostics, method-development, validation, sequences, arrays, utilities",
+      "changelog": "",
+      "output_file": "D:\\Hamilton\\Library Package Files\\ASWStandard_v2.0.hxlibpkg",
+      "library_files": 7,
+      "library_file_names": "ASWGlobal.hsl, ASWGlobal.ico, ASWGlobal.stp, TraceLevel.chm, TraceLevel.hsl, TraceLevel.ico, TraceLevel.stp",
+      "demo_files": 3,
+      "demo_file_names": "TraceLevel Demo.hsl, TraceLevel Demo.med, TraceLevel Demo.stp",
+      "com_dlls": [],
+      "install_to_root": false,
+      "custom_install_subdir": "ASW Standard\\TraceLevel",
+      "icon_file": "ASWGlobal.bmp"
+    }
+  },
+  {
+    "event": "library_imported",
+    "timestamp": "2026-03-08T15:22:21.365Z",
+    "username": "admin",
+    "windows_version": "Windows_NT 10.0.26200 (ia32)",
+    "venus_version": "6.2.2.4006",
+    "hostname": "DESKTOP-HR02679",
+    "details": {
+      "library_name": "ASW Standard",
+      "version": "V2.0",
+      "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "organization": "Hamilton",
+      "source_file": "D:\\Hamilton\\Library Package Files\\ASWStandard_v2.0.hxlibpkg",
+      "lib_install_path": "C:\\Program Files (x86)\\Hamilton\\Library\\ASW Standard\\TraceLevel",
+      "demo_install_path": "C:\\Program Files (x86)\\Hamilton\\Methods\\Library Demo Methods\\ASW Standard",
+      "files_extracted": 10,
+      "signature_status": "unsigned",
+      "com_warning": false
+    }
   }
 ]
