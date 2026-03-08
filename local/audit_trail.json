@@ -170,5 +170,19 @@
       "signature_status": "unsigned",
       "com_warning": false
     }
+  },
+  {
+    "event": "library_deleted",
+    "timestamp": "2026-03-08T20:35:21.797Z",
+    "username": "admin",
+    "windows_version": "Windows_NT 10.0.26200 (ia32)",
+    "venus_version": "6.2.2.4006",
+    "hostname": "DESKTOP-HR02679",
+    "details": {
+      "library_name": "ASW Standard",
+      "version": "V2.0",
+      "author": "Corsin Alig, Bernd Huf, Stephan Gieriet",
+      "delete_type": "soft"
+    }
   }
 ]

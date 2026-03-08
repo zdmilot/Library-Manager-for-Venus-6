@@ -1,12 +1,12 @@
 {
   "publishers": [
     {
-      "name": "Hamilton",
-      "maxSpaces": 0
-    },
-    {
       "name": "Corsin Alig, Bernd Huf, Stephan Gieriet",
       "maxSpaces": 5
+    },
+    {
+      "name": "Hamilton",
+      "maxSpaces": 0
     }
   ],
   "tags": [
