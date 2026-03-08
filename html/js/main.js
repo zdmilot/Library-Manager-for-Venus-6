@@ -9475,8 +9475,11 @@
 			} else {
 				libFiles.forEach(function(f) {
 					var fullPath = libBasePath ? path.join(libBasePath, f) : f;
+					var dirPath = libBasePath || path.dirname(fullPath);
 					$libFiles.append(
-						'<div class="pkg-file-item pkg-file-link" data-filepath="' + escapeHtml(fullPath) + '" title="Open: ' + escapeHtml(fullPath) + '"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span></div>'
+						'<div class="pkg-file-item pkg-file-link" data-filepath="' + escapeHtml(fullPath) + '" title="Open: ' + escapeHtml(fullPath) + '"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>' +
+						'<span class="pkg-file-dir">' + escapeHtml(dirPath) + '</span>' +
+						'<span class="pkg-file-open-folder" data-folderpath="' + escapeHtml(dirPath) + '" title="Open file location"><i class="fas fa-folder-open"></i></span></div>'
 					);
 				});
 			}
@@ -9491,8 +9494,11 @@
 			} else {
 				demoFiles.forEach(function(f) {
 					var fullPath = demoBasePath ? path.join(demoBasePath, f) : f;
+					var dirPath = demoBasePath || path.dirname(fullPath);
 					$demoFiles.append(
-						'<div class="pkg-file-item pkg-file-link" data-filepath="' + escapeHtml(fullPath) + '" title="Open: ' + escapeHtml(fullPath) + '"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span></div>'
+						'<div class="pkg-file-item pkg-file-link" data-filepath="' + escapeHtml(fullPath) + '" title="Open: ' + escapeHtml(fullPath) + '"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name">' + escapeHtml(f) + '</span>' +
+						'<span class="pkg-file-dir">' + escapeHtml(dirPath) + '</span>' +
+						'<span class="pkg-file-open-folder" data-folderpath="' + escapeHtml(dirPath) + '" title="Open file location"><i class="fas fa-folder-open"></i></span></div>'
 					);
 				});
 			}
@@ -10133,9 +10139,13 @@
 			} else {
 				sysRegularFiles.forEach(function(f) {
 					var fileName = f.replace(/\\/g, '/').split('/').pop();
+					var relPath = f.replace(/^Library[\\\/]/i, '');
+					var fullSysPath = path.join(sysLibDir, relPath);
+					var dirSysPath = path.dirname(fullSysPath);
 					$libFiles.append(
 						'<div class="pkg-file-item"><i class="far fa-file pkg-file-icon"></i><span class="pkg-file-name" style="color:#6c757d;">' + fileName + '</span>' +
-						'<span class="pkg-file-dir">' + f + '</span></div>'
+						'<span class="pkg-file-dir">' + f + '</span>' +
+						'<span class="pkg-file-open-folder" data-folderpath="' + escapeHtml(dirSysPath) + '" title="Open file location"><i class="fas fa-folder-open"></i></span></div>'
 					);
 				});
 			}
@@ -11823,6 +11833,16 @@
 			var filePath = $(this).attr("data-filepath");
 			if (filePath) {
 				safeOpenItem(filePath);
+			}
+		});
+
+		// ---- Open file location folder when clicking the folder icon in the detail modal ----
+		$(document).on("click", ".pkg-file-open-folder", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var folderPath = $(this).attr("data-folderpath");
+			if (folderPath && fs.existsSync(folderPath)) {
+				nw.Shell.openItem(folderPath);
 			}
 		});
 
