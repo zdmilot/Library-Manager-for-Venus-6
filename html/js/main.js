@@ -8,12 +8,6 @@
 		var spawn = require('child_process').spawn; 
 
 		// ---------------------------------------------------------------------------
-		// System tray icon globals
-		// ---------------------------------------------------------------------------
-		/** @type {nw.Tray|null} The system tray icon instance */
-		var _tray = null;
-
-		// ---------------------------------------------------------------------------
 		// Global error boundary - catch unhandled errors to prevent silent failures
 		// ---------------------------------------------------------------------------
 		window.onerror = function(message, source, lineno, colno, error) {
@@ -25,82 +19,6 @@
 			console.error('Unhandled promise rejection:', event.reason);
 			try { _isImporting = false; } catch(_) {}
 		});
-
-		// ---------------------------------------------------------------------------
-		// Process exit safety net — clean up tray icon on any exit path
-		// ---------------------------------------------------------------------------
-		process.once('exit', function() {
-			try { removeTrayIcon(); } catch(_) {}
-		});
-
-		// ---------------------------------------------------------------------------
-		// System Tray Icon
-		// ---------------------------------------------------------------------------
-
-		/**
-		 * Initialize the system tray icon.
-		 * Shows the app icon in the Windows notification area (hidden icons pane).
-		 * Provides a context menu with options to show the window or quit.
-		 */
-		function initTrayIcon() {
-			if (_tray) return; // already initialized
-			try {
-				var trayIconPath = path.join(path.dirname(process.execPath), 'LibraryManager.png');
-				if (!fs.existsSync(trayIconPath)) {
-					trayIconPath = path.resolve(__dirname, '..', '..', 'LibraryManager.png');
-				}
-				_tray = new nw.Tray({
-					title: 'Library Manager',
-					icon: trayIconPath,
-					tooltip: 'Library Manager'
-				});
-				_tray.on('click', function() {
-					win.show();
-					win.focus();
-				});
-				updateTrayMenu();
-				console.log('System tray icon created.');
-			} catch(e) {
-				console.warn('Could not create system tray icon: ' + e.message);
-			}
-		}
-
-		/**
-		 * Update the system tray context menu.
-		 */
-		function updateTrayMenu() {
-			if (!_tray) return;
-			try {
-				var menu = new nw.Menu();
-				menu.append(new nw.MenuItem({
-					label: 'Open Library Manager',
-					click: function() {
-						win.show();
-						win.focus();
-					}
-				}));
-				menu.append(new nw.MenuItem({ type: 'separator' }));
-				menu.append(new nw.MenuItem({
-					label: 'Quit',
-					click: function() {
-						win.close();
-					}
-				}));
-				_tray.menu = menu;
-			} catch(e) {
-				console.warn('Could not update tray menu: ' + e.message);
-			}
-		}
-
-		/**
-		 * Remove the system tray icon from the notification area.
-		 */
-		function removeTrayIcon() {
-			if (_tray) {
-				try { _tray.remove(); } catch(_) {}
-				_tray = null;
-			}
-		}
 
 		/// Default VENUS executables. 
         var HxRun = "HxRun.exe";
@@ -1959,9 +1877,6 @@
 
         //Window close.   Ensure to close any background running nw.exe
 		win.on('close', function () {
-			// Remove system tray icon so it doesn't hold the process alive
-			try { removeTrayIcon(); } catch(_) {}
-
 			// Persist maximized state for next launch (dual-write for reliability)
 			try {
 				saveSetting('windowMaximized', _windowIsMaximized);
@@ -5908,8 +5823,7 @@
 			$("#chk_oemKeywordsEnabled").prop("checked", false);
 			$(".oem-keywords-status").html('');
 
-			// Initialize system tray icon (always present when app is running)
-			initTrayIcon();
+
 		}
 
 		function saveSetting(key,val){
