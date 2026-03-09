@@ -7225,11 +7225,13 @@
 							'<input type="checkbox" class="pkg-com-checkbox" data-dll="' + baseName.replace(/"/g, '&quot;') + '"' + (isChecked ? ' checked' : '') + '>' +
 							'<span>COM</span></label>';
 					}
-					var icon = isDll ? 'fa-cog' : (ext === '.hsl' || ext === '.hs_' || ext === '.hsi' ? 'fa-code' : 'fa-file');
+					var icon = isDll ? 'fa-cog' : (ext === '.hsl' || ext === '.hs_' || ext === '.hsi' ? 'fa-code' : (ext === '.smt' ? 'fa-microchip' : 'fa-file'));
+					var label = ext ? ext.replace('.', '').toUpperCase() : 'FILE';
 					return '<div class="ft-row ft-file-row" data-path="' + escapedPath + '">' +
 						'<i class="fas ' + icon + ' ft-icon-file"></i>' +
 						'<span class="ft-label">' + escapeHtml(baseName) + '</span>' +
 						comHtml +
+						'<span class="ft-badge">' + escapeHtml(label) + '</span>' +
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Library', pkg_libraryFiles.length, fileRowFn));
@@ -7264,7 +7266,7 @@
 			if (pkg_demoMethodFiles.length === 0) {
 				$list.html('<div class="text-muted text-center py-3 pkg-empty-msg"><i class="fas fa-inbox mr-2"></i>No demo method files added</div>');
 			} else {
-				var extInfo = {
+				var extIcons = {
 					'.hsl': 'fa-code', '.hs_': 'fa-code', '.hsi': 'fa-code',
 					'.stp': 'fa-play', '.med': 'fa-play', '.wfl': 'fa-project-diagram',
 					'.csv': 'fa-table', '.txt': 'fa-file-alt'
@@ -7276,10 +7278,12 @@
 					var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 					var baseName = path.basename(f);
 					var ext = path.extname(baseName).toLowerCase();
-					var icon = extInfo[ext] || 'fa-file';
+					var icon = extIcons[ext] || 'fa-file';
+					var label = ext ? ext.replace('.', '').toUpperCase() : 'FILE';
 					return '<div class="ft-row ft-file-row" data-path="' + escapedPath + '">' +
 						'<i class="fas ' + icon + ' ft-icon-file"></i>' +
 						'<span class="ft-label">' + escapeHtml(baseName) + '</span>' +
+						'<span class="ft-badge">' + escapeHtml(label) + '</span>' +
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Demo Methods', pkg_demoMethodFiles.length, fileRowFn));
@@ -7339,7 +7343,7 @@
 				var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 				var baseName = path.basename(f);
 				var ext = path.extname(f).toLowerCase();
-				var info = extInfo[ext] || { icon: 'fa-file', label: ext.replace('.', '').toUpperCase() };
+				var info = extInfo[ext] || { icon: 'fa-file', label: ext ? ext.replace('.', '').toUpperCase() : 'FILE' };
 				return '<div class="ft-row ft-file-row" data-path="' + escapedPath + '">' +
 					'<i class="fas ' + info.icon + ' ft-icon-file"></i>' +
 					'<span class="ft-label">' + escapeHtml(baseName) + '</span>' +
