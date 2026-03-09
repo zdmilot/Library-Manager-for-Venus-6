@@ -6648,20 +6648,7 @@
 		}
 
 		function pkgUpdatePathPlaceholders(name) {
-			if (pkg_installSubdir !== null) {
-				if (pkg_installSubdir === '') {
-					$("#pkg-lib-path-hint").html('Installed to: ...\\Hamilton\\Library\\');
-				} else {
-					var sanitized = pkg_installSubdir.replace(/\//g, '\\').replace(/\\{2,}/g, '\\').replace(/^\\|\\$/g, '');
-					$("#pkg-lib-path-hint").html('Installed to: ...\\Hamilton\\Library\\<span class="pkg-path-libname"></span>');
-					$(".pkg-path-libname").text(sanitized);
-				}
-			} else if(name){
-				$("#pkg-lib-path-hint").html('Installed to: ...\\Hamilton\\Library\\<span class="pkg-path-libname"></span>');
-				$(".pkg-path-libname").text(name);
-			} else {
-				$("#pkg-lib-path-hint").html('Installed to: ...\\Hamilton\\Library\\<span class="pkg-path-libname">&lt;libraryname&gt;</span>');
-			}
+			// Path is now shown in the tree root; no header hint to update
 		}
 
 		// ---- Auto-detect BMP image from library files ----
@@ -8019,19 +8006,9 @@
 			$("#pkg-save-dialog").trigger("click");
 		});
 
-		// ---- Change Path button (packager) ----
-		var _fpEditContext = '';   // 'pkg' or 'ulib'
-
-		$(document).on("click", "#pkg-changeLibPath", function() {
-			_fpEditContext = 'pkg';
-			var libName = $("#pkg-library-name").val().trim() || "";
-			var currentPath = (pkg_installSubdir !== null) ? pkg_installSubdir : libName;
-			$("#fpedit-path-input").val(currentPath);
-			fpEditUpdatePreview();
-			$("#filePathEditModal").modal("show");
-		});
-
 		// ---- Change Path button (unsigned library) ----
+		var _fpEditContext = '';
+
 		$(document).on("click", "#ulib-changeLibPath", function() {
 			_fpEditContext = 'ulib';
 			var libName = $("#ulib-name").val().trim() || "";
