@@ -1407,7 +1407,7 @@ body {
 	color: #bbb;
 }
 
-/* Root install-path hint shown in root folder row and empty drop zone */
+/* Root install-path hint shown in root folder row */
 .ft-root-path {
 	margin-left: 6px;
 	font-size: 0.72rem;
@@ -1417,31 +1417,6 @@ body {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	min-width: 0;
-}
-/* Drop zone (empty state) */
-.ft-drop-zone {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 18px 12px;
-	text-align: center;
-}
-.ft-drop-zone-path {
-	font-size: 0.82rem;
-	color: #6a7a8a;
-	margin-bottom: 6px;
-	word-break: break-all;
-}
-.ft-drop-zone-path i {
-	color: #e8a838;
-}
-.ft-drop-zone-hint {
-	font-size: 0.76rem;
-	color: #aab4be;
-}
-.ft-drop-zone-hint i {
-	color: #c0c8d0;
 }
 
 /* ---- Tree structure (nested <ul>/<li>) ---- */
@@ -1575,12 +1550,6 @@ body {
 	box-shadow: inset 0 0 0 2px rgba(var(--medium-rgb), 0.18);
 }
 .pkg-file-tree.ft-dragover .pkg-empty-msg {
-	color: var(--medium);
-}
-.pkg-file-tree.ft-dragover .ft-drop-zone-hint {
-	color: var(--medium);
-}
-.pkg-file-tree.ft-dragover .ft-drop-zone-hint i {
 	color: var(--medium);
 }
 .ft-folder-row.ft-drop-target {
@@ -3795,15 +3764,6 @@ body.dark-mode .ft-folder-row.ft-drop-target {
 }
 body.dark-mode .ft-root-path {
 	color: #5a6a7a;
-}
-body.dark-mode .ft-drop-zone-path {
-	color: #7a8a9a;
-}
-body.dark-mode .ft-drop-zone-hint {
-	color: #4a5a6a;
-}
-body.dark-mode .ft-drop-zone-hint i {
-	color: #4a5a6a;
 }
 body.dark-mode .filepath-edit-preview-box {
 	background: #0f0f23;

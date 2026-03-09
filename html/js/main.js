@@ -7216,20 +7216,12 @@
 			return '';
 		}
 
-		/** Render the empty drop-zone for a tree section. */
-		function ftEmptyDropZone(treeId) {
-			var installPath = ftGetInstallPath(treeId);
-			return '<div class="ft-drop-zone">' +
-				'<div class="ft-drop-zone-path"><i class="fas fa-folder-open mr-2"></i>' + escapeHtml(installPath) + '</div>' +
-				'<div class="ft-drop-zone-hint"><i class="fas fa-cloud-upload-alt mr-1"></i>Drop files here or click Add Files</div>' +
-				'</div>';
-		}
-
 		function pkgUpdateLibFileList() {
 			var $list = $("#pkg-lib-list");
 			$list.empty();
 			if (pkg_libraryFiles.length === 0 && pkg_libEmptyFolders.length === 0) {
-				$list.html(ftEmptyDropZone('pkg-lib-list'));
+				var emptyTree = { children: {}, files: [] };
+				$list.html(ftBuildHtml(emptyTree, 'Library', 0, function() { return ''; }, ftGetInstallPath('pkg-lib-list')));
 			} else {
 				var tree = ftBuildTree(pkg_libraryFiles, function(f) {
 					return pkg_fileRelPaths[f] || path.basename(f);
@@ -7295,7 +7287,8 @@
 			var $list = $("#pkg-demo-list");
 			$list.empty();
 			if (pkg_demoMethodFiles.length === 0 && pkg_demoEmptyFolders.length === 0) {
-				$list.html(ftEmptyDropZone('pkg-demo-list'));
+				var emptyTree = { children: {}, files: [] };
+				$list.html(ftBuildHtml(emptyTree, 'Demo Methods', 0, function() { return ''; }, ftGetInstallPath('pkg-demo-list')));
 			} else {
 				var extIcons = {
 					'.hsl': 'fa-code', '.hs_': 'fa-code', '.hsi': 'fa-code',
@@ -7339,7 +7332,8 @@
 			var $tree = $("#pkg-labware-tree");
 			$tree.empty();
 			if (pkg_labwareFiles.length === 0 && pkg_labwareEmptyFolders.length === 0) {
-				$tree.html(ftEmptyDropZone('pkg-labware-tree'));
+				var emptyTree = { children: {}, files: [] };
+				$tree.html(ftBuildHtml(emptyTree, 'Labware', 0, function() { return ''; }, ftGetInstallPath('pkg-labware-tree')));
 				$("#pkg-labware-count").text("0 files");
 				ftUpdateMoveToBtn("pkg-labware-tree");
 				return;
