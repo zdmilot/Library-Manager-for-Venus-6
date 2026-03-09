@@ -2031,6 +2031,10 @@
 				if (!$("#pkg-venus-compat").val().trim() && _cachedVENUSVersion) {
 					$("#pkg-venus-compat").val(_cachedVENUSVersion);
 				}
+				// Ensure trees show empty root on first visit
+				if (!$("#pkg-lib-list").children().length) pkgUpdateLibFileList();
+				if (!$("#pkg-demo-list").children().length) pkgUpdateDemoFileList();
+				if (!$("#pkg-labware-tree").children().length) pkgUpdateLabwareFileList();
 				fitExporterHeight();
 			} else if(group_id == "gAll"){
 				// All (home) shows installed library cards with header
@@ -2373,6 +2377,10 @@
 			if (!$("#pkg-venus-compat").val().trim() && _cachedVENUSVersion) {
 				$("#pkg-venus-compat").val(_cachedVENUSVersion);
 			}
+			// Ensure trees show empty root on first visit
+			if (!$("#pkg-lib-list").children().length) pkgUpdateLibFileList();
+			if (!$("#pkg-demo-list").children().length) pkgUpdateDemoFileList();
+			if (!$("#pkg-labware-tree").children().length) pkgUpdateLabwareFileList();
 			// Refresh code signing UI for packager
 			refreshSigningUI();
 			var sigInfo = getSigningDisplayInfo();
