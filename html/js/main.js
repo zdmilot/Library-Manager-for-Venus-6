@@ -2276,23 +2276,30 @@
 		var _oemSessionKeywordsEnabled = false;
 		var _flaskClickCount = 0;
 		var _flaskClickTimer = null;
-		$(document).on("click", "#about-flask-icon", function () {
+		$(document).on("click", "#about-flask-icon", async function () {
 			_flaskClickCount++;
 			if (_flaskClickTimer) clearTimeout(_flaskClickTimer);
 			_flaskClickTimer = setTimeout(function () { _flaskClickCount = 0; }, 3000);
 			if (_flaskClickCount >= 8) {
 				_flaskClickCount = 0;
 				if (_flaskClickTimer) { clearTimeout(_flaskClickTimer); _flaskClickTimer = null; }
-				_oemSessionUnlocked = !_oemSessionUnlocked;
-				applyOemSettingsVisibility(_oemSessionUnlocked);
-				// If disabling, also turn off OEM keywords
-				if (!_oemSessionUnlocked) {
+				if (_oemSessionUnlocked) {
+					// Disabling developer mode does not require password
+					_oemSessionUnlocked = false;
+					applyOemSettingsVisibility(false);
 					$("#chk_oemKeywordsEnabled").prop("checked", false);
 					_oemSessionKeywordsEnabled = false;
 					$(".oem-keywords-status").html('');
+					alert('Developer settings disabled.');
+				} else {
+					// Enabling developer mode requires OEM password
+					var pwOk = await promptAuthorPassword();
+					if (pwOk) {
+						_oemSessionUnlocked = true;
+						applyOemSettingsVisibility(true);
+						alert('Developer settings enabled.');
+					}
 				}
-				var msg = _oemSessionUnlocked ? 'Developer settings enabled.' : 'Developer settings disabled.';
-				alert(msg);
 			}
 		});
 
@@ -7694,21 +7701,20 @@
 		// Track whether restricted OEM author was already authorized for this session
 		var pkg_oemAuthorized = false;
 
-		// ---- Author/Organization field restriction: prompt for password when a restricted OEM name is entered ----
+		// ---- Author/Organization field restriction: warn or allow based on developer mode ----
 		$(document).on("blur", "#pkg-author, #pkg-organization", async function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !pkg_oemAuthorized && !isOemKeywordsEnabled()) {
-				var pwOk = await promptAuthorPassword();
-				if (pwOk) {
+			if (isRestrictedAuthor(fieldVal)) {
+				if (_oemSessionUnlocked) {
+					// Developer mode active – allow restricted names
 					pkg_oemAuthorized = true;
 				} else {
+					// Not in developer mode – show warning and clear field
+					$("#restrictedAuthorWarningModal").modal("show");
 					$(this).val('');
-					$(this).focus();
 					pkg_oemAuthorized = false;
 				}
-			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
-				pkg_oemAuthorized = true;
-			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#pkg-author').val().trim()) && !isRestrictedAuthor($('#pkg-organization').val().trim())) {
+			} else if (!isRestrictedAuthor($('#pkg-author').val().trim()) && !isRestrictedAuthor($('#pkg-organization').val().trim())) {
 				pkg_oemAuthorized = false;
 			}
 		});
@@ -8144,12 +8150,9 @@
 				var organization = $("#pkg-organization").val().trim();
 
 				// Check restricted author/organization name
-				if ((isRestrictedAuthor(author) || isRestrictedAuthor(organization)) && !isOemKeywordsEnabled()) {
-					var pwOk = await promptAuthorPassword();
-					if (!pwOk) {
-						alert('Package creation cancelled. Using a restricted OEM author or organization name requires authorization.');
-						return;
-					}
+				if ((isRestrictedAuthor(author) || isRestrictedAuthor(organization)) && !_oemSessionUnlocked) {
+					$("#restrictedAuthorWarningModal").modal("show");
+					return;
 				}
 				var version = $("#pkg-version").val().trim();
 				var venusCompat = $("#pkg-venus-compat").val().trim();
@@ -15404,18 +15407,15 @@
 
 		$(document).on("blur", "#ulib-author, #ulib-organization", async function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !ulib_oemAuthorized && !isOemKeywordsEnabled()) {
-				var pwOk = await promptAuthorPassword();
-				if (pwOk) {
+			if (isRestrictedAuthor(fieldVal)) {
+				if (_oemSessionUnlocked) {
 					ulib_oemAuthorized = true;
 				} else {
+					$("#restrictedAuthorWarningModal").modal("show");
 					$(this).val('');
-					$(this).focus();
 					ulib_oemAuthorized = false;
 				}
-			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
-				ulib_oemAuthorized = true;
-			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#ulib-author').val().trim()) && !isRestrictedAuthor($('#ulib-organization').val().trim())) {
+			} else if (!isRestrictedAuthor($('#ulib-author').val().trim()) && !isRestrictedAuthor($('#ulib-organization').val().trim())) {
 				ulib_oemAuthorized = false;
 			}
 		});
@@ -15457,15 +15457,11 @@
 
 			// Check restricted OEM author on save
 			if (isRestrictedAuthor(author) || isRestrictedAuthor(organization)) {
-				if (!ulib_oemAuthorized && !isOemKeywordsEnabled()) {
-					var pwOk = await promptAuthorPassword();
-					if (pwOk) {
-						ulib_oemAuthorized = true;
-					} else {
-						alert("Cannot save: restricted OEM author/organization name requires authorization.");
-						return;
-					}
+				if (!_oemSessionUnlocked) {
+					$("#restrictedAuthorWarningModal").modal("show");
+					return;
 				}
+				ulib_oemAuthorized = true;
 			}
 
 			var tagsRaw = $("#ulib-tags").val().trim();

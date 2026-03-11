@@ -2184,6 +2184,28 @@
 	</div>
 	<!---- Modal Author Password Prompt end --->
 
+	<!---- Modal Restricted Author Warning start --->
+	<div class="modal" tabindex="-1" role="dialog" id="restrictedAuthorWarningModal" data-backdrop="static" data-keyboard="false">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
+			<div class="modal-content">
+				<div class="modal-header" style="border-bottom: 2px solid #dc3545;">
+					<h5 class="modal-title"><i class="fas fa-shield-alt mr-2 text-danger"></i>Restricted Name</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p class="mb-2">The author/organization name you entered is <strong>restricted</strong> to authorized OEM and first-party libraries.</p>
+					<p class="text-muted mb-0" style="font-size: 0.85rem;">This name is reserved for authorized OEM developers only and cannot be used without developer mode authorization.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary solid-button-shape" data-dismiss="modal">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Restricted Author Warning end --->
+
 	<!---- Modal Access Denied start --->
 	<div class="modal" tabindex="-1" role="dialog" id="accessDeniedModal">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px;">
