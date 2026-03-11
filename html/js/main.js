@@ -7815,18 +7815,14 @@
 		// Track whether restricted OEM author was already authorized for this session
 		var pkg_oemAuthorized = false;
 
-		// ---- Author/Organization field restriction: prompt for password when a restricted OEM name is entered ----
-		$(document).on("blur", "#pkg-author, #pkg-organization", async function() {
+		// ---- Author/Organization field restriction: block restricted OEM names unless developer mode + OEM keywords enabled ----
+		$(document).on("blur", "#pkg-author, #pkg-organization", function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !pkg_oemAuthorized && !isOemKeywordsEnabled()) {
-				var pwOk = await promptAuthorPassword();
-				if (pwOk) {
-					pkg_oemAuthorized = true;
-				} else {
-					$(this).val('');
-					$(this).focus();
-					pkg_oemAuthorized = false;
-				}
+			if (isRestrictedAuthor(fieldVal) && !isOemKeywordsEnabled()) {
+				alert('Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.\n\nEnable Developer Mode in Settings, then check "Allow restricted OEM keywords" and enter the OEM password.');
+				$(this).val('');
+				$(this).focus();
+				pkg_oemAuthorized = false;
 			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
 				pkg_oemAuthorized = true;
 			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#pkg-author').val().trim()) && !isRestrictedAuthor($('#pkg-organization').val().trim())) {
@@ -8262,11 +8258,9 @@
 
 				// Check restricted author/organization name
 				if ((isRestrictedAuthor(author) || isRestrictedAuthor(organization)) && !isOemKeywordsEnabled()) {
-					var pwOk = await promptAuthorPassword();
-					if (!pwOk) {
-						alert('Package creation cancelled. Using a restricted OEM author or organization name requires authorization.');
-						return;
-					}
+					alert('Package creation blocked. Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.');
+					pkgSetCreateEnabled(true);
+					return;
 				}
 				var version = $("#pkg-version").val().trim();
 				var venusCompat = $("#pkg-venus-compat").val().trim();
@@ -15391,17 +15385,13 @@
 		// ---- Unsigned lib: restricted OEM author/organization check ----
 		var ulib_oemAuthorized = false;
 
-		$(document).on("blur", "#ulib-author, #ulib-organization", async function() {
+		$(document).on("blur", "#ulib-author, #ulib-organization", function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !ulib_oemAuthorized && !isOemKeywordsEnabled()) {
-				var pwOk = await promptAuthorPassword();
-				if (pwOk) {
-					ulib_oemAuthorized = true;
-				} else {
-					$(this).val('');
-					$(this).focus();
-					ulib_oemAuthorized = false;
-				}
+			if (isRestrictedAuthor(fieldVal) && !isOemKeywordsEnabled()) {
+				alert('Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.\n\nEnable Developer Mode in Settings, then check "Allow restricted OEM keywords" and enter the OEM password.');
+				$(this).val('');
+				$(this).focus();
+				ulib_oemAuthorized = false;
 			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
 				ulib_oemAuthorized = true;
 			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#ulib-author').val().trim()) && !isRestrictedAuthor($('#ulib-organization').val().trim())) {
@@ -15446,14 +15436,9 @@
 
 			// Check restricted OEM author on save
 			if (isRestrictedAuthor(author) || isRestrictedAuthor(organization)) {
-				if (!ulib_oemAuthorized && !isOemKeywordsEnabled()) {
-					var pwOk = await promptAuthorPassword();
-					if (pwOk) {
-						ulib_oemAuthorized = true;
-					} else {
-						alert("Cannot save: restricted OEM author/organization name requires authorization.");
-						return;
-					}
+				if (!isOemKeywordsEnabled()) {
+					alert("Cannot save: restricted OEM author/organization names require Developer Mode with OEM keywords enabled.");
+					return;
 				}
 			}
 
