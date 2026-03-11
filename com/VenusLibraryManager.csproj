@@ -11,7 +11,7 @@
     <SignAssembly>false</SignAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\</OutputPath>
-    <Version>1.9.25</Version>
+    <Version>1.93.25</Version>
     <Description>COM-visible .NET class library for Library Manager. Provides 1:1 parity with CLI operations for managing Hamilton VENUS libraries.</Description>
     <Company>Zachary Milot</Company>
     <Product>Library Manager</Product>

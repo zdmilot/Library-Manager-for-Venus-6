@@ -1,6 +1,6 @@
 ﻿// SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// VenusLibraryManager COM Object  v1.9.25
+// VenusLibraryManager COM Object  v1.93.25
 //
 // Copyright (c) 2026 Zachary Milot
 // Author: Zachary Milot
@@ -38,8 +38,8 @@ using System.Diagnostics;
 [assembly: AssemblyCompany("Zachary Milot")]
 [assembly: AssemblyProduct("Library Manager")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Zachary Milot")]
-[assembly: AssemblyVersion("1.9.25.0")]
-[assembly: AssemblyFileVersion("1.9.25.0")]
+[assembly: AssemblyVersion("1.93.25.0")]
+[assembly: AssemblyFileVersion("1.93.25.0")]
 [assembly: ComVisible(true)]
 [assembly: Guid("B3E7F8A1-4C2D-4E6F-9A1B-3D5E7F9A1B3D")]
 
