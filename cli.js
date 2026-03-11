@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Library Manager CLI  v1.9.13
+ * Library Manager CLI  v1.9.25
  * Command-line interface for managing Hamilton VENUS libraries.
  *
  * Copyright (c) 2026 Zachary Milot
@@ -2479,7 +2479,7 @@ function cmdRollbackLib(args) {
 /** Print CLI usage information and available commands to stdout. */
 function printHelp() {
     console.log(`
-Library Manager CLI  v1.9.13
+Library Manager CLI  v1.9.25
 Hamilton VENUS Library Package Management
 
 USAGE
