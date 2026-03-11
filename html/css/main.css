@@ -1954,6 +1954,8 @@ li.ft-node.ft-dragging-folder {
 	border-radius: 6px;
 	transition: box-shadow 0.2s ease, transform 0.2s ease;
 	cursor: pointer;
+	display: flex;
+	flex-direction: column;
 }
 
 .imp-lib-card:hover {
@@ -1964,6 +1966,50 @@ li.ft-node.ft-dragging-folder {
 .imp-lib-card.imp-lib-card-tag-hover:hover {
 	box-shadow: none !important;
 	transform: none !important;
+}
+
+.imp-lib-card-tags {
+	display: flex;
+	flex-wrap: nowrap;
+	overflow: hidden;
+	align-items: center;
+	min-height: 26px;
+	gap: 0.25rem;
+}
+
+.imp-lib-card-tags .imp-tag-badge {
+	flex-shrink: 0;
+	margin-bottom: 0;
+}
+
+.imp-tag-ellipsis {
+	flex-shrink: 0;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--medium, #6c757d);
+	cursor: pointer;
+	padding: 0.1rem 0.3rem;
+	display: none;
+	text-decoration: none;
+	line-height: 1;
+	letter-spacing: 1px;
+}
+
+.imp-tag-ellipsis:hover {
+	color: var(--medium2, #495057);
+}
+
+.imp-lib-card-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 0.5rem;
+	margin-top: auto;
+	border-top: 1px solid #eee;
+}
+
+body.dark-mode .imp-lib-card-footer {
+	border-top-color: #444;
 }
 
 .imp-tag-badge {
@@ -4084,7 +4130,7 @@ body.dark-mode .imp-unsigned-lib-card {
 	background-color: #1a2640;
 	border-left-color: #5a6a8c;
 }
-body.dark-mode .imp-unsigned-lib-card [style*="border-top"] {
+body.dark-mode .imp-unsigned-lib-card .imp-lib-card-footer {
 	border-top-color: #2a3a5c !important;
 }
 

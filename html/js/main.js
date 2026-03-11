@@ -1911,6 +1911,7 @@
 				fitMainDivHeight();
 				fitExporterHeight();
 				fitImporterHeight();
+				_updateCardTagOverflow();
 			}, 150, "window-resize");
 		});
 
@@ -3603,6 +3604,7 @@
 			}
 
 			fitImporterHeight();
+			setTimeout(_updateCardTagOverflow, 0);
 		}
 
 		function impExitSearchMode() {
@@ -3635,15 +3637,15 @@
 		function buildCardHelpLinkHtml(chmFiles, libId, defaultHelpFile) {
 			if (!chmFiles || chmFiles.length === 0) return '<span></span>';
 			if (chmFiles.length === 1) {
-				return '<a href="#" class="text-sm imp-lib-card-help-link" style="color:var(--medium);" data-lib-id="' + libId + '">Help</a>';
+				return '<a href="#" class="text-sm imp-lib-card-help-link" style="color:var(--medium);" data-lib-id="' + libId + '" title="Help"><i class="fas fa-question-circle"></i></a>';
 			}
 			// Multiple CHM files with a default - render a direct link targeting the default
 			if (defaultHelpFile) {
-				return '<a href="#" class="text-sm imp-lib-card-help-link" style="color:var(--medium);" data-lib-id="' + libId + '" data-default-chm="' + escapeHtml(defaultHelpFile) + '">Help</a>';
+				return '<a href="#" class="text-sm imp-lib-card-help-link" style="color:var(--medium);" data-lib-id="' + libId + '" data-default-chm="' + escapeHtml(defaultHelpFile) + '" title="Help"><i class="fas fa-question-circle"></i></a>';
 			}
 			// Multiple CHM files, no default - render a dropdown
 			var html = '<div class="dropdown imp-help-dropdown" style="display:inline-block;">';
-			html += '<a href="#" class="text-sm dropdown-toggle imp-lib-card-help-link" style="color:var(--medium);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-lib-id="' + libId + '">Help</a>';
+			html += '<a href="#" class="text-sm dropdown-toggle imp-lib-card-help-link" style="color:var(--medium);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-lib-id="' + libId + '" title="Help"><i class="fas fa-question-circle"></i></a>';
 			html += '<div class="dropdown-menu imp-help-dropdown-menu">';
 			for (var i = 0; i < chmFiles.length; i++) {
 				var fname = chmFiles[i];
@@ -3752,8 +3754,8 @@
 						'</div>' +
 					'</div>' +
 					(shortDesc ? '<p class="text-muted mt-2 mb-1" style="font-size:0.85em;">' + shortDesc + '</p>' : '') +
-					(tagsHtml ? '<div class="mt-1 mb-2">' + tagsHtml + '</div>' : '') +
-					'<div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top:1px solid #eee;">' +
+					'<div class="imp-lib-card-tags mt-1">' + tagsHtml + '<span class="imp-tag-ellipsis" data-lib-id="' + lib._id + '" title="View all tags">&hellip;</span></div>' +
+					'<div class="imp-lib-card-footer">' +
 						helpLinkHtml +
 						'<span class="imp-lib-star" data-lib-id="' + lib._id + '" title="' + (isLibStarred(lib._id) ? 'Unstar' : 'Star') + '"><i class="' + (isLibStarred(lib._id) ? 'fas' : 'far') + ' fa-star"></i></span>' +
 					'</div>' +
@@ -6930,15 +6932,11 @@
 				var child = node.children[name];
 				var total = ftCountFiles(child);
 				html += '<li class="ft-node">';
-				html += '<div class="ft-row ft-folder-row" data-folder="' + escapeHtml(name) + '" draggable="true">';
+				html += '<div class="ft-row ft-folder-row" data-folder="' + escapeHtml(name) + '">';
 				html += '<i class="fas fa-chevron-down ft-toggle"></i>';
 				html += '<i class="fas fa-folder-open ft-icon-folder"></i>';
 				html += '<span class="ft-label">' + escapeHtml(name) + '</span>';
 				html += '<span class="ft-count">' + total + '</span>';
-				html += '<span class="ft-folder-actions">';
-				html += '<i class="fas fa-pencil-alt ft-folder-rename" title="Rename folder"></i>';
-				html += '<i class="fas fa-trash-alt ft-folder-delete" title="Delete folder"></i>';
-				html += '</span>';
 				html += '</div>';
 				html += '<ul class="ft-branch">';
 				html += ftRenderNode(child, fileRowFn);
@@ -7275,109 +7273,16 @@
 		/**
 		 * Collect distinct folder paths from a tree's files + empty folders.
 		 */
-
-		// ---- Folder name modal helpers ----
-		var _folderNameResolve = null;
-		var _folderNameMode = 'new'; // 'new' or 'rename'
-
-		function ftShowFolderNameModal(defaultValue, mode) {
-			_folderNameMode = mode || 'new';
-			var $modal = $("#folderNameModal");
-			var $input = $("#folder-name-input");
-			$input.val(defaultValue || '').removeClass('is-invalid');
-			$(".folder-name-error").addClass("d-none");
-			$(".folder-name-confirm-btn").prop("disabled", !defaultValue);
-			if (_folderNameMode === 'rename') {
-				$(".folder-modal-title-text").text('Rename Folder');
-				$modal.find('.folder-modal-icon').removeClass('fa-folder-plus').addClass('fa-pencil-alt');
-				$(".folder-name-confirm-btn").html('<i class="fas fa-check mr-1"></i>Rename');
-			} else {
-				$(".folder-modal-title-text").text('New Folder');
-				$modal.find('.folder-modal-icon').removeClass('fa-pencil-alt').addClass('fa-folder-plus');
-				$(".folder-name-confirm-btn").html('<i class="fas fa-check mr-1"></i>Create');
-			}
-			$modal.modal('show');
-			setTimeout(function() { $input.focus().select(); }, 200);
-			return new Promise(function(resolve) {
-				_folderNameResolve = resolve;
-			});
-		}
-
-		$("#folder-name-input").on("input", function() {
-			var val = $(this).val().trim();
-			var $err = $(".folder-name-error");
-			var $errText = $(".folder-name-error-text");
-			if (!val) {
-				$(".folder-name-confirm-btn").prop("disabled", true);
-				$err.addClass("d-none");
-				$(this).removeClass('is-invalid');
-				return;
-			}
-			var normalized = val.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '');
-			var validation = shared.isValidSubdirPath(normalized);
-			if (!validation.valid) {
-				$errText.text(validation.reason);
-				$err.removeClass("d-none");
-				$(this).addClass('is-invalid');
-				$(".folder-name-confirm-btn").prop("disabled", true);
-			} else {
-				$err.addClass("d-none");
-				$(this).removeClass('is-invalid');
-				$(".folder-name-confirm-btn").prop("disabled", false);
-			}
-		});
-
-		$("#folder-name-input").on("keydown", function(e) {
-			if (e.key === 'Enter' && !$(".folder-name-confirm-btn").prop("disabled")) {
-				$(".folder-name-confirm-btn").click();
-			}
-		});
-
-		$(".folder-name-confirm-btn").on("click", function() {
-			var name = $("#folder-name-input").val().trim().replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '');
-			$("#folderNameModal").modal('hide');
-			if (_folderNameResolve) { _folderNameResolve(name); _folderNameResolve = null; }
-		});
-
-		$("#folderNameModal").on("hidden.bs.modal", function() {
-			if (_folderNameResolve) { _folderNameResolve(null); _folderNameResolve = null; }
-		});
-
-		// ---- Folder delete confirm modal helpers ----
-		var _folderDeleteResolve = null;
-
-		function ftShowFolderDeleteModal(folderPath, fileCount) {
-			var $modal = $("#folderDeleteModal");
-			$(".folder-delete-name").text(folderPath);
-			if (fileCount > 0) {
-				$(".folder-delete-message").html('<strong>This folder contains ' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + '.</strong> Deleting it will move ' + (fileCount === 1 ? 'the file' : 'all files') + ' to the root level.');
-			} else {
-				$(".folder-delete-message").text('This empty folder will be removed.');
-			}
-			$modal.modal('show');
-			return new Promise(function(resolve) {
-				_folderDeleteResolve = resolve;
-			});
-		}
-
-		$(".folder-delete-confirm-btn").on("click", function() {
-			$("#folderDeleteModal").modal('hide');
-			if (_folderDeleteResolve) { _folderDeleteResolve(true); _folderDeleteResolve = null; }
-		});
-
-		$("#folderDeleteModal").on("hidden.bs.modal", function() {
-			if (_folderDeleteResolve) { _folderDeleteResolve(false); _folderDeleteResolve = null; }
-		});
-
 		// "New Folder" button (generic for all trees)
-		$(document).on("click", ".ft-newFolderBtn", async function() {
+		$(document).on("click", ".ft-newFolderBtn", function() {
 			var treeId = $(this).attr("data-tree");
 			var state = ftGetTreeState(treeId);
 			if (!state) return;
-			var name = await ftShowFolderNameModal('', 'new');
-			if (name) {
+			var name = prompt("Enter new folder name:", "");
+			if (name && name.trim()) {
+				name = name.trim().replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '');
 				var ef = state.emptyFolders();
-				if (ef.indexOf(name) === -1) {
+				if (name && ef.indexOf(name) === -1) {
 					ef.push(name);
 					state.update();
 				}
@@ -7444,171 +7349,12 @@
 			ftDragData = null;
 		});
 
-		// --- Internal drag: dragstart on non-root .ft-folder-row ---
-		$(document).on("dragstart", ".ft-folder-row[data-folder]", function(e) {
-			var folderName = $(this).attr("data-folder");
-			if (folderName === '' || folderName === undefined) {
-				e.preventDefault(); // root folder is not draggable
-				return;
-			}
-			e.stopPropagation();
-			var $tree = $(this).closest(".pkg-file-tree");
-			var treeId = $tree.attr("id");
-			var state = ftGetTreeState(treeId);
-			if (!state) return;
-			var folderPath = ftResolveFolderPath($(this));
-			// Collect all files whose relative path starts with this folder
-			var filePaths = [];
-			state.files().forEach(function(f) {
-				var rel = state.getRelPath(f);
-				var dir = path.dirname(rel).replace(/\\/g, '/');
-				if (dir === folderPath || dir.indexOf(folderPath + '/') === 0) {
-					filePaths.push(f);
-				}
-			});
-			ftDragData = { treeId: treeId, filePaths: filePaths, folderPath: folderPath, isFolder: true };
-			e.originalEvent.dataTransfer.effectAllowed = 'move';
-			e.originalEvent.dataTransfer.setData('text/plain', 'folder:' + folderPath);
-			var self = this;
-			setTimeout(function() {
-				$(self).closest("li.ft-node").addClass("ft-dragging-folder");
-			}, 0);
-		});
-
-		$(document).on("dragend", ".ft-folder-row", function() {
-			$(".ft-dragging-folder").removeClass("ft-dragging-folder");
-			$(".ft-drop-target").removeClass("ft-drop-target");
-			$(".ft-dragover").removeClass("ft-dragover");
-			ftDragData = null;
-		});
-
-		/**
-		 * Move an entire folder (all files + subfolders + empty folders) to a new parent.
-		 * @param {string} treeId - The tree container ID
-		 * @param {string} srcFolder - Source folder path (e.g. "Vantage Tools")
-		 * @param {string} dstFolder - Destination parent folder path ('' = root)
-		 */
-		function ftMoveFolder(treeId, srcFolder, dstFolder) {
-			var state = ftGetTreeState(treeId);
-			if (!state) return;
-			var srcName = srcFolder.indexOf('/') !== -1 ? srcFolder.substring(srcFolder.lastIndexOf('/') + 1) : srcFolder;
-			var newFolder = dstFolder ? dstFolder + '/' + srcName : srcName;
-			// Prevent moving a folder into itself or its own subtree
-			if (newFolder === srcFolder || newFolder.indexOf(srcFolder + '/') === 0) return;
-			// Update all file relative paths under this folder
-			state.files().forEach(function(f) {
-				var rel = state.getRelPath(f);
-				var dir = path.dirname(rel).replace(/\\/g, '/');
-				if (dir === srcFolder) {
-					state.setRelPath(f, newFolder + '/' + path.basename(f));
-				} else if (dir.indexOf(srcFolder + '/') === 0) {
-					var suffix = dir.substring(srcFolder.length);
-					state.setRelPath(f, newFolder + suffix + '/' + path.basename(f));
-				}
-			});
-			// Update empty folders
-			var ef = state.emptyFolders();
-			for (var i = 0; i < ef.length; i++) {
-				if (ef[i] === srcFolder) {
-					ef[i] = newFolder;
-				} else if (ef[i].indexOf(srcFolder + '/') === 0) {
-					ef[i] = newFolder + ef[i].substring(srcFolder.length);
-				}
-			}
-			state.update();
-		}
-
-		// --- Folder rename handler ---
-		$(document).on("click", ".ft-folder-rename", async function(e) {
-			e.stopPropagation();
-			var $folderRow = $(this).closest(".ft-folder-row");
-			var $tree = $(this).closest(".pkg-file-tree");
-			var treeId = $tree.attr("id");
-			var state = ftGetTreeState(treeId);
-			if (!state) return;
-			var oldFolder = ftResolveFolderPath($folderRow);
-			var oldName = $folderRow.attr("data-folder");
-			var newName = await ftShowFolderNameModal(oldName, 'rename');
-			if (!newName || newName === oldName) return;
-			// Build new folder path by replacing the last segment
-			var parentPath = oldFolder.indexOf('/') !== -1 ? oldFolder.substring(0, oldFolder.lastIndexOf('/')) : '';
-			var newFolder = parentPath ? parentPath + '/' + newName : newName;
-			// Update all file relative paths under this folder
-			state.files().forEach(function(f) {
-				var rel = state.getRelPath(f);
-				var dir = path.dirname(rel).replace(/\\/g, '/');
-				if (dir === oldFolder) {
-					state.setRelPath(f, newFolder + '/' + path.basename(f));
-				} else if (dir.indexOf(oldFolder + '/') === 0) {
-					var suffix = dir.substring(oldFolder.length);
-					state.setRelPath(f, newFolder + suffix + '/' + path.basename(f));
-				}
-			});
-			// Update empty folders
-			var ef = state.emptyFolders();
-			for (var i = 0; i < ef.length; i++) {
-				if (ef[i] === oldFolder) {
-					ef[i] = newFolder;
-				} else if (ef[i].indexOf(oldFolder + '/') === 0) {
-					ef[i] = newFolder + ef[i].substring(oldFolder.length);
-				}
-			}
-			state.update();
-		});
-
-		// --- Folder delete handler ---
-		$(document).on("click", ".ft-folder-delete", async function(e) {
-			e.stopPropagation();
-			var $folderRow = $(this).closest(".ft-folder-row");
-			var $tree = $(this).closest(".pkg-file-tree");
-			var treeId = $tree.attr("id");
-			var state = ftGetTreeState(treeId);
-			if (!state) return;
-			var folderPath = ftResolveFolderPath($folderRow);
-			// Count files in this folder and its subfolders
-			var fileCount = 0;
-			state.files().forEach(function(f) {
-				var rel = state.getRelPath(f);
-				var dir = path.dirname(rel).replace(/\\/g, '/');
-				if (dir === folderPath || dir.indexOf(folderPath + '/') === 0) {
-					fileCount++;
-				}
-			});
-			var confirmed = await ftShowFolderDeleteModal(folderPath, fileCount);
-			if (!confirmed) return;
-			if (fileCount > 0) {
-				// Move all files to root
-				state.files().forEach(function(f) {
-					var rel = state.getRelPath(f);
-					var dir = path.dirname(rel).replace(/\\/g, '/');
-					if (dir === folderPath || dir.indexOf(folderPath + '/') === 0) {
-						state.clearRelPath(f);
-					}
-				});
-			}
-			// Remove empty folder entries matching this folder or its children
-			var ef = state.emptyFolders();
-			var filtered = ef.filter(function(fp) {
-				return fp !== folderPath && fp.indexOf(folderPath + '/') !== 0;
-			});
-			state.setEmptyFolders(filtered);
-			state.update();
-		});
-
 		// --- Folder row drop target highlighting ---
 		$(document).on("dragover", ".ft-folder-row", function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			// Highlight for internal drag (same or cross-tree)
 			if (ftDragData) {
-				// If dragging a folder, prevent dropping onto itself or its subtree
-				if (ftDragData.isFolder) {
-					var hoverFolder = ftResolveFolderPath($(this));
-					if (hoverFolder === ftDragData.folderPath || hoverFolder.indexOf(ftDragData.folderPath + '/') === 0) {
-						e.originalEvent.dataTransfer.dropEffect = 'none';
-						return;
-					}
-				}
 				e.originalEvent.dataTransfer.dropEffect = 'move';
 				$(".ft-drop-target").removeClass("ft-drop-target");
 				$(this).addClass("ft-drop-target");
@@ -7619,7 +7365,7 @@
 			$(this).removeClass("ft-drop-target");
 		});
 
-		// --- Drop onto folder row: move files/folders to that folder ---
+		// --- Drop onto folder row: move files to that folder ---
 		$(document).on("drop", ".ft-folder-row", function(e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -7629,14 +7375,6 @@
 			var targetFolder = ftResolveFolderPath($(this));
 
 			if (ftDragData) {
-				if (ftDragData.isFolder) {
-					// Folder drag: move entire folder into target
-					if (ftDragData.treeId === treeId) {
-						ftMoveFolder(treeId, ftDragData.folderPath, targetFolder);
-					}
-					ftDragData = null;
-					return;
-				}
 				if (ftDragData.treeId === treeId) {
 					// Same-tree rearrange
 					var state = ftGetTreeState(treeId);
@@ -7693,14 +7431,6 @@
 			var treeId = $(this).attr("id");
 
 			if (ftDragData) {
-				if (ftDragData.isFolder) {
-					// Folder drag to tree root: move folder to root level
-					if (ftDragData.treeId === treeId) {
-						ftMoveFolder(treeId, ftDragData.folderPath, '');
-					}
-					ftDragData = null;
-					return;
-				}
 				if (ftDragData.treeId === treeId) {
 					// Same-tree: drop on container background = move to root
 					var state = ftGetTreeState(treeId);
@@ -7815,14 +7545,18 @@
 		// Track whether restricted OEM author was already authorized for this session
 		var pkg_oemAuthorized = false;
 
-		// ---- Author/Organization field restriction: block restricted OEM names unless developer mode + OEM keywords enabled ----
-		$(document).on("blur", "#pkg-author, #pkg-organization", function() {
+		// ---- Author/Organization field restriction: prompt for password when a restricted OEM name is entered ----
+		$(document).on("blur", "#pkg-author, #pkg-organization", async function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !isOemKeywordsEnabled()) {
-				alert('Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.\n\nEnable Developer Mode in Settings, then check "Allow restricted OEM keywords" and enter the OEM password.');
-				$(this).val('');
-				$(this).focus();
-				pkg_oemAuthorized = false;
+			if (isRestrictedAuthor(fieldVal) && !pkg_oemAuthorized && !isOemKeywordsEnabled()) {
+				var pwOk = await promptAuthorPassword();
+				if (pwOk) {
+					pkg_oemAuthorized = true;
+				} else {
+					$(this).val('');
+					$(this).focus();
+					pkg_oemAuthorized = false;
+				}
 			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
 				pkg_oemAuthorized = true;
 			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#pkg-author').val().trim()) && !isRestrictedAuthor($('#pkg-organization').val().trim())) {
@@ -8258,9 +7992,11 @@
 
 				// Check restricted author/organization name
 				if ((isRestrictedAuthor(author) || isRestrictedAuthor(organization)) && !isOemKeywordsEnabled()) {
-					alert('Package creation blocked. Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.');
-					pkgSetCreateEnabled(true);
-					return;
+					var pwOk = await promptAuthorPassword();
+					if (!pwOk) {
+						alert('Package creation cancelled. Using a restricted OEM author or organization name requires authorization.');
+						return;
+					}
 				}
 				var version = $("#pkg-version").val().trim();
 				var venusCompat = $("#pkg-venus-compat").val().trim();
@@ -9584,6 +9320,7 @@
 					$container.append(buildSystemLibraryCard(sLib));
 				});
 				$container.append('<div class="col-md-12 my-3"></div>');
+				setTimeout(_updateCardTagOverflow, 0);
 				return;
 			}
 
@@ -9603,6 +9340,7 @@
 					$container.append(buildUnsignedLibraryCard(uLib));
 				});
 				$container.append('<div class="col-md-12 my-3"></div>');
+				setTimeout(_updateCardTagOverflow, 0);
 				return;
 			}
 
@@ -9622,6 +9360,7 @@
 					$container.append(buildSystemLibraryCard(sLib));
 				});
 				$container.append('<div class="col-md-12 my-3"></div>');
+				setTimeout(_updateCardTagOverflow, 0);
 				return;
 			}
 
@@ -9729,7 +9468,7 @@
 				var tagsHtml = "";
 				if (tags.length > 0) {
 					tags.forEach(function(t) {
-						tagsHtml += '<button type="button" class="imp-tag-badge mr-1 mb-1" data-tag="' + t + '"><i class="fas fa-tag mr-1"></i>' + t + '</button>';
+						tagsHtml += '<button type="button" class="imp-tag-badge mr-1" data-tag="' + t + '"><i class="fas fa-tag mr-1"></i>' + t + '</button>';
 					});
 				}
 
@@ -9791,8 +9530,8 @@
 								'</div>' +
 							'</div>' +
 							(shortDesc ? '<p class="text-muted mt-2 mb-1" style="font-size:0.85em;">' + shortDesc + '</p>' : '') +
-							(tagsHtml ? '<div class="mt-1 mb-2">' + tagsHtml + '</div>' : '') +
-							'<div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top:1px solid #eee;">' +
+							'<div class="imp-lib-card-tags mt-1">' + tagsHtml + '<span class="imp-tag-ellipsis" data-lib-id="' + lib._id + '" title="View all tags">&hellip;</span></div>' +
+							'<div class="imp-lib-card-footer">' +
 								(hasChmHelp ? buildCardHelpLinkHtml(chmHelpFiles, lib._id, lib.default_help_file || null) : '<span></span>') +
 								'<span class="imp-lib-star" data-lib-id="' + lib._id + '" title="' + (isLibStarred(lib._id) ? 'Unstar' : 'Star') + '"><i class="' + (isLibStarred(lib._id) ? 'fas' : 'far') + ' fa-star"></i></span>' +
 							'</div>' +
@@ -9826,6 +9565,7 @@
 
 			// Bottom spacer
 			$container.append('<div class="col-md-12 my-3"></div>');
+			setTimeout(_updateCardTagOverflow, 0);
 		}
 
 		// ---- Resolve system library icon: .bmp or .ico, with tiled submethod fallback ----
@@ -9978,8 +9718,8 @@
 							'</div>' +
 						'</div>' +
 						'<p class="text-muted mt-2 mb-1" style="font-size:0.85em;">' + shortDesc + '</p>' +
-						'<div class="mt-1 mb-1">' + typeBadges + '</div>' +
-						'<div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top:1px solid #eee;">' +
+						'<div class="imp-lib-card-tags mt-1">' + typeBadges + '</div>' +
+						'<div class="imp-lib-card-footer">' +
 							buildCardHelpLinkHtml(sysChmFiles, sLib._id, null) +
 							'<span class="imp-lib-star" data-lib-id="' + sLib._id + '" title="' + (isLibStarred(sLib._id) ? 'Unstar' : 'Star') + '"><i class="' + (isLibStarred(sLib._id) ? 'fas' : 'far') + ' fa-star"></i></span>' +
 						'</div>' +
@@ -12479,11 +12219,38 @@
 			$(this).closest(".imp-lib-card").removeClass("imp-lib-card-tag-hover");
 		});
 
+		// ---- Clicking tag ellipsis opens the library detail modal ----
+		$(document).on("click", ".imp-tag-ellipsis", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var libId = $(this).attr("data-lib-id");
+			if (libId) impShowLibDetail(libId);
+		});
+
+		// ---- Detect tag overflow and show/hide ellipsis indicators ----
+		function _updateCardTagOverflow() {
+			$(".imp-lib-card-tags").each(function() {
+				var el = this;
+				var $ellipsis = $(el).children(".imp-tag-ellipsis");
+				if ($ellipsis.length === 0) return;
+				// Temporarily hide ellipsis to measure natural overflow
+				$ellipsis.hide();
+				var hasOverflow = el.scrollWidth > el.clientWidth;
+				// Also check if there are any tag badges at all
+				var hasTags = $(el).children(".imp-tag-badge").length > 0;
+				if (hasOverflow && hasTags) {
+					$ellipsis.css("display", "inline-flex");
+				} else {
+					$ellipsis.hide();
+				}
+			});
+		}
+
 		$(document).on("click", ".imp-lib-card:not(.imp-unsigned-lib-card)", function(e) {
-			// Don't open detail modal when clicking the Help link, Star, or Tag badge
+			// Don't open detail modal when clicking the Help link, Star, Tag badge, or Tag ellipsis
 			if ($(e.target).closest(".imp-lib-card-help-link, .imp-help-dropdown").length) return;
 			if ($(e.target).closest(".imp-lib-star").length) return;
-			if ($(e.target).closest(".imp-tag-badge").length) return;
+			if ($(e.target).closest(".imp-tag-badge, .imp-tag-ellipsis").length) return;
 			e.preventDefault();
 			var libId = $(this).closest(".imp-lib-card-container").attr("data-lib-id");
 			if (libId) impShowLibDetail(libId);
@@ -15054,7 +14821,7 @@
 			var tagsHtml = "";
 			if (tags.length > 0) {
 				tags.forEach(function(t) {
-					tagsHtml += '<button type="button" class="imp-tag-badge mr-1 mb-1" data-tag="' + t + '"><i class="fas fa-tag mr-1"></i>' + t + '</button>';
+					tagsHtml += '<button type="button" class="imp-tag-badge mr-1" data-tag="' + t + '"><i class="fas fa-tag mr-1"></i>' + t + '</button>';
 				});
 			}
 
@@ -15075,8 +14842,8 @@
 							'</div>' +
 						'</div>' +
 						(shortDesc ? '<p class="text-muted mt-2 mb-1" style="font-size:0.85em;">' + shortDesc + '</p>' : '') +
-						(tagsHtml ? '<div class="mt-1 mb-2">' + tagsHtml + '</div>' : '') +
-						'<div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top:1px solid #eee;">' +
+						'<div class="imp-lib-card-tags mt-1">' + tagsHtml + '</div>' +
+						'<div class="imp-lib-card-footer">' +
 							'<a href="#" class="text-sm unsigned-lib-card-details cursor-pointer" style="color:var(--medium);"><i class="fas fa-edit mr-1"></i>Edit &amp; Export</a>' +
 							'<span class="text-muted" style="font-size:0.75rem;">' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + '</span>' +
 						'</div>' +
@@ -15385,13 +15152,17 @@
 		// ---- Unsigned lib: restricted OEM author/organization check ----
 		var ulib_oemAuthorized = false;
 
-		$(document).on("blur", "#ulib-author, #ulib-organization", function() {
+		$(document).on("blur", "#ulib-author, #ulib-organization", async function() {
 			var fieldVal = $(this).val().trim();
-			if (isRestrictedAuthor(fieldVal) && !isOemKeywordsEnabled()) {
-				alert('Restricted OEM author/organization names require Developer Mode with OEM keywords enabled.\n\nEnable Developer Mode in Settings, then check "Allow restricted OEM keywords" and enter the OEM password.');
-				$(this).val('');
-				$(this).focus();
-				ulib_oemAuthorized = false;
+			if (isRestrictedAuthor(fieldVal) && !ulib_oemAuthorized && !isOemKeywordsEnabled()) {
+				var pwOk = await promptAuthorPassword();
+				if (pwOk) {
+					ulib_oemAuthorized = true;
+				} else {
+					$(this).val('');
+					$(this).focus();
+					ulib_oemAuthorized = false;
+				}
 			} else if (isRestrictedAuthor(fieldVal) && isOemKeywordsEnabled()) {
 				ulib_oemAuthorized = true;
 			} else if (!isRestrictedAuthor(fieldVal) && !isRestrictedAuthor($('#ulib-author').val().trim()) && !isRestrictedAuthor($('#ulib-organization').val().trim())) {
@@ -15436,9 +15207,14 @@
 
 			// Check restricted OEM author on save
 			if (isRestrictedAuthor(author) || isRestrictedAuthor(organization)) {
-				if (!isOemKeywordsEnabled()) {
-					alert("Cannot save: restricted OEM author/organization names require Developer Mode with OEM keywords enabled.");
-					return;
+				if (!ulib_oemAuthorized && !isOemKeywordsEnabled()) {
+					var pwOk = await promptAuthorPassword();
+					if (pwOk) {
+						ulib_oemAuthorized = true;
+					} else {
+						alert("Cannot save: restricted OEM author/organization name requires authorization.");
+						return;
+					}
 				}
 			}
 
