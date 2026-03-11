@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; COM Object Reference</div>
 
 <h2>Overview</h2>
-<p>Library Manager includes a .NET COM object (<code>VenusLibraryManager.dll</code>) that enables integration with Hamilton VENUS HSL methods, VBScript, and any COM-capable language. The COM object provides complete 1:1 parity with the CLI commands.</p>
+<p>Library Manager includes a .NET COM object (<code>VenusLibraryManager.dll</code>) that enables integration with Hamilton VENUS HSL methods, VBScript, and any COM-capable language. The COM object provides a superset of the CLI commands, including additional convenience methods (e.g., <code>GetLibrary</code>, <code>GetAuditTrail</code>, <code>GetSettings</code>, extended <code>Ex</code> variants with full parameter control).</p>
 
 <div class="warning">
 <p><b>32-bit Only:</b> The COM DLL is compiled as <b>x86</b> (32-bit) and <b>must</b> be registered using the 32-bit <code>RegAsm.exe</code>. Hamilton VENUS is a 32-bit application &mdash; using the 64-bit RegAsm will make the COM object invisible to VENUS, causing "Class not registered" errors.</p>

@@ -145,8 +145,8 @@
 <h3>Tag Editing Rules</h3>
 <p>Tags are user-editable and are normalized/sanitized before saving:</p>
 <ul>
-  <li>Converted to lowercase and spaces are removed</li>
-  <li>Allowed characters are <code>a-z</code>, <code>0-9</code>, and <code>-</code></li>
+  <li>Converted to lowercase and consecutive spaces are collapsed</li>
+  <li>Allowed characters are <code>a-z</code>, <code>0-9</code>, <code>-</code>, and spaces</li>
   <li>Underscores are blocked except the special-case tag <code>ml_star</code></li>
   <li>Minimum length is 2, maximum length is 24, and maximum tag count per item is 12</li>
   <li>Numeric-only tags are rejected</li>

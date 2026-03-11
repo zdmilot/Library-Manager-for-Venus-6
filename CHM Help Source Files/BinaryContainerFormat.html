@@ -165,10 +165,10 @@
 <table>
 <thead><tr><th>Error Message</th><th>Cause</th><th>Resolution</th></tr></thead>
 <tbody>
-<tr><td>"Container too small"</td><td>File is less than 48 bytes (minimum header size)</td><td>The file is severely truncated or is not a valid package file. Re-obtain the file from the original source.</td></tr>
-<tr><td>"Unrecognized container format"</td><td>The first 8 bytes do not match any known magic value</td><td>The file is not a Library Manager package or has been renamed from a different format. Verify you selected the correct file.</td></tr>
-<tr><td>"Container integrity check failed - file may be corrupted or tampered with"</td><td>HMAC-SHA256 mismatch - one or more bytes of the file have been changed since it was created</td><td>The file has been corrupted (e.g., disk error, incomplete network transfer) or manually edited. Re-obtain an intact copy from the original source.</td></tr>
-<tr><td>"Container payload truncated"</td><td>The header declares a payload length, but the file does not contain enough bytes</td><td>The file was partially downloaded or truncated during copy. Re-obtain the complete file.</td></tr>
+<tr><td>"Invalid package: file is too small or not a valid container."</td><td>File is less than 48 bytes (minimum header size)</td><td>The file is severely truncated or is not a valid package file. Re-obtain the file from the original source.</td></tr>
+<tr><td>"Invalid package: unrecognized file format."</td><td>The first 8 bytes do not match any known magic value</td><td>The file is not a Library Manager package or has been renamed from a different format. Verify you selected the correct file.</td></tr>
+<tr><td>"Package integrity check failed: the file has been corrupted or tampered with."</td><td>HMAC-SHA256 mismatch - one or more bytes of the file have been changed since it was created</td><td>The file has been corrupted (e.g., disk error, incomplete network transfer) or manually edited. Re-obtain an intact copy from the original source.</td></tr>
+<tr><td>"Invalid package: file is truncated or corrupted."</td><td>The header declares a payload length, but the file does not contain enough bytes</td><td>The file was partially downloaded or truncated during copy. Re-obtain the complete file.</td></tr>
 </tbody>
 </table>
 

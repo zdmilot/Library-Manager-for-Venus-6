@@ -120,8 +120,8 @@
 <p>The packaging process validates the following before building:</p>
 <ul>
   <li><code>author</code> is present and non-empty</li>
-  <li><code>author</code> length must be between 3 and 29 characters</li>
-  <li><code>organization</code> length (if provided) must be between 3 and 29 characters</li>
+  <li><code>author</code> length must be between 3 and 500 characters; only alphanumeric characters, spaces, dashes, and underscores are allowed</li>
+  <li><code>organization</code> length (if provided) must be between 3 and 500 characters; only alphanumeric characters, spaces, dashes, and underscores are allowed</li>
   <li><code>version</code> is present and non-empty</li>
   <li><code>venus_compatibility</code> is required (CLI only)</li>
   <li><code>description</code> is required (CLI only)</li>
@@ -131,7 +131,7 @@
   <li>COM DLL basenames match entries in <code>library_files</code></li>
   <li>Restricted OEM author or organization names require password authorization</li>
   <li>Tags must not contain any of the 60+ reserved keywords (case-insensitive)</li>
-  <li>Library name (explicit or auto-detected) must be valid (no path separators, reserved characters, <code>..</code>, trailing dots/spaces)</li>
+  <li>Library name (explicit or auto-detected) must be valid (only alphanumeric characters, spaces, dashes, and underscores are allowed)</li>
 </ul>
 <p>If any validation fails, the build is aborted with a descriptive error message.</p>
 

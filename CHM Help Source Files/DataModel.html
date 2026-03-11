@@ -26,6 +26,8 @@
 <tr><td><code>tree</code></td><td>tree.json</td><td>Group-to-library membership assignments</td></tr>
 <tr><td><code>settings</code></td><td>settings.json</td><td>Application settings</td></tr>
 <tr><td><code>unsigned_libs</code></td><td>unsigned_libs.json</td><td>Auto-detected unsigned libraries (see <a href="UnsignedLibraries.html">Unsigned Libraries</a>)</td></tr>
+<tr><td><code>publisher_registry</code></td><td>publisher_registry.json</td><td>Autocomplete index of known authors, organizations, and tags across all imported libraries (see <a href="SearchFeatures.html">Search Features</a>)</td></tr>
+<tr><td><code>audit_trail</code></td><td>audit_trail.json</td><td>Persistent audit trail recording all library lifecycle events (see <a href="LibraryAuditLog.html">Library Audit Log</a>)</td></tr>
 </tbody>
 </table>
 
@@ -70,10 +72,19 @@
 <tr><td><code>com_warning</code></td><td>boolean</td><td>Whether the COM registration warning has been shown</td></tr>
 <tr><td><code>lib_install_path</code></td><td>string</td><td>Full path where library files are installed</td></tr>
 <tr><td><code>demo_install_path</code></td><td>string</td><td>Full path where demo methods are installed</td></tr>
+<tr><td><code>labware_files</code></td><td>string[]</td><td>List of labware definition files (<code>.rck</code>, <code>.ctr</code>, <code>.tml</code>, etc.)</td></tr>
+<tr><td><code>labware_install_path</code></td><td>string | null</td><td>Full path where labware files are installed, or <code>null</code> if none</td></tr>
 <tr><td><code>installed_date</code></td><td>string (ISO 8601)</td><td>When the library was imported</td></tr>
+<tr><td><code>installed_by</code></td><td>string</td><td>Windows username of the person who performed the import</td></tr>
 <tr><td><code>source_package</code></td><td>string</td><td>Filename of the source <code>.hxlibpkg</code></td></tr>
 <tr><td><code>file_hashes</code></td><td>object</td><td>Map of filename -> SHA-256 hash for integrity-tracked files</td></tr>
 <tr><td><code>public_functions</code></td><td>object[]</td><td>Parsed public function signatures from <code>.hsl</code> files (see below)</td></tr>
+<tr><td><code>required_dependencies</code></td><td>string[]</td><td>Library names extracted from <code>#include</code> directives in <code>.hsl</code> files</td></tr>
+<tr><td><code>installer_executable</code></td><td>string | null</td><td>Filename of the bundled standalone installer (<code>.exe</code>) from the package, or <code>null</code></td></tr>
+<tr><td><code>installer_info</code></td><td>object | null</td><td>Optional metadata about the bundled installer (description, source_url, authenticode_signer)</td></tr>
+<tr><td><code>installer_path</code></td><td>string | null</td><td>Full path where the retained installer was stored on import, or <code>null</code></td></tr>
+<tr><td><code>installer_original_name</code></td><td>string | null</td><td>Original filename of the installer executable from the package</td></tr>
+<tr><td><code>installer_size</code></td><td>number</td><td>Size of the installer executable in bytes (<code>0</code> if not present)</td></tr>
 <tr><td><code>deleted</code></td><td>boolean</td><td>Soft-delete flag. <code>true</code> means the library has been deleted</td></tr>
 <tr><td><code>deleted_date</code></td><td>string (ISO 8601)</td><td>When the library was soft-deleted</td></tr>
 </tbody>
@@ -106,7 +117,7 @@
 
 <h3>Tool Shortcut (type: "file")</h3>
 <div class="code"><pre>{
-  "_id": "met-editor",
+  "_id": "method-editor",
   "name": "Method Editor",
   "description": "",
   "icon-customImage": "HxMet.png",
@@ -138,13 +149,13 @@
 <table>
 <thead><tr><th>ID</th><th>Type</th><th>Name</th></tr></thead>
 <tbody>
-<tr><td><code>met-editor</code></td><td>file</td><td>Method Editor</td></tr>
+<tr><td><code>method-editor</code></td><td>file</td><td>Method Editor</td></tr>
 <tr><td><code>lc-editor</code></td><td>file</td><td>Liquid Class Editor</td></tr>
 <tr><td><code>lbw-editor</code></td><td>file</td><td>Labware Editor</td></tr>
 <tr><td><code>hsl-editor</code></td><td>file</td><td>HSL Editor</td></tr>
 <tr><td><code>sysCfg-editor</code></td><td>file</td><td>System Configuration Editor</td></tr>
 <tr><td><code>run-control</code></td><td>file</td><td>Run Control</td></tr>
-<tr><td><code>ham-version</code></td><td>file</td><td>Hamilton Version</td></tr>
+<tr><td><code>ham-version</code></td><td>folder</td><td>Hamilton Version</td></tr>
 <tr><td><code>bin-folder</code></td><td>folder</td><td>Bin</td></tr>
 <tr><td><code>cfg-folder</code></td><td>folder</td><td>Config</td></tr>
 <tr><td><code>lbw-folder</code></td><td>folder</td><td>Labware</td></tr>
@@ -239,9 +250,9 @@
   "_id": "0",
   "recent-max": "20",
   "chk_confirmBeforeInstall": true,
-  "chk_requireActionComment": false,
+  "chk_requireActionComment": true,
   "chk_requireActionSignature": false,
-  "chk_showGitHubLinks": true,
+  "chk_showGitHubLinks": false,
   "windowMaximized": true
 }</pre></div>
 
@@ -251,7 +262,8 @@
 <tr><td><code>recent-max</code></td><td>string (number)</td><td>Maximum number of items in the Recent group</td></tr>
 <tr><td><code>chk_confirmBeforeInstall</code></td><td>boolean</td><td>Prompt for confirmation before importing</td></tr>
 <tr><td><code>chk_hideSystemLibraries</code></td><td>boolean</td><td>Hide system libraries on the front page (libraries with warnings still shown)</td></tr>
-<tr><td><code>chk_showGitHubLinks</code></td><td>boolean</td><td>Show GitHub repository links in library detail views. Defaults to <code>true</code>. Disable for regulated environments where external links should not appear. See <a href="GitHubRepository.html">GitHub Repository</a>.</td></tr>
+<tr><td><code>chk_showGitHubLinks</code></td><td>boolean</td><td>Show GitHub repository links in library detail views. Defaults to <code>false</code>. Enable to display repository links; disable for regulated environments where external links should not appear. See <a href="GitHubRepository.html">GitHub Repository</a>.</td></tr>
+<tr><td><code>chk_retainInstallers</code></td><td>boolean</td><td>Retain embedded installer executables when importing packages. When enabled, <code>.exe</code> installers bundled inside packages are extracted to a centralized installer store directory.</td></tr>
 <tr><td><code>chk_requireActionComment</code></td><td>boolean</td><td>Require audit comment fields for destructive/potentially destructive GUI actions</td></tr>
 <tr><td><code>chk_requireActionSignature</code></td><td>boolean</td><td>Require operator signature fields for destructive/potentially destructive GUI actions</td></tr>
 <tr><td><code>chk_includeUnsignedLibs</code></td><td>boolean</td><td>Enable unsigned library scanning and display (see <a href="UnsignedLibraries.html">Unsigned Libraries</a>)</td></tr>

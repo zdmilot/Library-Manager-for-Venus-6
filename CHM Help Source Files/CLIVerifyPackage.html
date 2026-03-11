@@ -48,9 +48,9 @@
 <thead><tr><th>Result</th><th>Exit Code</th><th>Meaning</th></tr></thead>
 <tbody>
 <tr><td><b>VALID [Ed25519]</b></td><td><code>0</code></td><td>Ed25519 digital signature and all file hashes are valid. Publisher identity is confirmed.</td></tr>
-<tr><td><b>VALID [HMAC-only]</b></td><td><code>0</code></td><td>HMAC signature is present and valid but no Ed25519 code signature (v1.0 format)</td></tr>
+<tr><td><b>VALID [Converted]</b></td><td><code>0</code></td><td>Package uses the 2.0-converted format (created from an installer by a companion tool). HMAC integrity is valid but no Ed25519 code signature is present.</td></tr>
 <tr><td><b>UNSIGNED</b></td><td><code>0</code></td><td>No <code>signature.json</code> found - the package is a legacy or third-party package created before signing was implemented</td></tr>
-<tr><td><b>FAILED</b></td><td><code>1</code></td><td>One or more file hashes do not match, the HMAC is invalid, or the Ed25519 signature verification failed - the package may be corrupt or tampered with</td></tr>
+<tr><td><b>FAILED</b></td><td><code>1</code></td><td>One or more file hashes do not match, the HMAC is invalid, the Ed25519 signature verification failed, or the package uses legacy HMAC-only format (v1.0) which is no longer accepted</td></tr>
 </tbody>
 </table>
 
@@ -124,13 +124,13 @@ Result: NO SIGNED PACKAGES FOUND</pre></div>
 <tr><td><code>signed_date</code></td><td>string</td><td>ISO 8601 timestamp of when the signature was generated</td></tr>
 <tr><td><code>file_hashes</code></td><td>object</td><td>Map of <code>{ "entryName": "sha256hex", ... }</code> for every entry in the ZIP except <code>signature.json</code> itself</td></tr>
 <tr><td><code>hmac</code></td><td>string</td><td>HMAC-SHA256 computed over the canonical JSON representation of the <code>file_hashes</code> map</td></tr>
-<tr><td><code>ed25519_signature</code></td><td>string</td><td>Ed25519 digital signature (base64) computed over the HMAC value</td></tr>
-<tr><td><code>publisher_cert</code></td><td>object</td><td>Embedded publisher certificate containing: <code>publisher</code>, <code>organization</code>, <code>public_key</code> (base64 raw Ed25519), <code>fingerprint</code> (SHA-256 hex), <code>key_id</code> (first 16 hex chars of fingerprint)</td></tr>
+<tr><td><code>digital_signature</code></td><td>string</td><td>Ed25519 digital signature (base64) computed over the HMAC value</td></tr>
+<tr><td><code>publisher_certificate</code></td><td>object</td><td>Embedded publisher certificate containing: <code>publisher</code>, <code>organization</code>, <code>public_key</code> (base64 raw Ed25519), <code>fingerprint</code> (SHA-256 hex), <code>key_id</code> (first 16 hex chars of fingerprint)</td></tr>
 </tbody>
 </table>
 
 <h3>v1.0 Format (HMAC-Only, Legacy)</h3>
-<p>Older format with HMAC integrity but no cryptographic publisher identity. Packages with this format are reported as <b>[HMAC-only]</b> and are rejected on import.</p>
+<p>Older format with HMAC integrity but no cryptographic publisher identity. Packages with this format are reported as <b>FAILED</b> because legacy HMAC-only signatures (v1.0) are no longer accepted. Only Ed25519 code-signed packages (v2.0) pass verification.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
 <tbody>

@@ -10,7 +10,7 @@
 <div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; <a href="CLIReference.html">CLI Reference</a> &raquo; create-package</div>
 
 <h2>Description</h2>
-<p>Creates a <code>.hxlibpkg</code> from library source files and metadata defined in a JSON specification file. This is the CLI equivalent of the GUI Library Packager, ideal for automated builds and CI/CD pipelines. The resulting package is automatically signed with an HMAC-SHA256 integrity signature (see <a href="IntegrityVerification.html">Integrity Verification</a>). Optionally, the package can be code-signed with an Ed25519 publisher certificate for cryptographic origin verification.</p>
+<p>Creates a <code>.hxlibpkg</code> from library source files and metadata defined in a JSON specification file. This is the CLI equivalent of the GUI Library Packager, ideal for automated builds and CI/CD pipelines. The resulting package is wrapped in a <a href="BinaryContainerFormat.html">binary container</a> with HMAC-SHA256 integrity protection. Optionally, the package can be code-signed with an Ed25519 publisher certificate for cryptographic origin verification.</p>
 
 <h2>Usage</h2>
 <div class="code"><pre>node cli.js create-package --spec &lt;spec.json&gt; --output &lt;output.hxlibpkg&gt; [--sign-key &lt;key.pem&gt;]</pre></div>
@@ -54,6 +54,10 @@
 <tr><td><code>help_files</code></td><td>string[]</td><td>Basenames of <code>.chm</code> help files</td></tr>
 <tr><td><code>com_register_dlls</code></td><td>string[]</td><td>Basenames of DLLs requiring COM registration</td></tr>
 <tr><td><code>github_url</code></td><td>string</td><td>URL to the library's GitHub repository. Must point to a valid <code>/{owner}/{repo}</code> path. See <a href="GitHubRepository.html">GitHub Repository Link</a> for details.</td></tr>
+<tr><td><code>labware_files</code></td><td>string[]</td><td>Paths to labware definition files (<code>.rck</code>, <code>.ctr</code>, <code>.tml</code>, <code>.dck</code>, <code>.lay</code>). Installed under the Hamilton Labware directory.</td></tr>
+<tr><td><code>install_to_library_root</code></td><td>boolean</td><td>When <code>true</code>, library files are installed directly into the Library root directory instead of a named subdirectory. Equivalent to <code>--no-subdir</code> at import time.</td></tr>
+<tr><td><code>installer_executable</code></td><td>string</td><td>Path to an optional standalone installer <code>.exe</code> for this library. Embedded in the package under <code>installer/</code> and extracted to the installer store on import.</td></tr>
+<tr><td><code>installer_info</code></td><td>object</td><td>Optional metadata about the bundled installer. Supports <code>description</code>, <code>source_url</code>, and <code>authenticode_signer</code> properties.</td></tr>
 </tbody>
 </table>
 
@@ -61,6 +65,7 @@
 <p>If <code>library_name</code> is not specified in the spec, it is auto-detected using this priority:</p>
 <ol>
   <li>Basename of the first <code>.hsl</code> file (without extension)</li>
+  <li>Basename of the first <code>.hsi</code> file (without extension)</li>
   <li>Basename of the first <code>.hs_</code> file (without extension)</li>
   <li>Basename of the first <code>.smt</code> file (without extension)</li>
   <li>Parent directory name of the first library file</li>
@@ -87,8 +92,8 @@ node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign
 <p>The command validates before building:</p>
 <ul>
   <li><code>author</code> is required</li>
-  <li><code>author</code> length must be between 3 and 29 characters</li>
-  <li><code>organization</code> length (if provided) must be between 3 and 29 characters</li>
+  <li><code>author</code> length must be between 3 and 500 characters; only alphanumeric characters, spaces, dashes, and underscores are allowed</li>
+  <li><code>organization</code> length (if provided) must be between 3 and 500 characters; only alphanumeric characters, spaces, dashes, and underscores are allowed</li>
   <li><code>version</code> is required</li>
   <li><code>venus_compatibility</code> is required</li>
   <li><code>description</code> is required</li>
@@ -97,7 +102,7 @@ node cli.js create-package --spec MyLib.spec.json --output MyLib.hxlibpkg --sign
   <li>All referenced help files must exist on disk</li>
   <li>Restricted OEM author or organization names require <code>--author-password</code></li>
   <li>Tags must not contain any of the 60+ reserved keywords (case-insensitive substring match). See <a href="PackageSpecSchema.html">Package Spec JSON Schema</a> for the full reserved list.</li>
-  <li>Library name (explicit or auto-detected) must be valid (no path separators, reserved characters, <code>..</code>, trailing dots/spaces)</li>
+  <li>Library name (explicit or auto-detected) must be valid (only alphanumeric characters, spaces, dashes, and underscores are allowed)</li>
 </ul>
 <p>If any validation fails, the command prints a descriptive error and exits.</p>
 

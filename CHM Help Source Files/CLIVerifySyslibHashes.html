@@ -28,13 +28,16 @@
 
 <h2>Detection Criteria</h2>
 <p>For each baselined file, the verifier checks the current metadata footer against the stored values:</p>
+
+<div class="note">
+<p><b>Note:</b> The <code>$$checksum$$</code> footer value is <b>not</b> compared during verification. Different VENUS versions may rewrite the HSL metadata footer with a different checksum while the file content remains valid. Comparing checksums would cause false-positive tamper alerts on systems running multiple VENUS versions. Only the <code>$$valid$$</code> flag is authoritative for integrity verification.</p>
+</div>
 <table>
 <thead><tr><th>Check</th><th>Condition</th><th>Reported As</th></tr></thead>
 <tbody>
 <tr><td>File missing</td><td>File does not exist on disk</td><td><b>Missing</b></td></tr>
 <tr><td>Footer removed</td><td>File exists but no longer has a metadata footer</td><td><b>Tampered</b> - "Metadata footer removed"</td></tr>
 <tr><td>Valid flag changed</td><td>Baseline had <code>valid=1</code> but current is <code>valid=0</code></td><td><b>Tampered</b> - "Valid flag changed (1->0)"</td></tr>
-<tr><td>Checksum changed</td><td>Current <code>$$checksum$$</code> differs from baseline</td><td><b>Tampered</b> - "Checksum changed"</td></tr>
 <tr><td>Read error</td><td>File could not be parsed</td><td><b>Error</b></td></tr>
 <tr><td>All checks pass</td><td>Footer present, valid flag and checksum match</td><td><b>OK</b></td></tr>
 </tbody>
@@ -52,9 +55,9 @@
 
 TAMPERED FILES:
   [HSLAppsLib] HSLAppsLib.hsl
-    Reason   : Checksum changed
-    Expected : checksum=abc123
-    Actual   : checksum=def456
+    Reason   : Valid flag changed (1->0)
+    Expected : valid=1
+    Actual   : valid=0
 
 MISSING FILES:
   [HSLDevLib] HSLDevLib.hsl
@@ -80,9 +83,9 @@ System Library Integrity Summary
     {
       "library": "HSLAppsLib",
       "file": "HSLAppsLib.hsl",
-      "reason": "Checksum changed",
-      "expected": "checksum=abc123",
-      "actual": "checksum=def456"
+      "reason": "Valid flag changed (1\u21920)",
+      "expected": "valid=1",
+      "actual": "valid=0"
     }
   ],
   "missing": [
