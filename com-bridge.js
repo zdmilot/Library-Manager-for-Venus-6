@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// COM Bridge  v1.9.9
+// COM Bridge  v1.9.13
 //
 // Copyright (c) 2026 Zachary Milot
 // Author: Zachary Milot
