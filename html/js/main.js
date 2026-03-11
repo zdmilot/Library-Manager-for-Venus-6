@@ -3839,8 +3839,6 @@
 					$("#chk_includeUnsignedLibs").prop("checked", false).prop("disabled", true);
 					saveSetting("chk_includeUnsignedLibs", false);
 					$("#btn-scan-unsigned-libs").prop("disabled", true);
-					$("#chk_scanUnsignedOnLaunch").prop("checked", false).prop("disabled", true);
-					saveSetting("chk_scanUnsignedOnLaunch", false);
 					$(".unsigned-scan-status").text("");
 					$(".unsigned-scan-spinner").hide();
 					$(".unsigned-scan-done").hide();
@@ -3884,13 +3882,10 @@
 			var checked = $(this).prop("checked");
 			saveSetting("chk_includeUnsignedLibs", checked);
 			$("#btn-scan-unsigned-libs").prop("disabled", !checked);
-			$("#chk_scanUnsignedOnLaunch").prop("disabled", !checked);
 			if (!checked) {
 				$(".unsigned-scan-status").text("");
 				$(".unsigned-scan-spinner").hide();
 				$(".unsigned-scan-done").hide();
-				$("#chk_scanUnsignedOnLaunch").prop("checked", false);
-				saveSetting("chk_scanUnsignedOnLaunch", false);
 			} else {
 				var ulibCount = (db_unsigned_libs.unsigned_libs.find() || []).length;
 				if (ulibCount > 0) {
@@ -3914,11 +3909,7 @@
 			scanUnsignedLibraries(true);
 		});
 
-		//Settings > Unsigned Libraries - Scan on launch checkbox
-		$(document).on("click", "#chk_scanUnsignedOnLaunch", function(){
-			var checked = $(this).prop("checked");
-			saveSetting("chk_scanUnsignedOnLaunch", checked);
-		});
+
 
 		//Settings - Recent dropdown change text
 		$(document).on("click", ".dd-maxRecent a", function () {
@@ -5528,13 +5519,10 @@
 			if (regulatedMode && unsignedEnabled) {
 				unsignedEnabled = false;
 				saveSetting("chk_includeUnsignedLibs", false);
-				saveSetting("chk_scanUnsignedOnLaunch", false);
 				console.log('Unsigned libraries disabled automatically: regulated environment mode requires all packages to be signed.');
 			}
 			$("#chk_includeUnsignedLibs").prop("checked", unsignedEnabled);
 			$("#btn-scan-unsigned-libs").prop("disabled", !unsignedEnabled);
-			$("#chk_scanUnsignedOnLaunch").prop("disabled", !unsignedEnabled || regulatedMode);
-			$("#chk_scanUnsignedOnLaunch").prop("checked", !!settings["chk_scanUnsignedOnLaunch"] && !regulatedMode);
 			// In regulated mode, disable the unsigned toggle entirely
 			if (regulatedMode) {
 				$("#chk_includeUnsignedLibs").prop("disabled", true);
@@ -5548,10 +5536,7 @@
 				if (ulibCount > 0) {
 					$(".unsigned-scan-status").text(ulibCount + " unsigned librar" + (ulibCount === 1 ? "y" : "ies") + " tracked");
 				}
-				// Auto-scan on launch if enabled
-				if (!!settings["chk_scanUnsignedOnLaunch"]) {
-					scanUnsignedLibraries(true);
-				}
+
 			}
 
 			//setting - Regulated Environment
