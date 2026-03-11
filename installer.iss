@@ -50,6 +50,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
 WelcomeLabel2=This will install [name/ver] on your computer.%n%nLibrary Manager provides a complete solution for managing Hamilton VENUS libraries, including importing, exporting, packaging, and version control.%n%nIt is recommended that you close all other applications before continuing.
+; The upgrade welcome text is set dynamically in InitializeWizard.
 
 ; ============================================================================
 ; Custom Pages (Pascal Script tasks: Regulated Mode, Dark Mode)
@@ -70,6 +71,26 @@ var
   RegulatedWarningMemo: TNewMemo;
   RegulatedAcceptCheckbox: TNewCheckBox;
   UninstallMode: Integer;
+  gIsUpgrade: Boolean;
+  gPreviousVersion: String;
+
+// -----------------------------------------------------------------------
+// Upgrade detection — checks the Inno Setup uninstall registry key
+// -----------------------------------------------------------------------
+function DetectPreviousInstall(var PrevVersion: String): Boolean;
+var
+  UninstKey: String;
+  DisplayVersion: String;
+begin
+  Result := False;
+  PrevVersion := '';
+  UninstKey := ExpandConstant('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}_is1');
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, UninstKey, 'DisplayVersion', DisplayVersion) then
+  begin
+    PrevVersion := DisplayVersion;
+    Result := True;
+  end;
+end;
 
 // -----------------------------------------------------------------------
 // Hamilton VENUS 6+ prerequisite check
@@ -159,7 +180,10 @@ begin
     Result := False;
   end
   else
+  begin
+    gIsUpgrade := DetectPreviousInstall(gPreviousVersion);
     Result := True;
+  end;
 end;
 
 // -----------------------------------------------------------------------
@@ -223,6 +247,17 @@ var
   DividerBevel2: TBevel;
   TermsText, PrivacyText: AnsiString;
 begin
+  // ----- Dynamic welcome text for upgrades -----
+  if gIsUpgrade then
+  begin
+    WizardForm.WelcomeLabel2.Caption :=
+      'An existing installation of Library Manager (v' + gPreviousVersion +
+      ') has been detected.' + #13#10 + #13#10 +
+      'This will upgrade Library Manager to v{#MyAppVersion}.' + #13#10 + #13#10 +
+      'Your library database, settings, audit trail, and all other user ' +
+      'data will be preserved. Only application files will be updated.' + #13#10 + #13#10 +
+      'It is recommended that you close Library Manager before continuing.';
+  end;
   // -----------------------------------------------------------------------
   // Terms of Use and Privacy Policy acceptance page
   // -----------------------------------------------------------------------
@@ -390,6 +425,20 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
+
+  // On upgrade, skip Terms, Configuration, and Regulated Warning pages
+  // — user data and settings are preserved from the previous install.
+  if gIsUpgrade then
+  begin
+    if (PageID = TermsPage.ID) or
+       (PageID = ConfigPage.ID) or
+       (PageID = RegulatedWarningPage.ID) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+
   // Skip the regulated warning page if regulated mode is not selected
   if PageID = RegulatedWarningPage.ID then
     Result := not RegulatedCheckbox.Checked;
@@ -418,6 +467,23 @@ var
   Memo: String;
 begin
   Memo := '';
+
+  if gIsUpgrade then
+  begin
+    Memo := Memo + 'Upgrade:' + NewLine;
+    Memo := Memo + Space + 'Previous version: v' + gPreviousVersion + NewLine;
+    Memo := Memo + Space + 'New version: v{#MyAppVersion}' + NewLine + NewLine;
+    Memo := Memo + 'Preserved Data:' + NewLine;
+    Memo := Memo + Space + '- Library database and installed libraries' + NewLine;
+    Memo := Memo + Space + '- Application settings and configuration' + NewLine;
+    Memo := Memo + Space + '- Audit trail and event history' + NewLine;
+    Memo := Memo + Space + '- Package archives and exports' + NewLine;
+    Memo := Memo + Space + '- Publisher registry and signing keys' + NewLine + NewLine;
+    if MemoDirInfo <> '' then
+      Memo := Memo + MemoDirInfo + NewLine + NewLine;
+    Result := Memo;
+    Exit;
+  end;
 
   if MemoDirInfo <> '' then
     Memo := Memo + MemoDirInfo + NewLine + NewLine;
@@ -460,10 +526,6 @@ var
   Json: String;
   RegVal, DarkVal: String;
 begin
-  // Do not overwrite existing settings on upgrade — only write on fresh install
-  if FileExists(SettingsPath) then
-    Exit;
-
   if RegulatedCheckbox.Checked then
     RegVal := 'true'
   else
@@ -501,10 +563,12 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
-    // Write configured settings to the shared app-local data directory
-    // and the bundled db/ reference copy.
-    WriteSettingsFile(ExpandConstant('{app}\local\settings.json'));
-    WriteSettingsFile(ExpandConstant('{app}\db\settings.json'));
+    // On upgrade, preserve existing settings — only write on fresh install.
+    if not gIsUpgrade then
+    begin
+      WriteSettingsFile(ExpandConstant('{app}\local\settings.json'));
+      WriteSettingsFile(ExpandConstant('{app}\db\settings.json'));
+    end;
 
     // Grant the Users group Modify permissions on the local data directory.
     // The [Dirs] section sets initial ACLs, but icacls ensures inheritance
@@ -837,22 +901,20 @@ Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion recursesubdirs
 
 ; Database template files (initial state)
-; Marked uninsneveruninstall so the three-tier uninstaller controls removal.
-Source: "db\groups.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\installed_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\links.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\system_libraries.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\system_library_hashes.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\tree.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-Source: "db\unsigned_libs.json"; DestDir: "{app}\db"; Flags: ignoreversion uninsneveruninstall
-; db\settings.json is written by the [Code] section post-install
+; onlyifdoesntexist — never overwrite existing data on upgrade.
+; uninsneveruninstall — three-tier uninstaller controls removal.
+Source: "db\groups.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\installed_libs.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\links.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\system_libraries.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\system_library_hashes.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\tree.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "db\unsigned_libs.json"; DestDir: "{app}\db"; Flags: onlyifdoesntexist uninsneveruninstall
+; db\settings.json is written by the [Code] section post-install (fresh only)
 
 ; Local data directory deployed to {app}\local and shared across all users.
-; The installer grants write permissions to the Users group via icacls
-; so that non-admin users can read/write application data.
-; Marked uninsneveruninstall so the three-tier uninstaller controls removal.
-; USER DATA FILES — only deployed on fresh install; preserved on upgrade.
-; The onlyifdoesntexist flag prevents overwriting user data when upgrading.
+; onlyifdoesntexist — never overwrite existing user data on upgrade.
+; uninsneveruninstall — three-tier uninstaller controls removal.
 Source: "local\installed_libs.json"; DestDir: "{app}\local"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "local\groups.json"; DestDir: "{app}\local"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "local\settings.json"; DestDir: "{app}\local"; Flags: onlyifdoesntexist uninsneveruninstall
