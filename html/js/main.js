@@ -13070,6 +13070,29 @@
 			impBuildLibraryCards();
 		});
 
+		// ---- Sort dropdown handler ----
+		$(document).on("change", "#imp-sort-select", function() {
+			_currentSortOrder = $(this).val();
+			// Re-render current view with new sort order
+			var activeNav = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active");
+			var gid = activeNav.attr("data-group-id") || "gAll";
+			if (_searchActive) return; // search mode manages its own results
+			if (gid === "gAll") {
+				impBuildLibraryCards();
+			} else if (gid === "gRecent") {
+				impBuildLibraryCards(null, true);
+			} else if (gid === "gSystem") {
+				impBuildLibraryCards(null, false, true);
+			} else if (gid === "gStarred") {
+				impBuildLibraryCards(null, false, false, false, true);
+			} else if (gid === "gUnsigned") {
+				impBuildLibraryCards(null, false, false, true);
+			} else {
+				impBuildLibraryCards(gid);
+			}
+			fitImporterHeight();
+		});
+
 		// ---- Browse for .hxlibpkg or .hxlibarch file ----
 		$(document).on("click", "#imp-browse", function() {
 			$("#imp-input-file").trigger("click");

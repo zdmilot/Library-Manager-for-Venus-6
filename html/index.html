@@ -499,15 +499,20 @@
 							<span class="badge badge-danger imp-issues-badge-pill" id="imp-issues-badge-errors" style="display:none;"><i class="fas fa-exclamation-circle mr-1"></i><span class="imp-issues-err-count"></span> Error(s)</span>
 							<span class="badge badge-warning imp-issues-badge-pill" id="imp-issues-badge-warnings" style="display:none;"><i class="fas fa-exclamation-triangle mr-1"></i><span class="imp-issues-warn-count"></span> Warning(s)</span>
 						</div>
-						<div class="ml-auto d-flex align-items-center">
-							<select class="custom-select custom-select-sm imp-sort-select mr-3" id="imp-sort-select" title="Sort libraries">
+						<div class="ml-auto">
+							<button class="btn solid-button" id="imp-browse"><i class="fas fa-file-import mr-2"></i>Import</button>
+							<input type="file" class="d-none" id="imp-input-file" accept=".hxlibpkg,.hxlibarch">
+						</div>
+					</div>
+					<!-- Sort dropdown row (visible on all library tabs) -->
+					<div class="d-flex align-items-center mb-2" id="imp-sort-row">
+						<div class="ml-auto">
+							<select class="custom-select custom-select-sm imp-sort-select" id="imp-sort-select" title="Sort libraries">
 								<option value="az">Name (A → Z)</option>
 								<option value="za">Name (Z → A)</option>
 								<option value="newest">Date Added (Newest)</option>
 								<option value="oldest">Date Added (Oldest)</option>
 							</select>
-							<button class="btn solid-button" id="imp-browse"><i class="fas fa-file-import mr-2"></i>Import</button>
-							<input type="file" class="d-none" id="imp-input-file" accept=".hxlibpkg,.hxlibarch">
 						</div>
 					</div>
 					<!-- Issues banner (expanded list, hidden by default) -->
