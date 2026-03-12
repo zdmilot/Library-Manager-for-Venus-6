@@ -44,6 +44,9 @@ DisableWelcomePage=no
 DisableReadyPage=no
 ; Notify Windows shell of file association changes
 ChangesAssociations=yes
+; Detect running instances via Windows Restart Manager (upgrade safety)
+CloseApplications=yes
+CloseApplicationsFilter=*.exe
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -73,6 +76,27 @@ var
   UninstallMode: Integer;
   gIsUpgrade: Boolean;
   gPreviousVersion: String;
+
+// -----------------------------------------------------------------------
+// Running-instance detection — blocks install while app is open
+// -----------------------------------------------------------------------
+function IsLibraryManagerRunning(): Boolean;
+var
+  ResultCode: Integer;
+  TmpFile: String;
+  Output: AnsiString;
+begin
+  Result := False;
+  TmpFile := ExpandConstant('{tmp}\lm_proccheck.tmp');
+  if Exec(ExpandConstant('{sys}\cmd.exe'),
+    '/C tasklist /FI "IMAGENAME eq Library Manager.exe" /NH > "' + TmpFile + '" 2>&1',
+    '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if LoadStringFromFile(TmpFile, Output) then
+      Result := Pos('library manager.exe', Lowercase(String(Output))) > 0;
+  end;
+  DeleteFile(TmpFile);
+end;
 
 // -----------------------------------------------------------------------
 // Upgrade detection — checks the Inno Setup uninstall registry key
@@ -182,6 +206,32 @@ begin
   else
   begin
     gIsUpgrade := DetectPreviousInstall(gPreviousVersion);
+
+    // Block installation if Library Manager is currently running
+    if IsLibraryManagerRunning() then
+    begin
+      if gIsUpgrade then
+        MsgBox(
+          'Library Manager is currently running.' + #13#10 + #13#10 +
+          'You must close all instances of Library Manager before ' +
+          'upgrading. Running the upgrade while Library Manager is ' +
+          'open may cause data corruption or incomplete file ' +
+          'replacement.' + #13#10 + #13#10 +
+          'Please close Library Manager and run the installer again.' +
+          #13#10 + #13#10 + 'Setup will now exit.',
+          mbCriticalError, MB_OK)
+      else
+        MsgBox(
+          'Library Manager is currently running.' + #13#10 + #13#10 +
+          'You must close all instances of Library Manager before ' +
+          'installing. Please close Library Manager and run the ' +
+          'installer again.' + #13#10 + #13#10 +
+          'Setup will now exit.',
+          mbCriticalError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
     Result := True;
   end;
 end;
@@ -256,7 +306,8 @@ begin
       'This will upgrade Library Manager to v{#MyAppVersion}.' + #13#10 + #13#10 +
       'Your library database, settings, audit trail, and all other user ' +
       'data will be preserved. Only application files will be updated.' + #13#10 + #13#10 +
-      'It is recommended that you close Library Manager before continuing.';
+      'You must close all running instances of Library Manager before ' +
+      'continuing. The upgrade cannot proceed while Library Manager is open.';
   end;
   // -----------------------------------------------------------------------
   // Terms of Use and Privacy Policy acceptance page
@@ -442,6 +493,29 @@ begin
   // Skip the regulated warning page if regulated mode is not selected
   if PageID = RegulatedWarningPage.ID then
     Result := not RegulatedCheckbox.Checked;
+end;
+
+// -----------------------------------------------------------------------
+// PrepareToInstall — last-chance gate before file extraction.
+// If the user opened Library Manager after the wizard started,
+// this catches it and blocks the install.
+// -----------------------------------------------------------------------
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if IsLibraryManagerRunning() then
+  begin
+    NeedsRestart := False;
+    if gIsUpgrade then
+      Result := 'Library Manager is currently running. You must close ' +
+        'all instances of Library Manager before upgrading. Running the ' +
+        'upgrade while the application is open may cause data corruption ' +
+        'or incomplete file replacement.'
+    else
+      Result := 'Library Manager is currently running. Please close all ' +
+        'instances of Library Manager before continuing with the ' +
+        'installation.';
+  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
