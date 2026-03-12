@@ -2315,7 +2315,6 @@
 		// OEM override state is session-only (in-memory); resets on app restart
 		var _oemSessionUnlocked = false;
 		var _oemSessionKeywordsEnabled = false;
-		var _oemSessionPasswordValidated = false;
 		var _flaskClickCount = 0;
 		var _flaskClickTimer = null;
 		$(document).on("click", "#about-flask-icon", async function () {
@@ -2334,11 +2333,10 @@
 					$(".oem-keywords-status").html('');
 					alert('Developer settings disabled.');
 				} else {
-					// Enabling developer mode requires OEM password (once per session)
-					var pwOk = _oemSessionPasswordValidated || await promptAuthorPassword();
+					// Enabling developer mode requires OEM password
+					var pwOk = await promptAuthorPassword();
 					if (pwOk) {
 						$("#aboutModal").modal('hide');
-						_oemSessionPasswordValidated = true;
 						_oemSessionUnlocked = true;
 						applyOemSettingsVisibility(true);
 						alert('Developer settings enabled.');
@@ -5648,11 +5646,19 @@
 		}
 
 		// ---- OEM Keywords toggle handler: require password to enable ----
-		$(document).on("click", "#chk_oemKeywordsEnabled", function () {
+		$(document).on("click", "#chk_oemKeywordsEnabled", async function () {
 			var isChecked = $(this).is(":checked");
 			if (isChecked) {
-				_oemSessionKeywordsEnabled = true;
-				$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM restricted authors and organizations enabled.');
+				// Require OEM password to enable
+				var pwOk = await promptAuthorPassword();
+				if (pwOk) {
+					_oemSessionKeywordsEnabled = true;
+					$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
+				} else {
+					$(this).prop("checked", false);
+					$(".oem-keywords-status").html('<i class="fas fa-times-circle text-danger mr-1"></i>Authorization failed.');
+					setTimeout(function() { $(".oem-keywords-status").html(''); }, 3000);
+				}
 			} else {
 				_oemSessionKeywordsEnabled = false;
 				$(".oem-keywords-status").html('');
@@ -6121,11 +6127,13 @@
 			var fileInput = this;
 			var newDlls = [];
 			var medFiles = [];
+			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_libraryFiles.indexOf(filePath) === -1) {
 					pkg_libraryFiles.push(filePath);
 					var baseName = path.basename(filePath);
+					pkg_fileRelPaths[filePath] = libName + '/' + baseName;
 					if (baseName.toLowerCase().endsWith('.dll')) {
 						newDlls.push(baseName);
 					}
@@ -6170,12 +6178,13 @@
 					var allFiles = getFilesRecursive(folderPath, path.dirname(folderPath));
 					var newDlls = [];
 					var medFiles = [];
+					var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 					allFiles.forEach(function(fileInfo) {
 						var filePath = fileInfo.absolutePath;
 						var file = path.basename(filePath);
 						if (pkg_libraryFiles.indexOf(filePath) === -1) {
 							pkg_libraryFiles.push(filePath);
-							pkg_fileRelPaths[filePath] = fileInfo.relativePath;
+							pkg_fileRelPaths[filePath] = libName + '/' + fileInfo.relativePath;
 							if (file.toLowerCase().endsWith('.dll')) {
 								newDlls.push(file);
 							}
@@ -6221,10 +6230,12 @@
 		$(document).on("change", "#pkg-input-demofiles", function() {
 			var fileInput = this;
 			var dllFiles = [];
+			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_demoMethodFiles.indexOf(filePath) === -1) {
 					pkg_demoMethodFiles.push(filePath);
+					pkg_fileRelPaths[filePath] = libName + '/' + path.basename(filePath);
 					if (path.basename(filePath).toLowerCase().endsWith('.dll')) {
 						dllFiles.push(filePath);
 					}
@@ -6261,11 +6272,12 @@
 				try {
 					var allFiles = getFilesRecursive(folderPath, path.dirname(folderPath));
 					var dllFiles = [];
+					var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 					allFiles.forEach(function(fileInfo) {
 						var filePath = fileInfo.absolutePath;
 						if (pkg_demoMethodFiles.indexOf(filePath) === -1) {
 							pkg_demoMethodFiles.push(filePath);
-							pkg_fileRelPaths[filePath] = fileInfo.relativePath;
+							pkg_fileRelPaths[filePath] = libName + '/' + fileInfo.relativePath;
 							if (path.basename(filePath).toLowerCase().endsWith('.dll')) {
 								dllFiles.push(filePath);
 							}
@@ -6346,14 +6358,12 @@
 		// ---- Bin file inputs ----
 		$(document).on("change", "#pkg-input-binfiles", function() {
 			var fileInput = this;
+			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && pkg_binFiles.indexOf(filePath) === -1) {
 					pkg_binFiles.push(filePath);
-					var parentDir = path.basename(path.dirname(filePath));
-					if (parentDir && parentDir !== '.' && parentDir !== path.parse(filePath).root) {
-						pkg_binSubdirs[filePath] = parentDir;
-					}
+					pkg_binSubdirs[filePath] = libName;
 				}
 			}
 			pkgUpdateBinFileList();
@@ -6365,14 +6375,16 @@
 			if (folderPath) {
 				try {
 					var allFiles = getFilesRecursive(folderPath, path.dirname(folderPath));
+					var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 					allFiles.forEach(function(fileInfo) {
 						var filePath = fileInfo.absolutePath;
 						if (pkg_binFiles.indexOf(filePath) === -1) {
 							pkg_binFiles.push(filePath);
-							pkg_fileRelPaths[filePath] = fileInfo.relativePath;
-							var relDir = path.dirname(fileInfo.relativePath);
+							var prefixedRel = libName + '/' + fileInfo.relativePath;
+							pkg_fileRelPaths[filePath] = prefixedRel;
+							var relDir = path.dirname(prefixedRel).replace(/\\/g, '/');
 							if (relDir && relDir !== '.') {
-								pkg_binSubdirs[filePath] = relDir.replace(/\\/g, '/');
+								pkg_binSubdirs[filePath] = relDir;
 							}
 						}
 					});
@@ -7092,7 +7104,7 @@
 			return '';
 		}
 
-		/** Update the library-name subfolder label in all empty trees. */
+		/** Update the library-name subfolder label in all trees. */
 		function ftUpdateLibNameFolders() {
 			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 			$('.ft-libname-node .ft-label').text(libName);
@@ -7114,6 +7126,9 @@
 				var tree = ftBuildTree(pkg_libraryFiles, function(f) {
 					return pkg_fileRelPaths[f] || path.basename(f);
 				});
+				// Ensure library-name subfolder always exists in tree
+				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
+				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				pkg_libEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -7165,6 +7180,7 @@
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Library', pkg_libraryFiles.length, fileRowFn, ftGetInstallPath('pkg-lib-list')));
+				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row[data-folder="' + libName.replace(/"/g, '\\"') + '"]').addClass('ft-libname-node');
 			}
 			$("#pkg-lib-count").text(pkg_libraryFiles.length + " file" + (pkg_libraryFiles.length !== 1 ? "s" : ""));
 			pkgDetectLibraryName();
@@ -7223,6 +7239,9 @@
 				var tree = ftBuildTree(pkg_demoMethodFiles, function(f) {
 					return pkg_fileRelPaths[f] || path.basename(f);
 				});
+				// Ensure library-name subfolder always exists in tree
+				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
+				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				pkg_demoEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -7245,6 +7264,7 @@
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Demo Methods', pkg_demoMethodFiles.length, fileRowFn, ftGetInstallPath('pkg-demo-list')));
+				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row[data-folder="' + libName.replace(/"/g, '\\"') + '"]').addClass('ft-libname-node');
 			}
 			$("#pkg-demo-count").text(pkg_demoMethodFiles.length + " file" + (pkg_demoMethodFiles.length !== 1 ? "s" : ""));
 		}
@@ -7360,6 +7380,10 @@
 				}
 			});
 
+			// Ensure library-name subfolder always exists in tree
+			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
+			if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+
 			var fileRowFn = function(f) {
 				var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 				var baseName = path.basename(f);
@@ -7374,6 +7398,7 @@
 			};
 
 			$tree.html(ftBuildHtml(tree, 'Bin', pkg_binFiles.length, fileRowFn, ftGetInstallPath('pkg-bin-tree')));
+			$tree.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row[data-folder="' + libName.replace(/"/g, '\\"') + '"]').addClass('ft-libname-node');
 			$("#pkg-bin-count").text(pkg_binFiles.length + " file" + (pkg_binFiles.length !== 1 ? "s" : ""));
 		}
 
@@ -15661,6 +15686,9 @@
 				var tree = ftBuildTree(ulib_allLibFiles, function(f) {
 					return ulib_fileRelPaths[f] || path.basename(f);
 				});
+				// Ensure library-name subfolder always exists in tree
+				var libName = $("#ulib-name").val().trim() || '<libraryname>';
+				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				ulib_libEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -15692,6 +15720,7 @@
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Library', ulib_allLibFiles.length, fileRowFn, ulibGetInstallPath('ulib-file-list')));
+				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row[data-folder="' + libName.replace(/"/g, '\\"') + '"]').addClass('ft-libname-node');
 			}
 			$("#ulib-lib-count").text(ulib_allLibFiles.length + " file" + (ulib_allLibFiles.length !== 1 ? "s" : ""));
 		}
@@ -15719,6 +15748,9 @@
 				var tree = ftBuildTree(ulib_demoMethodFiles, function(f) {
 					return ulib_fileRelPaths[f] || path.basename(f);
 				});
+				// Ensure library-name subfolder always exists in tree
+				var libName = $("#ulib-name").val().trim() || '<libraryname>';
+				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				ulib_demoEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -15741,6 +15773,7 @@
 						'</div>';
 				};
 				$list.html(ftBuildHtml(tree, 'Demo Methods', ulib_demoMethodFiles.length, fileRowFn, ulibGetInstallPath('ulib-demo-list')));
+				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row[data-folder="' + libName.replace(/"/g, '\\"') + '"]').addClass('ft-libname-node');
 			}
 			$("#ulib-demo-count").text(ulib_demoMethodFiles.length + " file" + (ulib_demoMethodFiles.length !== 1 ? "s" : ""));
 		}
@@ -16249,11 +16282,13 @@
 		$(document).on("change", "#ulib-input-libfiles", function() {
 			var fileInput = this;
 			var newDlls = [];
+			var libName = $("#ulib-name").val().trim() || '<libraryname>';
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && ulib_allLibFiles.indexOf(filePath) === -1) {
 					ulib_allLibFiles.push(filePath);
 					var baseName = path.basename(filePath);
+					ulib_fileRelPaths[filePath] = libName + '/' + baseName;
 					if (baseName.toLowerCase().endsWith('.dll')) {
 						newDlls.push(baseName);
 					}
@@ -16273,12 +16308,13 @@
 				try {
 					var allFiles = getFilesRecursive(folderPath, path.dirname(folderPath));
 					var newDlls = [];
+					var libName = $("#ulib-name").val().trim() || '<libraryname>';
 					allFiles.forEach(function(fileInfo) {
 						var filePath = fileInfo.absolutePath;
 						var file = path.basename(filePath);
 						if (ulib_allLibFiles.indexOf(filePath) === -1) {
 							ulib_allLibFiles.push(filePath);
-							ulib_fileRelPaths[filePath] = fileInfo.relativePath;
+							ulib_fileRelPaths[filePath] = libName + '/' + fileInfo.relativePath;
 							if (file.toLowerCase().endsWith('.dll')) {
 								newDlls.push(file);
 							}
@@ -16298,10 +16334,12 @@
 
 		$(document).on("change", "#ulib-input-demofiles", function() {
 			var fileInput = this;
+			var libName = $("#ulib-name").val().trim() || '<libraryname>';
 			for (var i = 0; i < fileInput.files.length; i++) {
 				var filePath = fileInput.files[i].path;
 				if (filePath && ulib_demoMethodFiles.indexOf(filePath) === -1) {
 					ulib_demoMethodFiles.push(filePath);
+					ulib_fileRelPaths[filePath] = libName + '/' + path.basename(filePath);
 				}
 			}
 			ulibUpdateDemoFileList();
@@ -16313,11 +16351,12 @@
 			if (folderPath) {
 				try {
 					var allFiles = getFilesRecursive(folderPath, path.dirname(folderPath));
+					var libName = $("#ulib-name").val().trim() || '<libraryname>';
 					allFiles.forEach(function(fileInfo) {
 						var filePath = fileInfo.absolutePath;
 						if (ulib_demoMethodFiles.indexOf(filePath) === -1) {
 							ulib_demoMethodFiles.push(filePath);
-							ulib_fileRelPaths[filePath] = fileInfo.relativePath;
+							ulib_fileRelPaths[filePath] = libName + '/' + fileInfo.relativePath;
 						}
 					});
 					ulibUpdateDemoFileList();
@@ -16391,8 +16430,10 @@
 
 		// ---- Unsigned lib: restricted OEM author/organization check ----
 		var ulib_oemAuthorized = false;
+		var _ulibExportInProgress = false;
 
 		$(document).on("blur", "#ulib-author, #ulib-organization", async function() {
+			if (_ulibExportInProgress) return;
 			var fieldVal = $(this).val().trim();
 			if (isRestrictedAuthor(fieldVal)) {
 				if (_oemSessionUnlocked) {
@@ -16410,6 +16451,7 @@
 		// Reset restricted author auth when modal closes
 		$("#unsignedLibDetailModal").on("hidden.bs.modal", function() {
 			ulib_oemAuthorized = false;
+			_ulibExportInProgress = false;
 		});
 
 		// ---- Save unsigned library metadata ----
@@ -16442,8 +16484,8 @@
 				return;
 			}
 
-			// Check restricted OEM author on save
-			if (isRestrictedAuthor(author) || isRestrictedAuthor(organization)) {
+			// Check restricted OEM author on save (skip for export flow)
+			if (!_ulibExportInProgress && (isRestrictedAuthor(author) || isRestrictedAuthor(organization))) {
 				if (!ulib_oemAuthorized && !isOemKeywordsEnabled()) {
 					var pwOk = await promptAuthorPassword();
 					if (pwOk) {
@@ -16652,11 +16694,13 @@
 				return;
 			}
 
-			// Save any pending metadata first
+			// Save any pending metadata first (skip OEM restriction for export)
+			_ulibExportInProgress = true;
 			$("#ulib-save-btn").trigger("click");
 
 			// Trigger save dialog
 			setTimeout(function() {
+				_ulibExportInProgress = false;
 				$("#ulib-export-save-dialog").trigger("click");
 			}, 200);
 		});
