@@ -12602,22 +12602,80 @@
 			if (libId) impShowLibDetail(libId);
 		});
 
-		// ---- Detect tag overflow and show/hide ellipsis indicators ----
+		// ---- Detect tag overflow: max 2 rows of chips, ellipsis if more ----
 		function _updateCardTagOverflow() {
 			$(".imp-lib-card-tags").each(function() {
 				var el = this;
 				var $ellipsis = $(el).children(".imp-tag-ellipsis");
-				if ($ellipsis.length === 0) return;
-				// Temporarily hide ellipsis to measure natural overflow
-				$ellipsis.hide();
-				var hasTags = $(el).children(".imp-tag-badge").length > 0;
-				// Check if content overflows the two-row max-height
-				var hasOverflow = el.scrollHeight > el.clientHeight;
-				if (hasOverflow && hasTags) {
-					$ellipsis.css("display", "inline-flex");
-				} else {
-					$ellipsis.hide();
+				var $tags = $(el).children(".imp-tag-badge");
+
+				// Reset everything so we can measure naturally
+				$tags.each(function() { this.style.display = ''; });
+				if ($ellipsis.length) $ellipsis[0].style.display = 'none';
+				el.style.overflow = 'visible';
+				el.style.maxHeight = 'none';
+				el.style.minHeight = '0';
+
+				if ($tags.length === 0) {
+					// No tags — reserve a consistent two-row height anyway
+					el.style.minHeight = '40px';
+					el.style.maxHeight = '40px';
+					el.style.overflow = 'hidden';
+					return;
 				}
+
+				// Use getBoundingClientRect for reliable cross-runtime measurement
+				var containerTop = el.getBoundingClientRect().top;
+
+				// Group tags into rows by their vertical position
+				var rows = [];
+				$tags.each(function() {
+					var top = Math.round(this.getBoundingClientRect().top - containerTop);
+					if (rows.length === 0 || top > rows[rows.length - 1].top + 2) {
+						rows.push({ top: top, tags: [this] });
+					} else {
+						rows[rows.length - 1].tags.push(this);
+					}
+				});
+
+				// Calculate two-row height from actual measurements
+				var firstTagRect = $tags[0].getBoundingClientRect();
+				var tagH = firstTagRect.height;
+				var row1Top = Math.round(firstTagRect.top - containerTop);
+				var row2Top = rows.length > 1 ? rows[1].top : row1Top + tagH + 4;
+				var rowStep = row2Top - row1Top;
+				var twoRowHeight = row2Top + tagH + 4; // bottom of row 2 + margin
+
+				if (rows.length > 2) {
+					// Hide all tags on row 3+
+					for (var r = 2; r < rows.length; r++) {
+						for (var t = 0; t < rows[r].tags.length; t++) {
+							rows[r].tags[t].style.display = 'none';
+						}
+					}
+
+					// Show the ellipsis
+					if ($ellipsis.length) {
+						$ellipsis[0].style.display = 'inline-flex';
+
+						// Check ellipsis landed within 2 rows; if not, hide last visible tags
+						var safety = 0;
+						while (safety < 50) {
+							var ellipsisTop = Math.round($ellipsis[0].getBoundingClientRect().top - containerTop);
+							if (ellipsisTop <= row2Top + 2) break;
+							// Pull back: hide the last visible tag on row 2 (or row 1)
+							var $vis = $tags.filter(function() { return this.style.display !== 'none'; });
+							if ($vis.length === 0) break;
+							$vis[$vis.length - 1].style.display = 'none';
+							safety++;
+						}
+					}
+				}
+
+				// Lock the container to exactly two-row height
+				el.style.minHeight = twoRowHeight + 'px';
+				el.style.maxHeight = twoRowHeight + 'px';
+				el.style.overflow = 'hidden';
 			});
 		}
 
