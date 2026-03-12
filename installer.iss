@@ -1,10 +1,10 @@
 ; ============================================================================
 ; Inno Setup Script for Library Manager
-; Version: 2.98.46
+; Version: 2.98.57
 ; ============================================================================
 
 #define MyAppName "Library Manager"
-#define MyAppVersion "2.98.46"
+#define MyAppVersion "2.98.57"
 #define MyAppPublisher "Zachary Milot"
 #define MyAppURL "https://github.com/zdmilot/Library-Manager"
 #define MyAppExeName "Library Manager.exe"
@@ -217,8 +217,8 @@ begin
           'upgrading. Running the upgrade while Library Manager is ' +
           'open may cause data corruption or incomplete file ' +
           'replacement.' + #13#10 + #13#10 +
-          'Please close Library Manager and run the installer again.' +
-          #13#10 + #13#10 + 'Setup will now exit.',
+          'Please close Library Manager and run the installer again.' + #13#10 + #13#10 +
+          'Setup will now exit.',
           mbCriticalError, MB_OK)
       else
         MsgBox(

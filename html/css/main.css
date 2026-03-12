@@ -2111,34 +2111,33 @@ body.dark-mode .imp-sort-select {
 	flex-wrap: wrap;
 	overflow: hidden;
 	align-items: flex-start;
+	/* Reserve space for exactly two rows of chips */
+	min-height: 2.7rem;
+	max-height: 2.7rem;
+	gap: 0.25rem;
 	position: relative;
 }
 
 .imp-lib-card-tags .imp-tag-badge {
 	flex-shrink: 0;
-	margin: 0 4px 4px 0;
+	margin-bottom: 0;
 }
 
 .imp-tag-ellipsis {
 	flex-shrink: 0;
 	font-size: 0.85rem;
 	font-weight: 600;
-	color: #6c757d;
+	color: var(--medium, #6c757d);
 	cursor: pointer;
-	padding: 0.2rem 0.4rem;
+	padding: 0.1rem 0.3rem;
 	display: none;
 	text-decoration: none;
-	line-height: 1.1;
+	line-height: 1;
 	letter-spacing: 1px;
-	border: 0;
-	background-color: rgba(0, 0, 0, 0.05);
-	border-radius: 0.25rem;
 }
 
 .imp-tag-ellipsis:hover {
-	color: #495057;
-	background-color: rgba(0, 0, 0, 0.08);
-	text-decoration: none;
+	color: var(--medium2, #495057);
 }
 
 .imp-lib-card-footer {

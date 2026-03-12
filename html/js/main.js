@@ -12603,74 +12603,21 @@
 		});
 
 		// ---- Detect tag overflow and show/hide ellipsis indicators ----
-		// Shows at most two rows of tag chips; hides excess tags and shows "..." ellipsis.
-		// Reserves consistent two-row height on every card for visual identity.
 		function _updateCardTagOverflow() {
 			$(".imp-lib-card-tags").each(function() {
 				var el = this;
 				var $ellipsis = $(el).children(".imp-tag-ellipsis");
-				var $tags = $(el).children(".imp-tag-badge");
-
-				// Reset: show all tags, clear height constraints so we can measure
-				$tags.show();
-				if ($ellipsis.length) $ellipsis.hide();
-				el.style.overflow = "visible";
-				el.style.maxHeight = "none";
-				el.style.minHeight = "0";
-
-				if ($tags.length === 0) {
-					// No tags — still reserve two-row height for consistency
-					var fallbackH = 36;
-					el.style.minHeight = fallbackH + "px";
-					el.style.maxHeight = fallbackH + "px";
-					el.style.overflow = "hidden";
-					return;
-				}
-
-				// Measure actual row positions from real tag offsets
-				var firstTop = $tags[0].offsetTop;
-				var tagH = $tags[0].offsetHeight;
-				var rowStep = 0; // actual vertical step between row 1 and row 2
-
-				// Find the first tag on a different row to get real row step
-				for (var i = 1; i < $tags.length; i++) {
-					if ($tags[i].offsetTop > firstTop + 1) {
-						rowStep = $tags[i].offsetTop - firstTop;
-						break;
-					}
-				}
-
-				// If all tags fit on one row, estimate row step from tag height
-				if (rowStep === 0) rowStep = tagH + 4;
-
-				var twoRowHeight = tagH + rowStep;
-				var row3Cutoff = firstTop + rowStep + rowStep - 1;
-
-				// Hide any tag whose top places it on row 3 or beyond
-				var hiddenAny = false;
-				$tags.each(function() {
-					if (this.offsetTop > row3Cutoff) {
-						$(this).hide();
-						hiddenAny = true;
-					}
-				});
-
-				if (hiddenAny && $ellipsis.length) {
+				if ($ellipsis.length === 0) return;
+				// Temporarily hide ellipsis to measure natural overflow
+				$ellipsis.hide();
+				var hasTags = $(el).children(".imp-tag-badge").length > 0;
+				// Check if content overflows the two-row max-height
+				var hasOverflow = el.scrollHeight > el.clientHeight;
+				if (hasOverflow && hasTags) {
 					$ellipsis.css("display", "inline-flex");
-					// If ellipsis itself landed on row 3, pull back visible tags until it fits
-					var safety = 0;
-					while ($ellipsis[0].offsetTop > row3Cutoff && safety < 50) {
-						var $last = $tags.filter(":visible").last();
-						if ($last.length === 0) break;
-						$last.hide();
-						safety++;
-					}
+				} else {
+					$ellipsis.hide();
 				}
-
-				// Lock container to exactly two-row height for visual consistency
-				el.style.minHeight = twoRowHeight + "px";
-				el.style.maxHeight = twoRowHeight + "px";
-				el.style.overflow = "hidden";
 			});
 		}
 
