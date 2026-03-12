@@ -9,3 +9,6 @@ local/installers/
 # Mac OS X resource forks
 ._*
 .DS_Store
+
+# Installer builds (distributed via GitHub Releases)
+*_Setup.exe
