@@ -13119,6 +13119,26 @@
 			impBuildLibraryCards();
 		});
 
+		// ---- Sort order dropdown for library cards ----
+		$(document).on("change", "#imp-sort-select", function() {
+			_currentSortOrder = $(this).val();
+			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
+			if (activeGroup === 'gRecent') {
+				impBuildLibraryCards(null, true);
+			} else if (activeGroup === 'gSystem') {
+				impBuildLibraryCards(null, false, true);
+			} else if (activeGroup === 'gUnsigned') {
+				impBuildLibraryCards(null, false, false, true);
+			} else if (activeGroup === 'gStarred') {
+				impBuildLibraryCards(null, false, false, false, true);
+			} else if (activeGroup && activeGroup !== 'gAll' && activeGroup !== 'gFolders' && activeGroup !== 'gEditors' && activeGroup !== 'gHistory') {
+				impBuildLibraryCards(activeGroup);
+			} else {
+				impBuildLibraryCards();
+			}
+			fitImporterHeight();
+		});
+
 		// ---- Browse for .hxlibpkg or .hxlibarch file ----
 		$(document).on("click", "#imp-browse", function() {
 			$("#imp-input-file").trigger("click");
