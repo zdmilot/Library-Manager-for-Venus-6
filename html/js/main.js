@@ -7038,7 +7038,7 @@
 				var child = node.children[name];
 				var total = ftCountFiles(child);
 				html += '<li class="ft-node">';
-				html += '<div class="ft-row ft-folder-row" data-folder="' + escapeHtml(name) + '">';
+				html += '<div class="ft-row ft-folder-row" data-folder="' + escapeHtml(name) + '" draggable="true">';
 				html += '<i class="fas fa-chevron-down ft-toggle"></i>';
 				html += '<i class="fas fa-folder-open ft-icon-folder"></i>';
 				html += '<span class="ft-label">' + escapeHtml(name) + '</span>';
@@ -7607,6 +7607,87 @@
 			return parts.join('/');
 		}
 
+		/**
+		 * Move a folder (and all its contents) to a new parent folder within the same tree.
+		 * srcFolder: full path of the folder being moved (e.g. 'parent/child')
+		 * dstParent: full path of the destination parent folder ('' = root)
+		 */
+		function ftMoveFolder(treeId, srcFolder, dstParent) {
+			if (!srcFolder) return;
+			var state = ftGetTreeState(treeId);
+			if (!state) return;
+
+			var folderName = srcFolder.indexOf('/') !== -1
+				? srcFolder.substring(srcFolder.lastIndexOf('/') + 1)
+				: srcFolder;
+			var newFolder = dstParent ? dstParent + '/' + folderName : folderName;
+
+			// Prevent no-op (dropping folder where it already is)
+			if (newFolder === srcFolder) return;
+			// Prevent circular move (dropping folder into itself or a descendant)
+			if (dstParent === srcFolder || dstParent.indexOf(srcFolder + '/') === 0) return;
+
+			var srcPrefix = srcFolder + '/';
+
+			// Update relative paths for all files within the folder
+			state.files().forEach(function(f) {
+				var rel = state.getRelPath(f);
+				var dir = path.dirname(rel).replace(/\\/g, '/');
+				if (!dir || dir === '.') dir = '';
+				if (dir === srcFolder) {
+					// File is directly inside the moved folder
+					state.setRelPath(f, newFolder + '/' + path.basename(f));
+				} else if (dir.indexOf(srcPrefix) === 0) {
+					// File is in a subfolder of the moved folder
+					var remainder = dir.substring(srcPrefix.length);
+					state.setRelPath(f, newFolder + '/' + remainder + '/' + path.basename(f));
+				}
+			});
+
+			// Update empty folders that are the moved folder or children of it
+			var ef = state.emptyFolders();
+			var newEf = [];
+			ef.forEach(function(fp) {
+				if (fp === srcFolder) {
+					newEf.push(newFolder);
+				} else if (fp.indexOf(srcPrefix) === 0) {
+					var remainder = fp.substring(srcPrefix.length);
+					newEf.push(newFolder + '/' + remainder);
+				} else {
+					newEf.push(fp);
+				}
+			});
+			state.setEmptyFolders(newEf);
+
+			state.update();
+		}
+
+		// --- Internal drag: dragstart on .ft-folder-row (folder rearrange) ---
+		$(document).on("dragstart", ".ft-folder-row[data-folder]", function(e) {
+			var folderName = $(this).attr("data-folder");
+			// Don't allow dragging the root folder
+			if (folderName === '' || folderName === undefined) {
+				e.preventDefault();
+				return;
+			}
+			var $tree = $(this).closest(".pkg-file-tree");
+			var treeId = $tree.attr("id");
+			var folderPath = ftResolveFolderPath($(this));
+			ftDragData = { treeId: treeId, folderPath: folderPath };
+			e.originalEvent.dataTransfer.effectAllowed = 'move';
+			e.originalEvent.dataTransfer.setData('text/plain', 'folder:' + folderPath);
+			var $node = $(this).closest("li.ft-node");
+			setTimeout(function() { $node.addClass("ft-dragging-folder"); }, 0);
+			e.stopPropagation();
+		});
+
+		$(document).on("dragend", ".ft-folder-row[data-folder]", function() {
+			$(".ft-dragging-folder").removeClass("ft-dragging-folder");
+			$(".ft-drop-target").removeClass("ft-drop-target");
+			$(".ft-dragover").removeClass("ft-dragover");
+			ftDragData = null;
+		});
+
 		// --- Internal drag: dragstart on .ft-file-row ---
 		$(document).on("dragstart", ".ft-file-row", function(e) {
 			var $tree = $(this).closest(".pkg-file-tree");
@@ -7647,6 +7728,14 @@
 			e.stopPropagation();
 			// Highlight for internal drag (same or cross-tree)
 			if (ftDragData) {
+				// If dragging a folder, prevent highlighting the folder itself or its descendants
+				if (ftDragData.folderPath !== undefined) {
+					var dropTarget = ftResolveFolderPath($(this));
+					if (dropTarget === ftDragData.folderPath || dropTarget.indexOf(ftDragData.folderPath + '/') === 0) {
+						e.originalEvent.dataTransfer.dropEffect = 'none';
+						return;
+					}
+				}
 				e.originalEvent.dataTransfer.dropEffect = 'move';
 				$(".ft-drop-target").removeClass("ft-drop-target");
 				$(this).addClass("ft-drop-target");
@@ -7657,7 +7746,7 @@
 			$(this).removeClass("ft-drop-target");
 		});
 
-		// --- Drop onto folder row: move files to that folder ---
+		// --- Drop onto folder row: move files or folders to that folder ---
 		$(document).on("drop", ".ft-folder-row", function(e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -7667,8 +7756,16 @@
 			var targetFolder = ftResolveFolderPath($(this));
 
 			if (ftDragData) {
+				if (ftDragData.folderPath !== undefined) {
+					// Folder drag
+					if (ftDragData.treeId === treeId) {
+						ftMoveFolder(treeId, ftDragData.folderPath, targetFolder);
+					}
+					ftDragData = null;
+					return;
+				}
 				if (ftDragData.treeId === treeId) {
-					// Same-tree rearrange
+					// Same-tree file rearrange
 					var state = ftGetTreeState(treeId);
 					if (state) {
 						ftDragData.filePaths.forEach(function(fp) {
@@ -7723,6 +7820,14 @@
 			var treeId = $(this).attr("id");
 
 			if (ftDragData) {
+				if (ftDragData.folderPath !== undefined) {
+					// Folder drag to root
+					if (ftDragData.treeId === treeId) {
+						ftMoveFolder(treeId, ftDragData.folderPath, '');
+					}
+					ftDragData = null;
+					return;
+				}
 				if (ftDragData.treeId === treeId) {
 					// Same-tree: drop on container background = move to root
 					var state = ftGetTreeState(treeId);
