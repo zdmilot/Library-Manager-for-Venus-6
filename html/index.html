@@ -6,7 +6,8 @@
 	<title>Library Manager</title>
 	<!-- Inline critical splash styles to prevent white flash -->
 	<style>
-		html, body { margin:0; padding:0; background:#002e48; overflow:hidden; }
+		html, body { margin:0; padding:0; background:#002e48; overflow:hidden; line-height:1.5; box-sizing:border-box; }
+		*, *::before, *::after { box-sizing:inherit; }
 		#splash-screen {
 			position:fixed; top:0; left:0; width:100vw; height:100vh;
 			z-index:99999; display:flex; align-items:center; justify-content:center;
@@ -14,12 +15,12 @@
 			contain:strict; isolation:isolate; transform:translateZ(0);
 		}
 		.splash-content { display:flex; flex-direction:column; align-items:center; user-select:none; }
-		.splash-animated-logo { width:150px; height:150px; margin-bottom:28px; will-change:transform; transform:translateZ(0); backface-visibility:hidden; }
+		.splash-animated-logo { width:150px; height:150px; margin-bottom:28px; will-change:transform; transform:translateZ(0); backface-visibility:hidden; overflow:hidden; vertical-align:middle; }
 		/* Hide ALL app content until splash dismisses — prevents unstyled flash */
 		.container-fluid { visibility:hidden; }
-		.splash-title { font-family:'Segoe UI',Tahoma,sans-serif; font-size:1.65rem; font-weight:600; color:#fff; letter-spacing:.5px; margin-bottom:4px; }
-		.splash-subtitle { font-family:'Segoe UI',Tahoma,sans-serif; font-size:.85rem; font-weight:400; color:rgba(255,255,255,.55); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:32px; }
-		.splash-status { font-family:'Segoe UI',Tahoma,sans-serif; font-size:.78rem; color:rgba(255,255,255,.45); letter-spacing:.4px; }
+		.splash-title { font-family:'Segoe UI',Tahoma,sans-serif; font-size:1.65rem; font-weight:600; color:#fff; letter-spacing:.5px; margin-bottom:4px; line-height:1.5; }
+		.splash-subtitle { font-family:'Segoe UI',Tahoma,sans-serif; font-size:.85rem; font-weight:400; color:rgba(255,255,255,.55); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:32px; line-height:1.5; }
+		.splash-status { font-family:'Segoe UI',Tahoma,sans-serif; font-size:.78rem; color:rgba(255,255,255,.45); letter-spacing:.4px; line-height:1.5; }
 	</style>
 	<!-- Preload CSS (download only — activation is deferred to the tail of
 	     the splash animation so style recalc doesn't block the main thread) -->
