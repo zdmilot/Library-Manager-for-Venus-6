@@ -718,15 +718,26 @@ body {
 /* Regulated mode confirm - light mode base styles */
 .reg-confirm-warning-box {
 	background: #fff8f0;
+	border: 1px solid #d73a49;
+	border-radius: 8px;
+	padding: 16px;
 	color: #5f1616;
+	font-size: 0.9rem;
+	line-height: 1.5;
 }
 .reg-confirm-info-box {
 	background: #f0f4ff;
 	border: 1px solid #a8c5e2;
+	border-radius: 8px;
+	padding: 12px 16px;
 	color: #1a3a5c;
+	font-size: 0.85rem;
 }
 .reg-confirm-label {
+	font-size: 0.85rem;
 	color: #555;
+	margin-bottom: 6px;
+	display: block;
 }
 
 /* Readonly input base style */
@@ -801,6 +812,122 @@ body {
 .delete-confirm-btn:not(:disabled):hover {
 	background: #b22a37;
 	border-color: #b22a37;
+}
+
+/* ---- Security Modal (auth password, restricted author, access denied) ---- */
+.security-modal-content {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.security-modal-header {
+	background: #5f1616;
+	color: #ffcfcf;
+	border-bottom: 3px solid #d73a49;
+	padding: 20px 24px;
+}
+
+.security-modal-header .close {
+	color: #ffcfcf;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.security-modal-header .close:hover {
+	opacity: 1;
+}
+
+.security-modal-icon i {
+	color: #d73a49;
+}
+
+.security-modal-body {
+	padding: 24px;
+	background: var(--method-background);
+}
+
+.security-modal-footer {
+	background: var(--method-background);
+	border-top: 1px solid var(--body-background);
+	padding: 12px 24px;
+}
+
+.security-modal-info-box {
+	background: #f8f9fa;
+	border-radius: 6px;
+	padding: 8px 12px;
+	font-size: 0.85rem;
+}
+
+/* ---- Regulated Mode Confirm Header ---- */
+.reg-confirm-header {
+	background: #5f1616;
+	color: #ffcfcf;
+	border-bottom: 3px solid #d73a49;
+	padding: 20px 24px;
+}
+
+.reg-confirm-header .close {
+	color: #ffcfcf;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.reg-confirm-header .close:hover {
+	opacity: 1;
+}
+
+.reg-confirm-icon i {
+	color: #d73a49;
+}
+
+.reg-confirm-subtitle {
+	color: #ffa4a4;
+	font-size: 0.85rem;
+}
+
+.reg-confirm-body {
+	padding: 24px;
+	background: var(--method-background);
+}
+
+.reg-confirm-disclaimer-box {
+	background: #fff3cd;
+	border: 1px solid #d4a017;
+	border-radius: 8px;
+	padding: 12px 16px;
+	color: #664d03;
+	font-size: 0.82rem;
+	line-height: 1.5;
+}
+
+/* ---- Batch Duplicate Header (yellow/warning theme) ---- */
+.batch-dup-header {
+	background: #8a6d1b;
+	color: #fff3cd;
+	border-bottom: 3px solid #ffc107;
+	padding: 20px 24px;
+	border-radius: 12px 12px 0 0;
+}
+
+.batch-dup-header .close {
+	color: #fff3cd;
+	opacity: 0.7;
+	text-shadow: none;
+}
+
+.batch-dup-header .close:hover {
+	opacity: 1;
+}
+
+.batch-dup-header-icon i {
+	color: #ffc107;
+}
+
+.batch-dup-subtitle {
+	opacity: 0.8;
 }
 
 /* ---- Folder Name Modal ---- */
@@ -1305,6 +1432,13 @@ body {
 	color: var(--medium);
 	margin-right: 8px;
 }
+.batch-dup-warning-box {
+	background: #fff8e1;
+	border: 1px solid #ffc107;
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 12px;
+}
 /* Dark mode: batch import */
 body.dark-mode .batch-import-pkg-item .batch-pkg-name,
 body.dark-mode .batch-dup-item .batch-dup-name,
@@ -1333,9 +1467,10 @@ body.dark-mode .batch-dup-warning-box {
 body.dark-mode .batch-dup-warning-box p {
 	color: #f0c850;
 }
-body.dark-mode #batchDuplicateModal .modal-header {
+body.dark-mode .batch-dup-header {
 	background: #3a2e0f;
 	color: #f0c850;
+	border-bottom-color: #ffc107;
 }
 /* ---- End Batch Import Modal ---- */
 
@@ -3976,6 +4111,46 @@ body.dark-mode .folder-delete-warning-box {
 	background: rgba(215, 58, 73, 0.15);
 	border-color: #635;
 	color: #ef6b6b;
+}
+
+/* Security modal dark mode */
+body.dark-mode .security-modal-content {
+	background-color: #1a1a2e;
+	border-color: #2a3a5c;
+}
+body.dark-mode .security-modal-header {
+	background: #3a1020;
+	border-bottom-color: #d73a49;
+}
+body.dark-mode .security-modal-body {
+	background: #1a1a2e;
+	color: #c8d6e5;
+}
+body.dark-mode .security-modal-footer {
+	background: #1a1a2e;
+	border-top-color: #2a3a5c;
+}
+body.dark-mode .security-modal-info-box {
+	background: rgba(58, 123, 213, 0.1);
+	color: #8abaef;
+}
+
+/* Regulated confirm header dark mode */
+body.dark-mode .reg-confirm-header {
+	background: #3a1020;
+	border-bottom-color: #d73a49;
+}
+body.dark-mode .reg-confirm-subtitle {
+	color: #ef8a8a;
+}
+body.dark-mode .reg-confirm-body {
+	background: #1a1a2e;
+	color: #c8d6e5;
+}
+body.dark-mode .reg-confirm-disclaimer-box {
+	background: rgba(255, 193, 7, 0.1);
+	border-color: #5c4a1a;
+	color: #f0c850;
 }
 
 /* Archive conflict table */

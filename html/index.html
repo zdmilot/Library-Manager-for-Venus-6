@@ -580,9 +580,16 @@
 	<!----modal edit start--->
 	<div class="modal" tabindex="-1" role="dialog" id="editModal">
 		<div class="modal-dialog modal-xl" role="document">
-			<div class="modal-content" data-linkOrGroup="" data-newOrEdit="" data-id="">
-				<div class="modal-header">
-					<h5 class="modal-title text-capitalize">Edit</h5>
+			<div class="modal-content detail-modal-content" data-linkOrGroup="" data-newOrEdit="" data-id="">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="detail-modal-icon mr-3">
+							<i class="fas fa-edit fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0 text-capitalize detail-modal-name">Edit</h5>
+						</div>
+					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
@@ -1002,7 +1009,7 @@
 						</div> <!-- end div-iconselect -->
 					</div>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer detail-modal-footer">
 					<button type="button" class="btn btn-danger solid-button-shape btn-delete">Delete</button>
 					<button type="button" class="btn solid-button btn-save">Save</button>
 					<button type="button" class="btn btn-secondary  solid-button-shape"
@@ -1369,35 +1376,35 @@
 	<div class="modal" tabindex="-1" role="dialog" id="regulatedModeConfirmModal">
 		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width:500px;">
 			<div class="modal-content delete-confirm-content">
-				<div class="modal-header reg-confirm-header" style="background:#5f1616; color:#ffcfcf; border-bottom:3px solid #d73a49; padding:20px 24px;">
+				<div class="modal-header reg-confirm-header">
 					<div class="d-flex align-items-center">
 						<div class="reg-confirm-icon mr-3">
-							<i class="fas fa-lock fa-2x" style="color:#d73a49;"></i>
+							<i class="fas fa-lock fa-2x"></i>
 						</div>
 						<div>
 							<h5 class="modal-title mb-0 reg-confirm-title">Enable Regulated Environment Mode</h5>
-							<span style="color:#ffa4a4; font-size:0.85rem;">This change affects all users on this system</span>
+							<span class="reg-confirm-subtitle">This change affects all users on this system</span>
 						</div>
 					</div>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#ffcfcf; opacity:0.7;">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body" style="padding:24px; background:var(--method-background);">
-					<div class="reg-confirm-warning-box" style="background:#fff8f0; border:1px solid #d73a49; border-radius:8px; padding:16px; color:#5f1616; font-size:0.9rem; line-height:1.5;">
+				<div class="modal-body reg-confirm-body">
+					<div class="reg-confirm-warning-box">
 					</div>
-					<div class="mt-3" style="background:#f0f4ff; border:1px solid #a8c5e2; border-radius:8px; padding:12px 16px; color:#1a3a5c; font-size:0.85rem;">
+					<div class="mt-3 reg-confirm-info-box">
 						<i class="fas fa-users mr-1"></i>
 						<strong>Affected scope:</strong> All user accounts on this PC will be subject to the new access control policy immediately.
 					</div>
-					<div class="reg-confirm-disclaimer-box mt-3" style="background:#fff3cd; border:1px solid #d4a017; border-radius:8px; padding:12px 16px; color:#664d03; font-size:0.82rem; line-height:1.5; display:none;">
+					<div class="reg-confirm-disclaimer-box mt-3" style="display:none;">
 					</div>
 					<div class="mt-3">
-						<label style="font-size:0.85rem; color:#555; margin-bottom:6px; display:block;">To confirm, type "<strong>I Accept</strong>" in the box below</label>
+						<label class="reg-confirm-label">To confirm, type "<strong>I Accept</strong>" in the box below</label>
 						<input type="text" class="form-control reg-confirm-input delete-confirm-input" autocomplete="off" spellcheck="false" placeholder="">
 					</div>
 				</div>
-				<div class="modal-footer delete-confirm-footer" style="background:var(--method-background); border-top:1px solid var(--body-background); padding:12px 24px; display:flex; justify-content:flex-end; gap:8px;">
+				<div class="modal-footer delete-confirm-footer">
 					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
 					<button type="button" class="btn btn-danger reg-confirm-btn" disabled>
 						<i class="fas fa-lock mr-1"></i>I understand, enable regulated mode
@@ -2204,14 +2211,21 @@
 	<!---- Modal Author Password Prompt start --->
 	<div class="modal" tabindex="-1" role="dialog" id="authorPasswordModal" data-backdrop="static" data-keyboard="false">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
-			<div class="modal-content">
-				<div class="modal-header" style="border-bottom: 2px solid #dc3545;">
-					<h5 class="modal-title"><i class="fas fa-shield-alt mr-2 text-danger"></i>Authorization Required</h5>
+			<div class="modal-content security-modal-content">
+				<div class="modal-header security-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="security-modal-icon mr-3">
+							<i class="fas fa-shield-alt fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Authorization Required</h5>
+						</div>
+					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body security-modal-body">
 					<p class="mb-2">Developer mode is for <strong>OEM and authorized first-party library developers only</strong>.</p>
 					<p class="text-muted mb-3" style="font-size: 0.85rem;">Enter the authorization password to continue.</p>
 					<div class="form-group mb-1">
@@ -2220,7 +2234,7 @@
 					</div>
 					<small class="text-danger author-password-error d-none"><i class="fas fa-times-circle mr-1"></i>Incorrect password. Please try again.</small>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer security-modal-footer">
 					<button type="button" class="btn btn-danger solid-button-shape btn-author-password-confirm">Authorize</button>
 					<button type="button" class="btn btn-secondary solid-button-shape" data-dismiss="modal">Cancel</button>
 				</div>
@@ -2232,18 +2246,25 @@
 	<!---- Modal Restricted Author Warning start --->
 	<div class="modal" tabindex="-1" role="dialog" id="restrictedAuthorWarningModal" data-backdrop="static" data-keyboard="false">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
-			<div class="modal-content">
-				<div class="modal-header" style="border-bottom: 2px solid #dc3545;">
-					<h5 class="modal-title"><i class="fas fa-shield-alt mr-2 text-danger"></i>Restricted Name</h5>
+			<div class="modal-content security-modal-content">
+				<div class="modal-header security-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="security-modal-icon mr-3">
+							<i class="fas fa-shield-alt fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Restricted Name</h5>
+						</div>
+					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body security-modal-body">
 					<p class="mb-2">The author/organization name you entered is <strong>restricted</strong> to authorized OEM and first-party libraries.</p>
 					<p class="text-muted mb-0" style="font-size: 0.85rem;">This name is reserved for authorized OEM developers only and cannot be used without developer mode authorization.</p>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer security-modal-footer">
 					<button type="button" class="btn btn-secondary solid-button-shape" data-dismiss="modal">OK</button>
 				</div>
 			</div>
@@ -2254,22 +2275,29 @@
 	<!---- Modal Access Denied start --->
 	<div class="modal" tabindex="-1" role="dialog" id="accessDeniedModal">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px;">
-			<div class="modal-content">
-				<div class="modal-header" style="border-bottom: 2px solid #dc3545;">
-					<h5 class="modal-title"><i class="fas fa-ban mr-2 text-danger"></i>Access Denied</h5>
+			<div class="modal-content security-modal-content">
+				<div class="modal-header security-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="security-modal-icon mr-3">
+							<i class="fas fa-ban fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Access Denied</h5>
+						</div>
+					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body security-modal-body">
 					<p class="mb-2"><strong>Action:</strong> <span class="access-denied-action"></span></p>
 					<p class="mb-3 access-denied-reason" style="white-space: pre-line;"></p>
-					<div class="p-2 rounded" style="background: #f8f9fa; font-size: 0.85rem;">
+					<div class="p-2 rounded security-modal-info-box">
 						<div><i class="fas fa-user mr-1 text-muted"></i><strong>User:</strong> <span class="access-denied-user"></span></div>
 						<div class="mt-1"><i class="fas fa-users mr-1 text-muted"></i><strong>Groups:</strong> <span class="access-denied-groups text-muted"></span></div>
 					</div>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer security-modal-footer">
 					<button type="button" class="btn btn-secondary solid-button-shape" data-dismiss="modal">OK</button>
 				</div>
 			</div>
@@ -2340,19 +2368,19 @@
 	<div class="modal" tabindex="-1" role="dialog" id="batchDuplicateModal" data-backdrop="static" data-keyboard="false">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:480px;">
 			<div class="modal-content detail-modal-content">
-				<div class="modal-header" style="background:#8a6d1b; color:#fff3cd; border-bottom:3px solid #ffc107; padding:20px 24px; border-radius:12px 12px 0 0;">
+				<div class="modal-header batch-dup-header">
 					<div class="d-flex align-items-center">
-						<div class="mr-3">
-							<i class="fas fa-exclamation-triangle fa-2x" style="color:#ffc107;"></i>
+						<div class="batch-dup-header-icon mr-3">
+							<i class="fas fa-exclamation-triangle fa-2x"></i>
 						</div>
 						<div>
 							<h5 class="modal-title mb-0">Duplicate Libraries Found</h5>
-							<small style="opacity:0.8;" class="batch-dup-subtitle"></small>
+							<small class="batch-dup-subtitle"></small>
 						</div>
 					</div>
 				</div>
 				<div class="modal-body detail-modal-body" style="max-height:40vh;">
-					<div class="batch-dup-warning-box" style="background:#fff8e1; border:1px solid #ffc107; border-radius:8px; padding:16px; margin-bottom:12px;">
+					<div class="batch-dup-warning-box">
 						<p class="mb-0" style="font-size:0.9rem;"><strong>The following libraries are already installed.</strong> Click <strong>Replace</strong> to overwrite them, or <strong>Skip</strong> to keep the existing versions.</p>
 					</div>
 					<div class="batch-dup-list"></div>
@@ -2997,14 +3025,21 @@
 	<!---- Modal Per-File Path Edit start --->
 	<div class="modal" tabindex="-1" role="dialog" id="filePathEditModal">
 		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title"><i class="fas fa-folder-open mr-2 color-medium"></i>Change Install Path</h5>
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="detail-modal-icon mr-3">
+							<i class="fas fa-folder-open fa-2x"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0 detail-modal-name">Change Install Path</h5>
+						</div>
+					</div>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body detail-modal-body">
 					<div class="form-group mb-3">
 						<label class="text-sm font-weight-bold mb-1" for="fpedit-path-input">Install directory</label>
 						<small class="form-text text-muted mt-0 mb-2">Enter the subdirectory within the Library folder. Leave empty to install to the Library root.</small>
@@ -3020,7 +3055,7 @@
 						<code class="filepath-edit-preview text-sm"></code>
 					</div>
 				</div>
-				<div class="modal-footer">
+				<div class="modal-footer detail-modal-footer">
 					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
 					<button type="button" class="btn btn-primary btn-filepath-edit-apply"><i class="fas fa-check mr-1"></i>Apply</button>
 				</div>
