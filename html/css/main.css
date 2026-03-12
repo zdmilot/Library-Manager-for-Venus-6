@@ -1950,6 +1950,26 @@ li.ft-node.ft-dragging-folder {
 	max-width: 100%;
 }
 
+.imp-sort-select {
+	width: auto;
+	min-width: 170px;
+	font-size: 0.95rem;
+	color: var(--medium2);
+	border-color: #ced4da;
+	border-radius: 4px;
+	padding: 4px 30px 4px 10px;
+	cursor: pointer;
+}
+
+.imp-sort-select:focus {
+	border-color: var(--medium);
+	box-shadow: 0 0 0 3px rgba(var(--medium-rgb), 0.15);
+}
+
+body.dark-mode .imp-sort-select {
+	color: var(--medium);
+}
+
 .imp-lib-card {
 	border-radius: 6px;
 	transition: box-shadow 0.2s ease, transform 0.2s ease;

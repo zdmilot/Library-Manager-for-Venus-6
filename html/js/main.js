@@ -2509,6 +2509,7 @@
 		var _searchTimeout = null;
 		var _searchActive = false;
 		var _preSearchGroupId = null; // remembers which tab was active before search
+		var _currentSortOrder = 'az'; // current library sort order: az, za, newest, oldest
 		var _searchInlineTokens = [];
 		var _pendingDeleteChipIdx = -1;
 
@@ -7464,6 +7465,28 @@
 			}
 		});
 
+		/** Collect truly empty folders across all package trees. Returns [{tree, folder}]. */
+		function ftCollectEmptyFolders() {
+			var result = [];
+			var trees = [
+				{ label: 'Library Files', emptyFolders: pkg_libEmptyFolders, files: pkg_libraryFiles, getSubdir: function(f) { var rel = pkg_fileRelPaths[f]; if (!rel) return ''; var d = path.dirname(rel).replace(/\\/g, '/'); return (!d || d === '.') ? '' : d; } },
+				{ label: 'Demo Method Files', emptyFolders: pkg_demoEmptyFolders, files: pkg_demoMethodFiles, getSubdir: function(f) { var rel = pkg_fileRelPaths[f]; if (!rel) return ''; var d = path.dirname(rel).replace(/\\/g, '/'); return (!d || d === '.') ? '' : d; } },
+				{ label: 'Labware Files', emptyFolders: pkg_labwareEmptyFolders, files: pkg_labwareFiles, getSubdir: function(f) { return (pkg_labwareSubdirs[f] || '').replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, ''); } },
+				{ label: 'Bin Files', emptyFolders: pkg_binEmptyFolders, files: pkg_binFiles, getSubdir: function(f) { return (pkg_binSubdirs[f] || '').replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, ''); } }
+			];
+			trees.forEach(function(t) {
+				t.emptyFolders.forEach(function(folderPath) {
+					var fp = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '');
+					var hasFiles = t.files.some(function(f) {
+						var sub = t.getSubdir(f);
+						return sub === fp || sub.indexOf(fp + '/') === 0;
+					});
+					if (!hasFiles) result.push({ tree: t.label, folder: fp });
+				});
+			});
+			return result;
+		}
+
 		// ---- Delete folder button handler ----
 		$(document).on("click", ".ft-folder-delete", function(e) {
 			e.stopPropagation();
@@ -7940,6 +7963,15 @@
 				alert('Invalid library name: "' + libName + '".\nLibrary names can only contain letters, numbers, spaces, dashes, and underscores.');
 				$("#pkg-library-name").focus().css({"border": "1px solid red", "background": "#FFCECE"});
 				return;
+			}
+
+			// Warn if any user-created folders are empty
+			var emptyFolders = ftCollectEmptyFolders();
+			if (emptyFolders.length > 0) {
+				var folderList = emptyFolders.map(function(ef) { return '  \u2022 ' + ef.tree + ': ' + ef.folder; }).join('\n');
+				if (!confirm('The following folders are empty and will create empty directories in the package:\n\n' + folderList + '\n\nDo you want to continue?')) {
+					return;
+				}
 			}
 
 			// Set default filename and trigger save dialog
@@ -9515,6 +9547,59 @@
 		var _depCache = {};         // lib._id -> extractRequiredDependencies() result
 		function invalidateLibCaches() { _integrityCache = {}; _depCache = {}; markSearchIndexDirty(); }
 
+		// ---- Sort helpers for library cards ----
+		function applyLibrarySort(libs, order) {
+			if (!libs || libs.length === 0) return;
+			switch (order) {
+				case 'az':
+					libs.sort(function(a, b) { return (a.library_name || '').localeCompare(b.library_name || '', undefined, {sensitivity: 'base'}); });
+					break;
+				case 'za':
+					libs.sort(function(a, b) { return (b.library_name || '').localeCompare(a.library_name || '', undefined, {sensitivity: 'base'}); });
+					break;
+				case 'newest':
+					libs.sort(function(a, b) {
+						var da = a.installed_date ? new Date(a.installed_date).getTime() : 0;
+						var db = b.installed_date ? new Date(b.installed_date).getTime() : 0;
+						return db - da;
+					});
+					break;
+				case 'oldest':
+					libs.sort(function(a, b) {
+						var da = a.installed_date ? new Date(a.installed_date).getTime() : 0;
+						var db = b.installed_date ? new Date(b.installed_date).getTime() : 0;
+						return da - db;
+					});
+					break;
+			}
+		}
+
+		function applySystemLibrarySort(sysLibs, order) {
+			if (!sysLibs || sysLibs.length === 0) return;
+			switch (order) {
+				case 'az':
+					sysLibs.sort(function(a, b) { return (a.display_name || a.canonical_name || '').localeCompare(b.display_name || b.canonical_name || '', undefined, {sensitivity: 'base'}); });
+					break;
+				case 'za':
+					sysLibs.sort(function(a, b) { return (b.display_name || b.canonical_name || '').localeCompare(a.display_name || a.canonical_name || '', undefined, {sensitivity: 'base'}); });
+					break;
+				case 'newest':
+					sysLibs.sort(function(a, b) {
+						var da = a.installed_date ? new Date(a.installed_date).getTime() : 0;
+						var db = b.installed_date ? new Date(b.installed_date).getTime() : 0;
+						return db - da;
+					});
+					break;
+				case 'oldest':
+					sysLibs.sort(function(a, b) {
+						var da = a.installed_date ? new Date(a.installed_date).getTime() : 0;
+						var db = b.installed_date ? new Date(b.installed_date).getTime() : 0;
+						return da - db;
+					});
+					break;
+			}
+		}
+
 		// ---- Build installed library cards from DB ----
 		function impBuildLibraryCards(groupId, recentMode, systemMode, unsignedMode, starredMode) {
 			var $container = $("#imp-cards-container");
@@ -9555,6 +9640,8 @@
 					return;
 				}
 				// Re-use the normal card builders for each
+				applyLibrarySort(starredUserLibs, _currentSortOrder);
+				applySystemLibrarySort(starredSysLibs, _currentSortOrder);
 				starredUserLibs.forEach(function(lib) {
 					$container.append(impBuildSingleCardHtml(lib));
 				});
@@ -9598,6 +9685,7 @@
 					);
 					return;
 				}
+				applySystemLibrarySort(sysLibs, _currentSortOrder);
 				sysLibs.forEach(function(sLib) {
 					$container.append(buildSystemLibraryCard(sLib));
 				});
@@ -9651,6 +9739,12 @@
 				}
 			}
 			var hasSystemCards = visibleSysLibs.length > 0;
+
+			// Apply sort order (skip for recent mode which has its own sort)
+			if (!recentMode) {
+				applyLibrarySort(libs, _currentSortOrder);
+				applySystemLibrarySort(visibleSysLibs, _currentSortOrder);
+			}
 
 			if ((!libs || libs.length === 0) && !hasSystemCards) {
 				var emptyMsg;
