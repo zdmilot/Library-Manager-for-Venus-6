@@ -2111,9 +2111,6 @@ body.dark-mode .imp-sort-select {
 	flex-wrap: wrap;
 	overflow: hidden;
 	align-items: flex-start;
-	/* Reserve space for exactly two rows of chips */
-	min-height: 2.7rem;
-	max-height: 2.7rem;
 	gap: 0.25rem;
 	position: relative;
 }

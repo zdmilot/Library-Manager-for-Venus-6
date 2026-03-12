@@ -12603,21 +12603,59 @@
 		});
 
 		// ---- Detect tag overflow and show/hide ellipsis indicators ----
+		// Shows at most two rows of tag chips; hides excess tags and shows "..." ellipsis.
+		// Reserves consistent two-row height on every card for visual identity.
 		function _updateCardTagOverflow() {
 			$(".imp-lib-card-tags").each(function() {
 				var el = this;
 				var $ellipsis = $(el).children(".imp-tag-ellipsis");
-				if ($ellipsis.length === 0) return;
-				// Temporarily hide ellipsis to measure natural overflow
-				$ellipsis.hide();
-				var hasTags = $(el).children(".imp-tag-badge").length > 0;
-				// Check if content overflows the two-row max-height
-				var hasOverflow = el.scrollHeight > el.clientHeight;
-				if (hasOverflow && hasTags) {
-					$ellipsis.css("display", "inline-flex");
-				} else {
-					$ellipsis.hide();
+				var $tags = $(el).children(".imp-tag-badge");
+
+				// Reset: show all tags, clear height constraints so we can measure
+				$tags.css("display", "");
+				if ($ellipsis.length) $ellipsis.hide();
+				el.style.overflow = "visible";
+				el.style.maxHeight = "none";
+				el.style.minHeight = "";
+
+				if ($tags.length === 0) {
+					// No tags — still reserve two-row height for consistency
+					el.style.minHeight = "2rem";
+					el.style.maxHeight = "2rem";
+					el.style.overflow = "hidden";
+					return;
 				}
+
+				// Measure first badge to derive row height
+				var tagHeight = $tags[0].offsetHeight;
+				var gapVal = window.getComputedStyle(el).rowGap;
+				var gap = (gapVal && gapVal !== 'normal') ? parseFloat(gapVal) : 4;
+				var twoRowHeight = (tagHeight * 2) + gap;
+				var row3Top = $tags[0].offsetTop + 2 * (tagHeight + gap);
+
+				// Hide any tag whose top places it on row 3 or beyond
+				var hiddenAny = false;
+				$tags.each(function() {
+					if (this.offsetTop >= row3Top - 1) {
+						$(this).hide();
+						hiddenAny = true;
+					}
+				});
+
+				if (hiddenAny && $ellipsis.length) {
+					$ellipsis.css("display", "inline-flex");
+					// If ellipsis itself landed on row 3, remove tags until it fits
+					while ($ellipsis[0].offsetTop >= row3Top - 1) {
+						var $last = $tags.filter(":visible").last();
+						if ($last.length === 0) break;
+						$last.hide();
+					}
+				}
+
+				// Lock container to exactly two-row height for visual consistency
+				el.style.minHeight = twoRowHeight + "px";
+				el.style.maxHeight = twoRowHeight + "px";
+				el.style.overflow = "hidden";
 			});
 		}
 
