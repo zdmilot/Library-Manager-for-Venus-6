@@ -723,6 +723,33 @@
 			try { return db_groups.groups.findOne({"_id": id}); } catch(e) { return null; }
 		}
 
+		/**
+		 * Update the imp-header title to reflect the active group.
+		 */
+		function updateImpHeaderTitle(groupId) {
+			var icon, title;
+			switch (groupId) {
+				case 'gAll':      icon = 'fas fa-book';         title = 'Installed Libraries'; break;
+				case 'gRecent':   icon = 'fas fa-history';      title = 'Recent Libraries';    break;
+				case 'gStarred':  icon = 'fas fa-star';         title = 'Starred Libraries';   break;
+				case 'gFolders':  icon = 'fas fa-download';     title = 'Import';              break;
+				case 'gSystem':   icon = 'fas fa-lock';         title = 'System Libraries';    break;
+				case 'gUnsigned': icon = 'far fa-times-circle'; title = 'Unsigned Libraries';  break;
+				case 'gOEM':      icon = 'fas fa-check-circle'; title = 'OEM Libraries';       break;
+				default:
+					var grp = getGroupById(groupId);
+					if (grp) {
+						icon = 'fas ' + (grp['icon-class'] || 'fa-folder');
+						title = escapeHtml(grp.name || 'Libraries');
+					} else {
+						icon = 'fas fa-folder';
+						title = 'Libraries';
+					}
+					break;
+			}
+			$('#imp-header-title').html('<i class="' + icon + ' mr-2 color-medium"></i>' + title);
+		}
+
 		// ================================================================
 		// LOCAL DATA DIRECTORY
 		// ================================================================
@@ -2051,6 +2078,7 @@
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
 				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards();
 				fitImporterHeight();
 			} else if(group_id == "gRecent"){
@@ -2058,15 +2086,17 @@
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
-				$("#imp-header").removeClass("d-flex").addClass("d-none");
+				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards(null, true);
 				fitImporterHeight();
 			} else if(group_id == "gFolders"){
-				// Import tab - show library cards without header
+				// Import tab - show library cards with header
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
-				$("#imp-header").removeClass("d-flex").addClass("d-none");
+				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards();
 				fitImporterHeight();
 			} else if(group_id == "gStarred"){
@@ -2074,7 +2104,8 @@
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
-				$("#imp-header").removeClass("d-flex").addClass("d-none");
+				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards(null, false, false, false, true);
 				fitImporterHeight();
 			} else if(group_id == "gSystem"){
@@ -2082,7 +2113,8 @@
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
-				$("#imp-header").removeClass("d-flex").addClass("d-none");
+				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards(null, false, true);
 				fitImporterHeight();
 			} else if(group_id == "gUnsigned"){
@@ -2090,7 +2122,8 @@
 				$(".links-container").addClass("d-none");
 				$(".exporter-container").addClass("d-none");
 				$(".importer-container").removeClass("d-none");
-				$("#imp-header").removeClass("d-flex").addClass("d-none");
+				$("#imp-header").removeClass("d-none").addClass("d-flex");
+				updateImpHeaderTitle(group_id);
 				impBuildLibraryCards(null, false, false, true);
 				fitImporterHeight();
 			} else {
@@ -2100,7 +2133,8 @@
 					$(".links-container").addClass("d-none");
 					$(".exporter-container").addClass("d-none");
 					$(".importer-container").removeClass("d-none");
-					$("#imp-header").removeClass("d-flex").addClass("d-none");
+					$("#imp-header").removeClass("d-none").addClass("d-flex");
+					updateImpHeaderTitle(group_id);
 					impBuildLibraryCards(group_id);
 					fitImporterHeight();
 				} else {
@@ -3278,8 +3312,11 @@
 
 		function renderSearchModalResults(state) {
 			var $results = $("#search-modal-results");
+			var $count = $(".search-modal-count");
 			if (!state || !state.hasSearch) {
 				$results.empty();
+				$count.text('');
+				$('.search-modal-footer-info').text('');
 				return;
 			}
 
@@ -3314,36 +3351,78 @@
 			indexResults.forEach(function(result) {
 				if (result.type === 'user') {
 					var lib = userLibMap[result.id];
-					if (lib) results.push({ type: 'user', id: lib._id, name: lib.library_name || 'Unknown', version: lib.version || '', author: lib.author || '', isSystem: false });
+					if (lib) results.push({
+						type: 'user', id: lib._id,
+						name: lib.library_name || 'Unknown',
+						version: lib.version || '',
+						author: lib.author || '',
+						description: lib.description || '',
+						tags: lib.tags || [],
+						isSystem: false
+					});
 				} else {
 					var sLib = sysLibMap[result.id];
-					if (sLib) results.push({ type: 'system', id: sLib._id, name: sLib.display_name || sLib.canonical_name || 'Unknown', version: '', author: sLib.author || 'Hamilton', isSystem: true });
+					if (sLib) results.push({
+						type: 'system', id: sLib._id,
+						name: sLib.display_name || sLib.canonical_name || 'Unknown',
+						version: '',
+						author: sLib.author || 'Hamilton',
+						description: '',
+						tags: [],
+						isSystem: true
+					});
 				}
 			});
 
 			if (results.length === 0) {
 				var noResultsDisplay = state.displayQueryHtml || ('<b>' + escapeHtml(state.displayQuery) + '</b>');
 				$results.html(
-					'<div class="text-center py-4">' +
-						'<i class="fas fa-search fa-2x" style="color:#ccc;"></i>' +
-						'<p class="text-muted mt-2 mb-0">No libraries matching "' + noResultsDisplay + '"</p>' +
+					'<div class="search-modal-empty">' +
+						'<i class="fas fa-search"></i>' +
+						'<p>No libraries matching \u201c' + noResultsDisplay + '\u201d</p>' +
 					'</div>'
 				);
+				$count.text('0 results');
+				$('.search-modal-footer-info').text('');
 				return;
 			}
 
-			var html = '<div class="search-modal-count text-muted text-sm px-3 py-1">' + results.length + ' result' + (results.length !== 1 ? 's' : '') + '</div>';
+			$count.text(results.length + ' result' + (results.length !== 1 ? 's' : ''));
+			$('.search-modal-footer-info').text('Click a library to view details');
+
+			var html = '';
 			results.forEach(function(r) {
+				var iconClass = r.isSystem ? 'system-icon' : '';
 				var icon = r.isSystem
 					? '<i class="fas fa-lock" style="color:#adb5bd;"></i>'
 					: '<i class="fas fa-book" style="color:var(--medium);"></i>';
-				var versionHtml = r.version ? '<span class="search-modal-result-version">' + escapeHtml(r.version) + '</span>' : '';
-				var authorHtml = r.author ? '<span class="search-modal-result-author">' + escapeHtml(r.author) + '</span>' : '';
+				var versionHtml = r.version ? '<span class="search-modal-result-version">v' + escapeHtml(r.version) + '</span>' : '';
+				var typeBadge = r.isSystem
+					? '<span class="search-modal-result-type type-system">System</span>'
+					: '<span class="search-modal-result-type type-user">Installed</span>';
+				var authorHtml = r.author ? '<span class="search-modal-result-author"><i class="far fa-user mr-1"></i>' + escapeHtml(r.author) + '</span>' : '';
+				var descHtml = r.description ? '<div class="search-modal-result-desc">' + escapeHtml(r.description) + '</div>' : '';
+
+				var tagsHtml = '';
+				if (r.tags && r.tags.length > 0) {
+					tagsHtml = '<div class="search-modal-result-tags">';
+					var maxTags = Math.min(r.tags.length, 5);
+					for (var t = 0; t < maxTags; t++) {
+						tagsHtml += '<span class="search-modal-result-tag">' + escapeHtml(r.tags[t]) + '</span>';
+					}
+					if (r.tags.length > 5) {
+						tagsHtml += '<span class="search-modal-result-tag">+' + (r.tags.length - 5) + '</span>';
+					}
+					tagsHtml += '</div>';
+				}
+
 				html += '<div class="search-modal-result" data-lib-id="' + escapeHtml(r.id) + '">' +
-					'<div class="search-modal-result-icon">' + icon + '</div>' +
+					'<div class="search-modal-result-icon ' + iconClass + '">' + icon + '</div>' +
 					'<div class="search-modal-result-info">' +
-						'<div class="search-modal-result-name">' + escapeHtml(r.name) + versionHtml + '</div>' +
+						'<div class="search-modal-result-name">' + escapeHtml(r.name) + versionHtml + typeBadge + '</div>' +
 						(authorHtml ? '<div class="search-modal-result-meta">' + authorHtml + '</div>' : '') +
+						descHtml +
+						tagsHtml +
 					'</div>' +
 					'<i class="fas fa-chevron-right search-modal-result-arrow"></i>' +
 				'</div>';
@@ -3906,6 +3985,8 @@
 			$("#imp-search-input").val("");
 			$(".imp-search-clear-wrap").addClass("d-none");
 			$("#search-modal-results").empty();
+			$(".search-modal-count").text('');
+			$('.search-modal-footer-info').text('');
 		});
 
 		$(document).on("click", "#btn-open-search", function() {
@@ -5924,12 +6005,20 @@
 			return _oemSessionKeywordsEnabled && _oemSessionUnlocked;
 		}
 
-		// ---- OEM Keywords toggle handler: no password needed since developer mode already verified ----
-		$(document).on("click", "#chk_oemKeywordsEnabled", function () {
+		// ---- OEM Keywords toggle handler: require password to enable ----
+		$(document).on("click", "#chk_oemKeywordsEnabled", async function () {
 			var isChecked = $(this).is(":checked");
 			if (isChecked) {
-				_oemSessionKeywordsEnabled = true;
-				$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
+				// Require OEM password to enable
+				var pwOk = await promptAuthorPassword();
+				if (pwOk) {
+					_oemSessionKeywordsEnabled = true;
+					$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
+				} else {
+					$(this).prop("checked", false);
+					$(".oem-keywords-status").html('<i class="fas fa-times-circle text-danger mr-1"></i>Authorization failed.');
+					setTimeout(function() { $(".oem-keywords-status").html(''); }, 3000);
+				}
 			} else {
 				_oemSessionKeywordsEnabled = false;
 				$(".oem-keywords-status").html('');
