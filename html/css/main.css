@@ -104,6 +104,8 @@
 	padding: 4px 10px;
 	cursor: pointer;
 	border-radius: 4px;
+	position: relative;
+	overflow: visible;
 }
 .btn-overflow-toggle:hover,
 .btn-overflow-toggle:focus {
@@ -4576,9 +4578,6 @@ body.dark-mode .pkg-com-label {
 /* ── Update Badge (on overflow toggle) ────────────────────────────────────── */
 
 .btn-overflow-menu {
-	position: relative;
-}
-.btn-overflow-toggle {
 	position: relative;
 }
 .update-badge {

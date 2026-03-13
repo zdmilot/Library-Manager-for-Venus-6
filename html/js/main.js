@@ -2439,7 +2439,7 @@
 		});
 
 		/** Show or hide OEM/developer settings sections.
-		 *  Report a Bug and About always stay last (in that order). */
+		 *  About stays first, Report a Bug second-to-last, Licenses always last. */
 		function applyOemSettingsVisibility(unlocked) {
 			if (unlocked) {
 				$("#settings-oem-keywords-section").show();
@@ -2450,10 +2450,11 @@
 				$("#pkg-installer-exe-section").hide();
 				$("#pkg-bin-files-section").hide();
 			}
-			// Ensure Report a Bug + About are always the last two sections
+			// Ensure About stays first, Report a Bug second-to-last, Licenses last
 			var $container = $(".settings-settings");
+			$("#settings-about-section").prependTo($container);
 			$("#settings-report-bug-section").appendTo($container);
-			$("#settings-about-section").appendTo($container);
+			$("#settings-licenses-section").appendTo($container);
 		}
 
 		//Click privacy policy link inside About modal.
