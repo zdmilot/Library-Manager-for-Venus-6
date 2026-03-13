@@ -42,47 +42,20 @@
 <pre>C:\Program Files (x86)\Library Manager</pre>
 <p>You may change this to any writable directory. The installer will create the folder if it does not exist.</p>
 
-<h3>4. Application Configuration</h3>
-<p>This custom page lets you set initial preferences that are written into the application&rsquo;s settings files on install. The page is divided into three sections:</p>
-
-<h4>Appearance</h4>
-<table>
-<thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
-<tbody>
-<tr>
-  <td><b>Always use dark mode</b></td>
-  <td>Off</td>
-  <td>When checked, the application always launches in dark (night) mode. When unchecked, the theme follows the system setting.</td>
-</tr>
-</tbody>
-</table>
-
-<h4>GitHub Integration</h4>
-<table>
-<thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
-<tbody>
-<tr>
-  <td><b>Show GitHub Repository Links</b></td>
-  <td>Off</td>
-  <td>When checked, GitHub repository links are displayed in library detail views.</td>
-</tr>
-</tbody>
-</table>
-
-<h3>5. Additional Tasks</h3>
+<h3>4. Additional Tasks</h3>
 <p>Optionally create a desktop shortcut for Library Manager. This is unchecked by default.</p>
 
-<h3>6. Ready to Install</h3>
-<p>Displays a summary of all selected options &mdash; install directory, Start Menu group, and the configuration choices made on the Application Configuration page. Review the summary and click <b>Install</b> to begin.</p>
+<h3>5. Ready to Install</h3>
+<p>Displays a summary of all selected options &mdash; install directory and Start Menu group. Review the summary and click <b>Install</b> to begin.</p>
 
-<h3>7. Installation Progress</h3>
+<h3>6. Installation Progress</h3>
 <p>Files are copied to the destination directory. The following post-install steps happen automatically:</p>
 <ul>
-  <li><b>Settings files</b> are generated from your configuration choices and written to both <code>{app}\local\settings.json</code> and <code>{app}\db\settings.json</code>.</li>
+  <li><b>Settings files</b> are written with default values to both <code>{app}\local\settings.json</code> and <code>{app}\db\settings.json</code>.</li>
   <li><b>Folder permissions</b> are set on the <code>local\</code> data directory. The installer runs <code>icacls</code> to grant Modify permissions to the <b>Users</b> group so that non-administrator user accounts can read and write application data.</li>
 </ul>
 
-<h3>8. Completion</h3>
+<h3>7. Completion</h3>
 <p>Once installation finishes you may choose to launch Library Manager immediately.</p>
 
 <h2>What Gets Installed</h2>
@@ -120,7 +93,7 @@
 <p>The installer supports Inno Setup&rsquo;s standard silent-install switches:</p>
 <div class="code"><pre>LibraryManager_v1.93.25_Setup.exe /SILENT
 LibraryManager_v1.93.25_Setup.exe /VERYSILENT /SUPPRESSMSGBOXES</pre></div>
-<p>In silent mode, default configuration values are used (system theme, GitHub links hidden). To create a desktop shortcut in silent mode, add <code>/TASKS="desktopicon"</code>.</p>
+<p>In silent mode, default configuration values are used. To create a desktop shortcut in silent mode, add <code>/TASKS="desktopicon"</code>.</p>
 <p><b>Note:</b> The Hamilton VENUS 6+ prerequisite check runs in both interactive and silent modes. If VENUS 6 or later is not installed, the silent installer will exit with a non-zero return code without installing anything.</p>
 
 <h2>Upgrading from a Previous Version</h2>

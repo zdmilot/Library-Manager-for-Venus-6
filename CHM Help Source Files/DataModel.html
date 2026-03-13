@@ -260,11 +260,9 @@
 <tr><td><code>history-days</code></td><td>number</td><td>Days threshold for run log cleanup (files older than this are processed)</td></tr>
 <tr><td><code>cleanup-action</code></td><td>string</td><td><code>"delete"</code> or <code>"archive"</code> - action to take on old run log files</td></tr>
 <tr><td><code>history-archive-folder</code></td><td>string</td><td>Directory path for archived run log files (defaults to system temp directory)</td></tr>
-<tr><td><code>chk_darkMode</code></td><td>boolean</td><td>Night mode (dark theme) &mdash; retained between sessions</td></tr>
+<tr><td><code>themeMode</code></td><td>string</td><td>Active theme mode (<code>"auto"</code>, <code>"light"</code>, or <code>"dark"</code>). Defaults to <code>"auto"</code> (follows the Windows system theme). Cycled via the toolbar theme toggle button.</td></tr>
 <tr><td><code>sysLibBackupComplete</code></td><td>boolean</td><td>Whether the first-run system library backup has been completed</td></tr>
-<tr><td><code>chk_useSystemTheme</code></td><td>boolean</td><td>Follow the Windows system light/dark theme instead of using the manual dark mode toggle</td></tr>
 <tr><td><code>sysLibMetadataComplete</code></td><td>boolean</td><td>Internal flag indicating system library metadata scan has been completed</td></tr>
-<tr><td><code>themeMode</code></td><td>string</td><td>Active theme mode (<code>"light"</code> or <code>"dark"</code>) &mdash; computed from <code>chk_darkMode</code> or system theme</td></tr>
 </tbody>
 </table>
 
