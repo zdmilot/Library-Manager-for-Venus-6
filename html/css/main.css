@@ -2255,10 +2255,7 @@ body.dark-mode .imp-sort-option.active {
 .imp-group-toggle:hover {
 	color: var(--medium2);
 }
-.imp-group-toggle .fa-layer-group-slash {
-	position: relative;
-}
-.imp-group-toggle .fa-layer-group-slash::after {
+.imp-group-toggle.grouping-off::after {
 	content: '';
 	position: absolute;
 	top: 50%;

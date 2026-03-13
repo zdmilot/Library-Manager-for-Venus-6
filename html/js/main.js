@@ -5770,7 +5770,7 @@
 
 			//setting - Library grouping (default on)
 			_groupingEnabled = settings["chk_groupLibraries"] !== false;
-			$("#imp-group-toggle i").removeClass("fa-layer-group fa-layer-group-slash").addClass(_groupingEnabled ? "fa-layer-group" : "fa-layer-group-slash");
+			$("#imp-group-toggle").toggleClass("grouping-off", !_groupingEnabled);
 			$("#imp-group-toggle").attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
 
 			//setting - Unsigned libraries
@@ -13429,7 +13429,7 @@
 		// ---- Group toggle button ----
 		$(document).on("click", "#imp-group-toggle", function() {
 			_groupingEnabled = !_groupingEnabled;
-			$(this).find("i").removeClass("fa-layer-group fa-layer-group-slash").addClass(_groupingEnabled ? "fa-layer-group" : "fa-layer-group-slash");
+			$(this).toggleClass("grouping-off", !_groupingEnabled);
 			$(this).attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
 			saveSetting('chk_groupLibraries', _groupingEnabled);
 			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
