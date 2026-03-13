@@ -2747,6 +2747,65 @@
 	</div>
 	<!---- Modal File Type Mismatch Warning end --->
 
+	<!---- Modal App Info (styled replacement for native alert) start --->
+	<div class="modal" tabindex="-1" role="dialog" id="appInfoModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:420px;">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="detail-modal-icon mr-3">
+							<i class="fas fa-info-circle fa-2x app-info-icon"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0 app-info-title"></h5>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body" style="text-align:center; padding:28px 24px;">
+					<p class="app-info-message mb-0" style="font-size:1rem;"></p>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-center">
+					<button type="button" class="btn solid-button px-5" data-dismiss="modal">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal App Info end --->
+
+	<!---- Modal App Confirm (styled replacement for native confirm) start --->
+	<div class="modal" tabindex="-1" role="dialog" id="appConfirmModal" data-backdrop="static" data-keyboard="false">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:440px;">
+			<div class="modal-content app-confirm-content">
+				<div class="modal-header app-confirm-header">
+					<div class="d-flex align-items-center">
+						<div class="app-confirm-header-icon mr-3">
+							<i class="fas fa-trash-alt fa-2x app-confirm-icon"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0 app-confirm-title"></h5>
+						</div>
+					</div>
+					<button type="button" class="close app-confirm-cancel-x" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body app-confirm-body">
+					<p class="app-confirm-message mb-0"></p>
+				</div>
+				<div class="modal-footer app-confirm-footer">
+					<button type="button" class="btn btn-outlined app-confirm-cancel-btn">Cancel</button>
+					<button type="button" class="btn btn-danger app-confirm-ok-btn">
+						<i class="fas fa-trash-alt mr-1"></i>Delete
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal App Confirm end --->
+
 	<!---- Modal About start --->
 	<div class="modal" tabindex="-1" role="dialog" id="aboutModal">
 		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:540px;">

@@ -1481,6 +1481,53 @@
 			});
 		}
 
+		/**
+		 * Show a styled info modal (replaces native alert).
+		 * @param {string} title - Modal title text
+		 * @param {string} message - Body message text
+		 * @param {string} [iconClass] - Font Awesome icon class (default: 'fa-info-circle')
+		 */
+		function showAppInfo(title, message, iconClass) {
+			var $m = $("#appInfoModal");
+			$m.find(".app-info-title").text(title);
+			$m.find(".app-info-message").text(message);
+			$m.find(".app-info-icon").attr('class', 'fas ' + (iconClass || 'fa-info-circle') + ' fa-2x app-info-icon');
+			$m.modal('show');
+		}
+
+		/**
+		 * Show a styled confirm modal (replaces native confirm). Returns a Promise<boolean>.
+		 * @param {string} title - Modal title text
+		 * @param {string} message - Body message HTML
+		 * @param {Object} [opts] - Options: iconClass, confirmLabel, confirmIcon
+		 */
+		function showAppConfirm(title, message, opts) {
+			opts = opts || {};
+			return new Promise(function(resolve) {
+				var $m = $("#appConfirmModal");
+				$m.find(".app-confirm-title").text(title);
+				$m.find(".app-confirm-message").html(message);
+				$m.find(".app-confirm-icon").attr('class', 'fas ' + (opts.iconClass || 'fa-trash-alt') + ' fa-2x app-confirm-icon');
+				var $okBtn = $m.find(".app-confirm-ok-btn");
+				$okBtn.html('<i class="fas ' + (opts.confirmIcon || 'fa-trash-alt') + ' mr-1"></i>' + (opts.confirmLabel || 'Delete'));
+				$m.data('resolved', false);
+				$okBtn.off('click.appconfirm').on('click.appconfirm', function() {
+					$m.data('resolved', true);
+					$m.modal('hide');
+					resolve(true);
+				});
+				$m.find(".app-confirm-cancel-btn, .app-confirm-cancel-x").off('click.appconfirm').on('click.appconfirm', function() {
+					$m.data('resolved', true);
+					$m.modal('hide');
+					resolve(false);
+				});
+				$m.off('hidden.bs.modal.appconfirm').on('hidden.bs.modal.appconfirm', function() {
+					if (!$m.data('resolved')) resolve(false);
+				});
+				$m.modal('show');
+			});
+		}
+
 		/** Check if a library ID belongs to a system library */
 		function isSystemLibrary(libId) {
 			if (!libId) return false;
@@ -2579,14 +2626,14 @@
 					$("#chk_oemKeywordsEnabled").prop("checked", false);
 					_oemSessionKeywordsEnabled = false;
 					$(".oem-keywords-status").html('');
-					alert('Developer settings disabled.');
+					showAppInfo('Developer Settings', 'Developer settings disabled.', 'fa-cog');
 				} else {
 					// Enabling developer mode requires OEM password
 					var pwOk = await promptAuthorPassword();
 					if (pwOk) {
 						_oemSessionUnlocked = true;
 						applyOemSettingsVisibility(true);
-						alert('Developer settings enabled.');
+						showAppInfo('Developer Settings', 'Developer settings enabled.', 'fa-cog');
 					}
 				}
 			}
@@ -3314,7 +3361,13 @@
 			var $results = $("#search-modal-results");
 			var $count = $(".search-modal-count");
 			if (!state || !state.hasSearch) {
-				$results.empty();
+				$results.html(
+					'<div class="search-modal-hint">' +
+						'<i class="fas fa-search"></i>' +
+						'<p>Search your installed and system libraries</p>' +
+						'<div class="search-hint-keys">Use <kbd>#</kbd> for tags and <kbd>@</kbd> for authors</div>' +
+					'</div>'
+				);
 				$count.text('');
 				$('.search-modal-footer-info').text('');
 				return;
@@ -3356,8 +3409,14 @@
 						name: lib.library_name || 'Unknown',
 						version: lib.version || '',
 						author: lib.author || '',
+						organization: lib.organization || '',
 						description: lib.description || '',
 						tags: lib.tags || [],
+						installedDate: lib.installed_date || '',
+						imageBase64: lib.library_image_base64 || '',
+						imageMime: lib.library_image_mime || '',
+						imageFile: lib.library_image || '',
+						publisherCert: lib.publisher_cert || null,
 						isSystem: false
 					});
 				} else {
@@ -3367,8 +3426,14 @@
 						name: sLib.display_name || sLib.canonical_name || 'Unknown',
 						version: '',
 						author: sLib.author || 'Hamilton',
+						organization: '',
 						description: '',
 						tags: [],
+						installedDate: '',
+						imageBase64: '',
+						imageMime: '',
+						imageFile: '',
+						publisherCert: null,
 						isSystem: true
 					});
 				}
@@ -3392,39 +3457,76 @@
 
 			var html = '';
 			results.forEach(function(r) {
+				// Icon: library image or fallback
 				var iconClass = r.isSystem ? 'system-icon' : '';
-				var icon = r.isSystem
-					? '<i class="fas fa-lock" style="color:#adb5bd;"></i>'
-					: '<i class="fas fa-book" style="color:var(--medium);"></i>';
+				var iconInner;
+				if (r.imageBase64) {
+					var mime = r.imageMime || 'image/bmp';
+					if (!r.imageMime && r.imageFile) {
+						var ext = (r.imageFile || '').split('.').pop().toLowerCase();
+						if (IMAGE_MIME_MAP[ext]) mime = IMAGE_MIME_MAP[ext];
+					}
+					iconInner = '<img src="data:' + mime + ';base64,' + r.imageBase64 + '">';
+					iconClass = ''; // image fills the rounded rect
+				} else if (r.isSystem) {
+					iconInner = '<i class="fas fa-lock" style="color:#adb5bd;"></i>';
+				} else {
+					iconInner = '<i class="fas fa-book" style="color:var(--medium);"></i>';
+				}
+
+				// Header line: name + version + type badge
 				var versionHtml = r.version ? '<span class="search-modal-result-version">v' + escapeHtml(r.version) + '</span>' : '';
 				var typeBadge = r.isSystem
 					? '<span class="search-modal-result-type type-system">System</span>'
 					: '<span class="search-modal-result-type type-user">Installed</span>';
-				var authorHtml = r.author ? '<span class="search-modal-result-author"><i class="far fa-user mr-1"></i>' + escapeHtml(r.author) + '</span>' : '';
-				var descHtml = r.description ? '<div class="search-modal-result-desc">' + escapeHtml(r.description) + '</div>' : '';
 
+				// Description
+				var descHtml = r.description
+					? '<div class="search-modal-result-desc">' + escapeHtml(r.description) + '</div>'
+					: '';
+
+				// Tags
 				var tagsHtml = '';
 				if (r.tags && r.tags.length > 0) {
 					tagsHtml = '<div class="search-modal-result-tags">';
 					var maxTags = Math.min(r.tags.length, 5);
 					for (var t = 0; t < maxTags; t++) {
-						tagsHtml += '<span class="search-modal-result-tag">' + escapeHtml(r.tags[t]) + '</span>';
+						tagsHtml += '<span class="search-modal-result-tag"><i class="fas fa-tag"></i>' + escapeHtml(r.tags[t]) + '</span>';
 					}
 					if (r.tags.length > 5) {
-						tagsHtml += '<span class="search-modal-result-tag">+' + (r.tags.length - 5) + '</span>';
+						tagsHtml += '<span class="search-modal-result-tag">+' + (r.tags.length - 5) + ' more</span>';
 					}
 					tagsHtml += '</div>';
 				}
 
+				// Right-side meta column: author, organization, date, signed badge
+				var metaHtml = '<div class="search-modal-result-meta">';
+				if (r.author) {
+					metaHtml += '<span class="search-modal-result-author"><i class="far fa-user mr-1"></i>' + escapeHtml(r.author) + '</span>';
+				}
+				if (r.organization) {
+					metaHtml += '<span class="search-modal-result-org"><i class="far fa-building mr-1"></i>' + escapeHtml(r.organization) + '</span>';
+				}
+				if (r.installedDate) {
+					var dateStr = new Date(r.installedDate).toLocaleDateString();
+					metaHtml += '<span class="search-modal-result-date"><i class="far fa-calendar-alt mr-1"></i>' + escapeHtml(dateStr) + '</span>';
+				}
+				if (r.publisherCert) {
+					metaHtml += '<span class="search-modal-result-signed"><i class="fas fa-shield-alt"></i>Signed</span>';
+				}
+				metaHtml += '</div>';
+
 				html += '<div class="search-modal-result" data-lib-id="' + escapeHtml(r.id) + '">' +
-					'<div class="search-modal-result-icon ' + iconClass + '">' + icon + '</div>' +
-					'<div class="search-modal-result-info">' +
-						'<div class="search-modal-result-name">' + escapeHtml(r.name) + versionHtml + typeBadge + '</div>' +
-						(authorHtml ? '<div class="search-modal-result-meta">' + authorHtml + '</div>' : '') +
+					'<div class="search-modal-result-icon ' + iconClass + '">' + iconInner + '</div>' +
+					'<div class="search-modal-result-body">' +
+						'<div class="search-modal-result-header">' +
+							'<span class="search-modal-result-name">' + escapeHtml(r.name) + '</span>' +
+							versionHtml + typeBadge +
+						'</div>' +
 						descHtml +
 						tagsHtml +
 					'</div>' +
-					'<i class="fas fa-chevron-right search-modal-result-arrow"></i>' +
+					metaHtml +
 				'</div>';
 			});
 
@@ -6256,6 +6358,8 @@
 		var pkg_installSubdir = null;  // global install subdir: null = default (library name), '' = root, string = custom subdir
 		var pkg_libEmptyFolders = [];      // empty folders for library tree
 		var pkg_demoEmptyFolders = [];     // empty folders for demo tree
+		var pkg_libNameFolderDeleted = false;   // user explicitly deleted library-name folder in lib tree
+		var pkg_demoLibNameFolderDeleted = false; // user explicitly deleted library-name folder in demo tree
 		var pkg_iconFilePath = null;   // custom icon/image path chosen by user
 		var pkg_iconAutoDetected = false;     // true if current preview is from auto-detected BMP
 		var pkg_iconAutoDetectedPath = null;  // file path of the auto-detected BMP
@@ -7163,6 +7267,9 @@
 		 * library files from the installed location to the file lists.
 		 */
 		function pkgPopulateFromExistingLibrary(libName, libType) {
+			pkg_libNameFolderDeleted = false;
+			pkg_demoLibNameFolderDeleted = false;
+			pkg_binLibNameFolderDeleted = false;
 			if (libType === 'installed') {
 				// Find the latest version of this library
 				var installedLibs = db_installed_libs.installed_libs.find() || [];
@@ -7478,17 +7585,17 @@
 			if (pkg_libraryFiles.length === 0 && pkg_libEmptyFolders.length === 0) {
 				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 				var emptyTree = { children: {}, files: [] };
-				emptyTree.children[libName] = { children: {}, files: [] };
+				if (!pkg_libNameFolderDeleted) emptyTree.children[libName] = { children: {}, files: [] };
 				var rootPath = pkg_installSubdir !== null ? ftGetInstallPath('pkg-lib-list') : '...\\Hamilton\\Library\\';
 				$list.html(ftBuildHtml(emptyTree, 'Library', 0, function() { return ''; }, rootPath));
-				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
+				if (!pkg_libNameFolderDeleted) $list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
 			} else {
 				var tree = ftBuildTree(pkg_libraryFiles, function(f) {
 					return pkg_fileRelPaths[f] || path.basename(f);
 				});
-				// Ensure library-name subfolder always exists in tree
+				// Ensure library-name subfolder always exists in tree (unless user explicitly deleted it)
 				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
-				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+				if (!pkg_libNameFolderDeleted && !tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				pkg_libEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -7587,9 +7694,9 @@
 			if (pkg_demoMethodFiles.length === 0 && pkg_demoEmptyFolders.length === 0) {
 				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 				var emptyTree = { children: {}, files: [] };
-				emptyTree.children[libName] = { children: {}, files: [] };
+				if (!pkg_demoLibNameFolderDeleted) emptyTree.children[libName] = { children: {}, files: [] };
 				$list.html(ftBuildHtml(emptyTree, 'Demo Methods', 0, function() { return ''; }, '...\\Hamilton\\Methods\\Library Demo Methods\\'));
-				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
+				if (!pkg_demoLibNameFolderDeleted) $list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
 			} else {
 				var extIcons = {
 					'.hsl': 'fa-code', '.hs_': 'fa-code', '.hsi': 'fa-code',
@@ -7599,9 +7706,9 @@
 				var tree = ftBuildTree(pkg_demoMethodFiles, function(f) {
 					return pkg_fileRelPaths[f] || path.basename(f);
 				});
-				// Ensure library-name subfolder always exists in tree
+				// Ensure library-name subfolder always exists in tree (unless user explicitly deleted it)
 				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
-				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+				if (!pkg_demoLibNameFolderDeleted && !tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				pkg_demoEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -7632,6 +7739,7 @@
 		// ---- Labware file list tree renderer ----
 		var pkg_labwareEmptyFolders = [];
 		var pkg_binEmptyFolders = [];
+		var pkg_binLibNameFolderDeleted = false; // user explicitly deleted library-name folder in bin tree
 
 		function pkgUpdateLabwareFileList() {
 			var $tree = $("#pkg-labware-tree");
@@ -7706,9 +7814,9 @@
 			if (pkg_binFiles.length === 0 && pkg_binEmptyFolders.length === 0) {
 				var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
 				var emptyTree = { children: {}, files: [] };
-				emptyTree.children[libName] = { children: {}, files: [] };
+				if (!pkg_binLibNameFolderDeleted) emptyTree.children[libName] = { children: {}, files: [] };
 				$tree.html(ftBuildHtml(emptyTree, 'Bin', 0, function() { return ''; }, '...\\Hamilton\\Bin\\'));
-				$tree.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
+				if (!pkg_binLibNameFolderDeleted) $tree.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
 				$("#pkg-bin-count").text("0 files");
 				return;
 			}
@@ -7740,9 +7848,9 @@
 				}
 			});
 
-			// Ensure library-name subfolder always exists in tree
+			// Ensure library-name subfolder always exists in tree (unless user explicitly deleted it)
 			var libName = $("#pkg-library-name").val().trim() || '<libraryname>';
-			if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+			if (!pkg_binLibNameFolderDeleted && !tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 
 			var fileRowFn = function(f) {
 				var escapedPath = f.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -7894,7 +8002,7 @@
 		}
 
 		// ---- Delete folder button handler ----
-		$(document).on("click", ".ft-folder-delete", function(e) {
+		$(document).on("click", ".ft-folder-delete", async function(e) {
 			e.stopPropagation();
 			var $folderRow = $(this).closest(".ft-folder-row");
 			var $tree = $folderRow.closest(".pkg-file-tree");
@@ -7911,13 +8019,24 @@
 				filesToRemove.push($(this).attr("data-path"));
 			});
 
-			var msg = 'Delete folder "' + folderPath + '"';
+			var msg = 'Delete folder "<strong>' + escapeHtml(folderPath) + '</strong>"';
 			if (filesToRemove.length > 0) {
 				msg += ' and its ' + filesToRemove.length + ' file' + (filesToRemove.length !== 1 ? 's' : '') + '?';
 			} else {
 				msg += '?';
 			}
-			if (!confirm(msg)) return;
+			var confirmed = await showAppConfirm('Delete Folder', msg);
+			if (!confirmed) return;
+
+			// Track if this is the library-name folder so it stays deleted
+			var isLibNameFolder = $folderRow.hasClass('ft-libname-node');
+			if (isLibNameFolder) {
+				if (treeId === 'pkg-lib-list') pkg_libNameFolderDeleted = true;
+				else if (treeId === 'pkg-demo-list') pkg_demoLibNameFolderDeleted = true;
+				else if (treeId === 'pkg-bin-tree') pkg_binLibNameFolderDeleted = true;
+				else if (treeId === 'ulib-file-list') ulib_libNameFolderDeleted = true;
+				else if (treeId === 'ulib-demo-list') ulib_demoLibNameFolderDeleted = true;
+			}
 
 			// Remove files contained in this folder
 			if (filesToRemove.length > 0) {
@@ -8370,6 +8489,9 @@
 			pkg_binEmptyFolders = [];
 			pkg_libEmptyFolders = [];
 			pkg_demoEmptyFolders = [];
+			pkg_libNameFolderDeleted = false;
+			pkg_demoLibNameFolderDeleted = false;
+			pkg_binLibNameFolderDeleted = false;
 			_pkgLastClickedRow = {};
 			$(".pkg-installer-detail").hide();
 			$(".pkg-installer-empty-msg").show();
@@ -16093,6 +16215,8 @@
 		var ulib_fileRelPaths = {};       // absolutePath -> relative path within tree (preserves subfolder structure)
 		var ulib_libEmptyFolders = [];    // empty folders for library file tree
 		var ulib_demoEmptyFolders = [];   // empty folders for demo method file tree
+		var ulib_libNameFolderDeleted = false;   // user explicitly deleted library-name folder in ulib lib tree
+		var ulib_demoLibNameFolderDeleted = false; // user explicitly deleted library-name folder in ulib demo tree
 		var ulib_installSubdir = null;    // global install subdir: null = default (library name), '' = root, string = custom subdir
 		var ulib_iconBase64 = null;       // base64-encoded icon data (user-picked or from DB)
 		var ulib_iconMime = null;         // MIME type of the icon
@@ -16134,17 +16258,17 @@
 			if (ulib_allLibFiles.length === 0 && ulib_libEmptyFolders.length === 0) {
 				var libName = $("#ulib-name").val().trim() || '<libraryname>';
 				var emptyTree = { children: {}, files: [] };
-				emptyTree.children[libName] = { children: {}, files: [] };
+				if (!ulib_libNameFolderDeleted) emptyTree.children[libName] = { children: {}, files: [] };
 				var rootPath = ulib_installSubdir !== null ? ulibGetInstallPath('ulib-file-list') : '...\\Hamilton\\Library\\';
 				$list.html(ftBuildHtml(emptyTree, 'Library', 0, function() { return ''; }, rootPath));
-				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
+				if (!ulib_libNameFolderDeleted) $list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
 			} else {
 				var tree = ftBuildTree(ulib_allLibFiles, function(f) {
 					return ulib_fileRelPaths[f] || path.basename(f);
 				});
-				// Ensure library-name subfolder always exists in tree
+				// Ensure library-name subfolder always exists in tree (unless user explicitly deleted it)
 				var libName = $("#ulib-name").val().trim() || '<libraryname>';
-				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+				if (!ulib_libNameFolderDeleted && !tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				ulib_libEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -16192,9 +16316,9 @@
 			if (ulib_demoMethodFiles.length === 0 && ulib_demoEmptyFolders.length === 0) {
 				var libName = $("#ulib-name").val().trim() || '<libraryname>';
 				var emptyTree = { children: {}, files: [] };
-				emptyTree.children[libName] = { children: {}, files: [] };
+				if (!ulib_demoLibNameFolderDeleted) emptyTree.children[libName] = { children: {}, files: [] };
 				$list.html(ftBuildHtml(emptyTree, 'Demo Methods', 0, function() { return ''; }, '...\\Hamilton\\Methods\\Library Demo Methods\\'));
-				$list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
+				if (!ulib_demoLibNameFolderDeleted) $list.find('.ft-root-folder > .ft-branch > .ft-node > .ft-folder-row').addClass('ft-libname-node');
 			} else {
 				var extIcons = {
 					'.hsl': 'fa-code', '.hs_': 'fa-code', '.hsi': 'fa-code',
@@ -16204,9 +16328,9 @@
 				var tree = ftBuildTree(ulib_demoMethodFiles, function(f) {
 					return ulib_fileRelPaths[f] || path.basename(f);
 				});
-				// Ensure library-name subfolder always exists in tree
+				// Ensure library-name subfolder always exists in tree (unless user explicitly deleted it)
 				var libName = $("#ulib-name").val().trim() || '<libraryname>';
-				if (!tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
+				if (!ulib_demoLibNameFolderDeleted && !tree.children[libName]) tree.children[libName] = { children: {}, files: [] };
 				// Ensure user-created empty folders exist in the tree
 				ulib_demoEmptyFolders.forEach(function(folderPath) {
 					var parts = folderPath.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/, '').split('/');
@@ -16617,6 +16741,8 @@
 
 			// Initialize relative path map from DB record
 			ulib_fileRelPaths = {};
+			ulib_libNameFolderDeleted = false;
+			ulib_demoLibNameFolderDeleted = false;
 			// Discovered files: relative paths are the library_files entries themselves
 			(uLib.library_files || []).forEach(function(f) {
 				var absPath = path.join(libDir, f);
