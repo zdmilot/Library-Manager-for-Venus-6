@@ -3623,7 +3623,7 @@ body.dark-mode .imp-help-dropdown-menu .dropdown-item:hover {
 	font-size: 1.3rem;
 	background: linear-gradient(135deg, rgba(52,152,219,0.12) 0%, rgba(52,152,219,0.06) 100%);
 	border: 1px solid rgba(52,152,219,0.1);
-	margin-right: 16px;
+	margin-right: 24px;
 	overflow: hidden;
 }
 .search-modal-result-icon.system-icon {
