@@ -2404,13 +2404,13 @@
 			$('.settings-update-no-update').removeClass('d-none');
 		}
 
-		// ---- Secret flask icon click handler: 8 clicks to toggle OEM/developer settings ----
+		// ---- Secret cog icon click handler: 8 clicks to toggle OEM/developer settings ----
 		// OEM override state is session-only (in-memory); resets on app restart
 		var _oemSessionUnlocked = false;
 		var _oemSessionKeywordsEnabled = false;
 		var _flaskClickCount = 0;
 		var _flaskClickTimer = null;
-		$(document).on("click", "#about-flask-icon, #settings-about-flask-icon", async function () {
+		$(document).on("click", "#about-flask-icon, #settings-cog-icon", async function () {
 			_flaskClickCount++;
 			if (_flaskClickTimer) clearTimeout(_flaskClickTimer);
 			_flaskClickTimer = setTimeout(function () { _flaskClickCount = 0; }, 3000);
@@ -2429,7 +2429,6 @@
 					// Enabling developer mode requires OEM password
 					var pwOk = await promptAuthorPassword();
 					if (pwOk) {
-						$("#aboutModal").modal('hide');
 						_oemSessionUnlocked = true;
 						applyOemSettingsVisibility(true);
 						alert('Developer settings enabled.');
@@ -2439,7 +2438,7 @@
 		});
 
 		/** Show or hide OEM/developer settings sections.
-		 *  About stays first, Report a Bug second-to-last, Licenses always last. */
+		 *  Report a Bug second-to-last, Licenses always last. */
 		function applyOemSettingsVisibility(unlocked) {
 			if (unlocked) {
 				$("#settings-oem-keywords-section").show();
@@ -2450,9 +2449,8 @@
 				$("#pkg-installer-exe-section").hide();
 				$("#pkg-bin-files-section").hide();
 			}
-			// Ensure About stays first, Report a Bug second-to-last, Licenses last
+			// Ensure Report a Bug second-to-last, Licenses last
 			var $container = $(".settings-settings");
-			$("#settings-about-section").prependTo($container);
 			$("#settings-report-bug-section").appendTo($container);
 			$("#settings-licenses-section").appendTo($container);
 		}

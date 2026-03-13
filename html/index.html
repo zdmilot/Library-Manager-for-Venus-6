@@ -1568,7 +1568,7 @@
 				<div class="modal-header detail-modal-header">
 					<div class="d-flex align-items-center">
 						<div class="mr-3">
-							<i class="fas fa-cog fa-3x" style="color:var(--medium)"></i>
+							<i class="fas fa-cog fa-3x" id="settings-cog-icon" style="color:var(--medium); cursor:default; user-select:none;"></i>
 						</div>
 						<div>
 							<h5 class="modal-title mb-0">Settings</h5>
@@ -1581,20 +1581,7 @@
 				</div>
 				<div class="modal-body detail-modal-body">
 					<div class="settings-settings row no-gutters col-md-12">
-						<!-- About - always first -->
 						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-about-section">
-							<h6><i class="fas fa-flask mr-1" id="settings-about-flask-icon" style="cursor:default; user-select:none;"></i>About Library Manager</h6>
-							<div class="settings-about-info">
-								<p class="mb-2 text-sm"><strong>Author:</strong> Zachary Milot</p>
-								<p class="mb-1 text-sm">
-									<a href="#" class="settings-about-privacy-link">Privacy Policy</a>
-								</p>
-								<p class="mb-0 text-sm">
-									<a href="#" class="settings-about-terms-link">Terms of Use</a>
-								</p>
-							</div>
-						</div>
-						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Software Update</h6>
 							<div class="settings-sw-info mb-3">
 								<div class="d-flex flex-wrap text-sm text-muted settings-sw-info-row">
@@ -1620,6 +1607,16 @@
 									<span class="text-muted text-sm ml-3 settings-update-version"></span>
 								</div>
 							</div>
+							<hr class="my-3">
+							<div class="settings-about-info">
+								<p class="mb-2 text-sm"><strong>Author:</strong> Zachary Milot</p>
+								<p class="mb-1 text-sm">
+									<a href="#" class="settings-about-privacy-link">Privacy Policy</a>
+								</p>
+								<p class="mb-0 text-sm">
+									<a href="#" class="settings-about-terms-link">Terms of Use</a>
+								</p>
+							</div>
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Installation</h6>
@@ -1636,7 +1633,7 @@
 						</div>
 
 						<div class="settings-section col-md-12 p-3 no-gutters">
-							<h6>Audit Trail Enforcement</h6>
+							<h6>Audit Trail</h6>
 							<small class="text-muted d-block mb-2">Actions are always logged in history, but these options ensure comments and signatures are included for audit trail accountability.</small>
 							<div class="custom-control custom-checkbox">
 								<input type="checkbox" class="custom-control-input" id="chk_requireActionComment">
@@ -1757,7 +1754,7 @@
 						</div>
 
 						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-oem-keywords-section" style="display:none;">
-							<h6><i class="fas fa-industry mr-1"></i>OEM Authors &amp; Organizations</h6>
+							<h6>OEM Authors &amp; Organizations</h6>
 							<small class="text-muted d-block mb-2">When enabled, restricted OEM author and organization names can be used for library packaging during this session.</small>
 							<div class="custom-control custom-checkbox">
 								<input type="checkbox" class="custom-control-input" id="chk_oemKeywordsEnabled">
@@ -1768,7 +1765,7 @@
 
 						<!-- Report a Bug - always second-to-last -->
 						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-report-bug-section">
-							<h6><i class="fas fa-bug mr-1"></i>Report a Bug</h6>
+							<h6>Report a Bug</h6>
 							<p class="text-muted text-sm mb-2">You can report bugs, request features, or ask questions by opening an issue on GitHub.</p>
 							<a href="https://github.com/zdmilot/Library-Manager/issues" target="_blank" class="btn btn-sm btn-outlined settings-report-bug-link">
 								<i class="fas fa-external-link-alt mr-1"></i>Open GitHub Issues
@@ -1781,7 +1778,7 @@
 						<!-- Third-Party Licenses - always last -->
 						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-licenses-section">
 							<div class="settings-about-attributions">
-								<h6 class="mb-2"><i class="fas fa-balance-scale mr-1"></i>Third-Party Licenses</h6>
+								<h6 class="mb-2">Third-Party Licenses</h6>
 								<div style="font-size:0.8rem;">
 									<table class="table table-sm table-borderless mb-0 about-license-table">
 										<thead>
