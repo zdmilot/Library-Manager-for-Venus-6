@@ -222,8 +222,6 @@
 									<a class="dropdown-item overflow-export-archive" href="#"><i class="fas fa-file-archive mr-2"></i>Export Archive</a>
 									<a class="dropdown-item overflow-settings" href="#"><i class="fas fa-cog mr-2"></i>Settings<span class="settings-update-dot d-none"></span></a>
 									<a class="dropdown-item overflow-help" href="#"><i class="fas fa-question-circle mr-2"></i>Help</a>
-									<a class="dropdown-item overflow-report-issue" href="#"><i class="fas fa-bug mr-2"></i>Report Issue</a>
-									<a class="dropdown-item overflow-about" href="#"><i class="fas fa-info-circle mr-2"></i>About</a>
 								</div>
 							</div>
 						</div>
@@ -1585,6 +1583,14 @@
 					<div class="settings-settings row no-gutters col-md-12">
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Software Update</h6>
+							<div class="settings-sw-info mb-3">
+								<div class="d-flex flex-wrap text-sm text-muted settings-sw-info-row">
+									<span class="mr-3"><strong>Version:</strong> <span class="settings-sw-version"></span></span>
+									<span class="mr-3"><strong>Build:</strong> <span class="settings-sw-build"></span></span>
+									<span class="mr-3"><strong>OS:</strong> <span class="settings-sw-os"></span></span>
+									<span><strong>VENUS:</strong> <span class="settings-sw-venus"></span></span>
+								</div>
+							</div>
 							<div class="settings-update-no-update">
 								<div class="d-flex align-items-center">
 									<button class="btn btn-sm btn-outlined" type="button" id="btn-settings-update-check"><i class="fas fa-arrows-rotate mr-1"></i>Check for Updates</button>
@@ -1745,6 +1751,80 @@
 								<label class="custom-control-label" for="chk_oemKeywordsEnabled">Enable OEM restricted authors and organizations</label>
 							</div>
 							<small class="text-muted ml-4 d-block mt-1 oem-keywords-status"></small>
+						</div>
+
+						<!-- Report a Bug - always second-to-last -->
+						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-report-bug-section">
+							<h6><i class="fas fa-bug mr-1"></i>Report a Bug</h6>
+							<p class="text-muted text-sm mb-2">You can report bugs, request features, or ask questions by opening an issue on GitHub.</p>
+							<a href="https://github.com/zdmilot/Library-Manager/issues" target="_blank" class="btn btn-sm btn-outlined settings-report-bug-link">
+								<i class="fas fa-external-link-alt mr-1"></i>Open GitHub Issues
+							</a>
+							<div class="mt-2">
+								<small class="text-muted"><i class="fas fa-exclamation-triangle mr-1" style="color:var(--warning-color, #e67e22);"></i>Do not include sensitive information in public issue reports.</small>
+							</div>
+						</div>
+
+						<!-- About - always last -->
+						<div class="settings-section col-md-12 p-3 no-gutters" id="settings-about-section">
+							<h6><i class="fas fa-flask mr-1" id="settings-about-flask-icon" style="cursor:default; user-select:none;"></i>About Library Manager</h6>
+							<div class="settings-about-info">
+								<p class="mb-2 text-sm"><strong>Author:</strong> Zachary Milot</p>
+								<p class="mb-1 text-sm">
+									<a href="#" class="settings-about-privacy-link">Privacy Policy</a>
+								</p>
+								<p class="mb-0 text-sm">
+									<a href="#" class="settings-about-terms-link">Terms of Use</a>
+								</p>
+							</div>
+							<hr class="my-3">
+							<div class="settings-about-attributions">
+								<h6 class="mb-2"><i class="fas fa-balance-scale mr-1"></i>Third-Party Licenses</h6>
+								<div style="font-size:0.8rem;">
+									<table class="table table-sm table-borderless mb-0 about-license-table">
+										<thead>
+											<tr>
+												<th class="py-1">Component</th>
+												<th class="py-1">License</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td class="py-1">Bootstrap v4.4.1</td>
+												<td class="py-1">MIT &ndash; &copy; 2011-2019 Twitter, Inc. &amp; The Bootstrap Authors</td>
+											</tr>
+											<tr>
+												<td class="py-1">jQuery v2.1.3</td>
+												<td class="py-1">MIT &ndash; &copy; 2005, 2014 jQuery Foundation, Inc.</td>
+											</tr>
+											<tr>
+												<td class="py-1">jQuery UI v1.12.1</td>
+												<td class="py-1">MIT &ndash; &copy; jQuery Foundation and other contributors</td>
+											</tr>
+											<tr>
+												<td class="py-1">Popper.js v1.x</td>
+												<td class="py-1">MIT &ndash; &copy; 2017 Federico Zivolo</td>
+											</tr>
+											<tr>
+												<td class="py-1">Font Awesome Pro 5.15.1</td>
+												<td class="py-1">Commercial License &ndash; &copy; Fonticons, Inc.</td>
+											</tr>
+											<tr>
+												<td class="py-1">adm-zip</td>
+												<td class="py-1">MIT &ndash; &copy; 2012 Alon Bar-David</td>
+											</tr>
+											<tr>
+												<td class="py-1">diskdb</td>
+												<td class="py-1">MIT &ndash; &copy; Arvind Ravulavaru</td>
+											</tr>
+											<tr>
+												<td class="py-1">NW.js (runtime)</td>
+												<td class="py-1">MIT &ndash; &copy; The Chromium Authors &amp; NW.js contributors</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

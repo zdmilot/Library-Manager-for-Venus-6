@@ -339,6 +339,22 @@ body {
 	margin-bottom: 20px;
 }
 
+.settings-sw-info-row {
+	line-height: 1.8;
+}
+
+.settings-sw-info-row span {
+	white-space: nowrap;
+}
+
+.settings-about-info a {
+	color: var(--medium);
+}
+
+.settings-about-info a:hover {
+	text-decoration: underline;
+}
+
 .custom-checkbox .custom-control-input:checked~.custom-control-label::before
 {
     background-color: var(--solid-button-background);

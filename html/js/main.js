@@ -2410,7 +2410,7 @@
 		var _oemSessionKeywordsEnabled = false;
 		var _flaskClickCount = 0;
 		var _flaskClickTimer = null;
-		$(document).on("click", "#about-flask-icon", async function () {
+		$(document).on("click", "#about-flask-icon, #settings-about-flask-icon", async function () {
 			_flaskClickCount++;
 			if (_flaskClickTimer) clearTimeout(_flaskClickTimer);
 			_flaskClickTimer = setTimeout(function () { _flaskClickCount = 0; }, 3000);
@@ -2438,7 +2438,8 @@
 			}
 		});
 
-		/** Show or hide OEM/developer settings sections */
+		/** Show or hide OEM/developer settings sections.
+		 *  Report a Bug and About always stay last (in that order). */
 		function applyOemSettingsVisibility(unlocked) {
 			if (unlocked) {
 				$("#settings-oem-keywords-section").show();
@@ -2449,6 +2450,10 @@
 				$("#pkg-installer-exe-section").hide();
 				$("#pkg-bin-files-section").hide();
 			}
+			// Ensure Report a Bug + About are always the last two sections
+			var $container = $(".settings-settings");
+			$("#settings-report-bug-section").appendTo($container);
+			$("#settings-about-section").appendTo($container);
 		}
 
 		//Click privacy policy link inside About modal.
@@ -2506,6 +2511,90 @@
 			$(".btn-overflow-toggle").attr("aria-expanded", "false");
 			$("#settingsModal").modal("show");
 			return false;
+		});
+
+		// Populate Software Update section info when settings modal opens
+		$("#settingsModal").on("show.bs.modal", function () {
+			// Version
+			var appVersion = '';
+			var buildNumber = '';
+			try {
+				if (typeof nw !== 'undefined' && nw.App && nw.App.manifest) {
+					appVersion = nw.App.manifest.version || '';
+					buildNumber = nw.App.manifest.build || '';
+				} else {
+					var pkgPath = path.join(path.dirname(process.execPath), 'package.json');
+					var pkgData = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+					appVersion = pkgData.version || '';
+					buildNumber = pkgData.build || '';
+				}
+			} catch (_) {}
+			$(".settings-sw-version").text(appVersion || 'N/A');
+			$(".settings-sw-build").text(buildNumber || appVersion || 'N/A');
+
+			// OS
+			try {
+				var winRelease = os.release();
+				var winVersion = 'Windows ' + winRelease;
+				try {
+					var execSync = require('child_process').execSync;
+					var prodName = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion" /v ProductName', { encoding: 'utf8', timeout: 5000 });
+					var pnMatch = prodName.match(/ProductName\s+REG_SZ\s+(.+)/i);
+					if (pnMatch) {
+						winVersion = pnMatch[1].trim() + ' (Build ' + winRelease + ')';
+					}
+				} catch (_) {}
+				$(".settings-sw-os").text(winVersion);
+			} catch (_) {
+				$(".settings-sw-os").text('N/A');
+			}
+
+			// VENUS
+			try {
+				var venusVer = _cachedVENUSVersion;
+				if (!venusVer) {
+					var vInfo = getVENUSInstallInfo();
+					venusVer = vInfo.version || '';
+					if (venusVer) _cachedVENUSVersion = venusVer;
+				}
+				$(".settings-sw-venus").text(venusVer || 'Not detected');
+			} catch (_) {
+				$(".settings-sw-venus").text('Not detected');
+			}
+		});
+
+		// Privacy policy link inside settings About section
+		$(document).on("click", ".settings-about-privacy-link", function (e) {
+			e.preventDefault();
+			$("#settingsModal").modal("hide");
+			try {
+				var policyPath = path.join(path.dirname(process.execPath), 'PRIVACY_POLICY.txt');
+				var policyText = fs.readFileSync(policyPath, 'utf8');
+				$(".privacy-policy-text").text(policyText);
+			} catch (ex) {
+				$(".privacy-policy-text").text("Privacy policy file not found.");
+			}
+			$("#privacyPolicyModal").modal("show");
+		});
+
+		// Terms of use link inside settings About section
+		$(document).on("click", ".settings-about-terms-link", function (e) {
+			e.preventDefault();
+			$("#settingsModal").modal("hide");
+			try {
+				var termsPath = path.join(path.dirname(process.execPath), 'TERMS_OF_USE.txt');
+				var termsText = fs.readFileSync(termsPath, 'utf8');
+				$(".terms-of-use-text").text(termsText);
+			} catch (ex) {
+				$(".terms-of-use-text").text("Terms of use file not found.");
+			}
+			$("#termsOfUseModal").modal("show");
+		});
+
+		// Report a bug link in settings - open via NW.js shell
+		$(document).on("click", ".settings-report-bug-link", function (e) {
+			e.preventDefault();
+			nw.Shell.openExternal('https://github.com/zdmilot/Library-Manager/issues');
 		});
 
 		// New group button inside the groups modal
