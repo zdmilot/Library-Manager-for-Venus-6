@@ -5924,20 +5924,12 @@
 			return _oemSessionKeywordsEnabled && _oemSessionUnlocked;
 		}
 
-		// ---- OEM Keywords toggle handler: require password to enable ----
-		$(document).on("click", "#chk_oemKeywordsEnabled", async function () {
+		// ---- OEM Keywords toggle handler: no password needed since developer mode already verified ----
+		$(document).on("click", "#chk_oemKeywordsEnabled", function () {
 			var isChecked = $(this).is(":checked");
 			if (isChecked) {
-				// Require OEM password to enable
-				var pwOk = await promptAuthorPassword();
-				if (pwOk) {
-					_oemSessionKeywordsEnabled = true;
-					$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
-				} else {
-					$(this).prop("checked", false);
-					$(".oem-keywords-status").html('<i class="fas fa-times-circle text-danger mr-1"></i>Authorization failed.');
-					setTimeout(function() { $(".oem-keywords-status").html(''); }, 3000);
-				}
+				_oemSessionKeywordsEnabled = true;
+				$(".oem-keywords-status").html('<i class="fas fa-check-circle text-success mr-1"></i>OEM keywords authorized. Password prompt is bypassed.');
 			} else {
 				_oemSessionKeywordsEnabled = false;
 				$(".oem-keywords-status").html('');
