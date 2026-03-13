@@ -2367,12 +2367,22 @@
 			}, 200);
 		});
 
+		// When update modal shows on top of settings, adjust backdrop z-index
+		$('#updateModal').on('shown.bs.modal', function () {
+			// Set the last backdrop above the settings modal
+			$('.modal-backdrop').last().css('z-index', 1055);
+		});
+
 		// Reset modal state when hidden
 		$('#updateModal').on('hidden.bs.modal', function () {
 			$('.update-download-bar').css('width', '0%').attr('aria-valuenow', 0);
 			$('.update-download-pct').text('0%');
 			$('#update-close-btn').prop('disabled', false).text('Close');
 			$('#updateModal').removeAttr('data-backdrop').removeAttr('data-keyboard');
+			// If settings modal is still open, restore modal-open on body
+			if ($('#settingsModal').hasClass('show')) {
+				$('body').addClass('modal-open');
+			}
 		});
 
 		/** Show all update-available indicators (badge, settings dot, settings section) */
@@ -3972,6 +3982,11 @@
 
 		//Settings > Installation: retain embedded installers
 		$(document).on("click", "#chk_retainInstallers", function(){
+			saveSetting($(this).attr("id"), $(this).prop("checked"));
+		});
+
+		//Settings > Software Update: auto-check for updates
+		$(document).on("click", "#chk_autoUpdate", function(){
 			saveSetting($(this).attr("id"), $(this).prop("checked"));
 		});
 
@@ -5603,6 +5618,9 @@
 
 			//setting - Installation: retain embedded installers on import
 			$("#chk_retainInstallers").prop("checked", !!settings["chk_retainInstallers"]);
+
+			//setting - Software Update: auto-check for updates (default on)
+			$("#chk_autoUpdate").prop("checked", settings["chk_autoUpdate"] !== false);
 
 			//setting - Display: hide system libraries
 			$("#chk_hideSystemLibraries").prop("checked", !!settings["chk_hideSystemLibraries"]);

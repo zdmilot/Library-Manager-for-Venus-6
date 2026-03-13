@@ -4659,10 +4659,6 @@ body.dark-mode .pkg-com-label {
 #updateModal {
 	z-index: 1060;
 }
-#updateModal + .modal-backdrop,
-#updateModal ~ .modal-backdrop:last-of-type {
-	z-index: 1055;
-}
 
 .update-modal-body {
 	padding: 20px 24px;
