@@ -2444,8 +2444,9 @@
 				$("#pkg-installer-exe-section").hide();
 				$("#pkg-bin-files-section").hide();
 			}
-			// Ensure Report a Bug second-to-last, Licenses last
+			// Ensure About, Report a Bug, Licenses stay at the bottom in that order
 			var $container = $(".settings-settings");
+			$("#settings-about-info-section").appendTo($container);
 			$("#settings-report-bug-section").appendTo($container);
 			$("#settings-licenses-section").appendTo($container);
 		}
