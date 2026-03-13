@@ -56,14 +56,11 @@ WelcomeLabel2=This will install [name/ver] on your computer.%n%nLibrary Manager 
 ; The upgrade welcome text is set dynamically in InitializeWizard.
 
 ; ============================================================================
-; Custom Pages (Pascal Script tasks: Dark Mode)
+; Custom Pages (Pascal Script tasks)
 ; ============================================================================
 
 [Code]
 var
-  ConfigPage: TWizardPage;
-  DarkModeCheckbox: TNewCheckBox;
-  IsDarkMode: Boolean;
   TermsPage: TWizardPage;
   TermsMemo: TNewMemo;
   AcceptCheckbox: TNewCheckBox;
@@ -294,32 +291,6 @@ begin
   AcceptCheckbox.Anchors := [akLeft, akBottom, akRight];
   AcceptCheckbox.Checked := False;
   AcceptCheckbox.OnClick := @AcceptCheckboxClick;
-
-  // -----------------------------------------------------------------------
-  // Custom configuration page
-  // -----------------------------------------------------------------------
-  ConfigPage := CreateCustomPage(
-    wpSelectDir,
-    'Application Configuration',
-    'Choose the default settings for Library Manager.'
-  );
-
-  // === Section 1: Appearance ===
-  SectionLabel := TNewStaticText.Create(WizardForm);
-  SectionLabel.Parent := ConfigPage.Surface;
-  SectionLabel.Caption := 'Appearance';
-  SectionLabel.Top := 4;
-  SectionLabel.Left := 0;
-  SectionLabel.Font.Style := [fsBold];
-  SectionLabel.Font.Size := 9;
-
-  DarkModeCheckbox := TNewCheckBox.Create(WizardForm);
-  DarkModeCheckbox.Parent := ConfigPage.Surface;
-  DarkModeCheckbox.Caption := 'Always use dark mode (otherwise follows system setting)';
-  DarkModeCheckbox.Top := SectionLabel.Top + SectionLabel.Height + 8;
-  DarkModeCheckbox.Left := 8;
-  DarkModeCheckbox.Width := ConfigPage.SurfaceWidth - 16;
-  DarkModeCheckbox.Checked := False;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
@@ -334,12 +305,11 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
 
-  // On upgrade, skip Terms and Configuration pages
+  // On upgrade, skip Terms page
   // — user data and settings are preserved from the previous install.
   if gIsUpgrade then
   begin
-    if (PageID = TermsPage.ID) or
-       (PageID = ConfigPage.ID) then
+    if (PageID = TermsPage.ID) then
     begin
       Result := True;
       Exit;
@@ -419,12 +389,7 @@ begin
 
   // Application Configuration Summary
   Memo := Memo + 'Application Configuration:' + NewLine;
-
-  Memo := Memo + Space + 'Theme: ';
-  if DarkModeCheckbox.Checked then
-    Memo := Memo + 'Always Dark Mode' + NewLine
-  else
-    Memo := Memo + 'Use System Setting' + NewLine;
+  Memo := Memo + Space + 'Theme: Auto (follows system setting)' + NewLine;
 
   Result := Memo;
 end;
@@ -435,13 +400,7 @@ end;
 procedure WriteSettingsFile(const SettingsPath: String);
 var
   Json: String;
-  DarkVal: String;
 begin
-  if DarkModeCheckbox.Checked then
-    DarkVal := 'dark'
-  else
-    DarkVal := 'system';
-
   Json := '[{"_id":"0",' +
     '"recent-max":"20",' +
     '"chk_confirmBeforeInstall":true,' +
@@ -453,7 +412,7 @@ begin
     '"starred_libs":[],' +
     '"chk_requireActionComment":true,' +
     '"chk_requireActionSignature":false,' +
-    '"themeMode":"' + DarkVal + '",' +
+    '"themeMode":"auto",' +
     '"chk_showGitHubLinks":false' +
     '}]';
 

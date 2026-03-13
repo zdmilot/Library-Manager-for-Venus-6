@@ -2285,19 +2285,43 @@
 			$('.update-state-' + stateName).removeClass('d-none');
 		}
 
-		// Click the update toolbar button
-		$(document).on("click", "#btn-update-check", function () {
-			// Reset modal state
-			$('#update-install-btn').addClass('d-none');
-			$('#update-close-btn').text('Close');
-			$('.update-footer-info').text('');
-			_showUpdateState('checking');
-			$('#updateModal').modal('show');
+		// Click the update button in settings
+		$(document).on("click", "#btn-settings-update-check", function () {
+			// Close settings modal first, then open update modal
+			$('#settingsModal').modal('hide');
+			setTimeout(function () {
+				// Reset modal state
+				$('#update-install-btn').addClass('d-none');
+				$('#update-close-btn').text('Close');
+				$('.update-footer-info').text('');
+				_showUpdateState('checking');
+				$('#updateModal').modal('show');
 
-			// Simulate checking for updates (1.5 second delay)
+				// Simulate checking for updates (1.5 second delay)
+				setTimeout(function () {
+					var currentVer = _getAppVersion();
+					$('#update-current-version').text('v' + currentVer);
+					$('#update-new-version').text('v' + currentVer);
+					$('#update-release-notes').html(
+						'<ul style="margin:0; padding-left:18px;">' +
+						'<li>Performance improvements and bug fixes</li>' +
+						'<li>Updated security patches</li>' +
+						'<li>Minor UI refinements</li>' +
+						'</ul>'
+					);
+					$('.update-footer-info').text('Released just now');
+					$('#update-install-btn').removeClass('d-none');
+					_showUpdateAvailableIndicators(currentVer);
+					_showUpdateState('available');
+				}, 1500);
+			}, 300);
+		});
+
+		// Click "View Update" button in settings (when update is already known)
+		$(document).on("click", "#btn-settings-update-view", function () {
+			$('#settingsModal').modal('hide');
 			setTimeout(function () {
 				var currentVer = _getAppVersion();
-				// Simulate: pretend an update is available (same version for demo)
 				$('#update-current-version').text('v' + currentVer);
 				$('#update-new-version').text('v' + currentVer);
 				$('#update-release-notes').html(
@@ -2309,8 +2333,10 @@
 				);
 				$('.update-footer-info').text('Released just now');
 				$('#update-install-btn').removeClass('d-none');
+				$('#update-close-btn').text('Close');
 				_showUpdateState('available');
-			}, 1500);
+				$('#updateModal').modal('show');
+			}, 300);
 		});
 
 		// Click "Update Now" button
@@ -2339,8 +2365,8 @@
 							$('.update-footer-info').text('');
 							$('#update-close-btn').prop('disabled', false).text('Done');
 							$('#updateModal').removeAttr('data-backdrop').removeAttr('data-keyboard');
-							// Hide the badge after successful "update"
-							$('#update-badge').addClass('d-none');
+							// Hide all update indicators after successful "update"
+							_hideUpdateAvailableIndicators();
 							_showUpdateState('complete');
 						}, 2500);
 					}, 600);
@@ -2358,8 +2384,25 @@
 
 		// Simulate showing the update badge on startup after a short delay
 		setTimeout(function () {
-			$('#update-badge').text('1').removeClass('d-none');
+			_showUpdateAvailableIndicators(_getAppVersion());
 		}, 3000);
+
+		/** Show all update-available indicators (badge, settings dot, settings section) */
+		function _showUpdateAvailableIndicators(newVersion) {
+			$('#update-badge').text('1').removeClass('d-none');
+			$('.settings-update-dot').removeClass('d-none');
+			$('.settings-update-available').removeClass('d-none');
+			$('.settings-update-no-update').addClass('d-none');
+			$('.settings-update-version').text('v' + newVersion);
+		}
+
+		/** Hide all update-available indicators and show Check for Updates */
+		function _hideUpdateAvailableIndicators() {
+			$('#update-badge').addClass('d-none');
+			$('.settings-update-dot').addClass('d-none');
+			$('.settings-update-available').addClass('d-none');
+			$('.settings-update-no-update').removeClass('d-none');
+		}
 
 		// ---- Secret flask icon click handler: 8 clicks to toggle OEM/developer settings ----
 		// OEM override state is session-only (in-memory); resets on app restart
@@ -3931,15 +3974,6 @@
 			}
 		}
 
-		/** Show or hide the manual dark-mode toolbar toggle based on system-theme setting */
-		function applySystemThemeVisibility(useSystem) {
-			if (useSystem) {
-				$(".btn-dark-mode-toggle").hide();
-			} else {
-				$(".btn-dark-mode-toggle").show();
-			}
-		}
-
 		/** Follow the OS dark/light preference */
 		function applySystemTheme() {
 			if (window.matchMedia) {
@@ -3948,36 +3982,44 @@
 			}
 		}
 
+		var THEME_CYCLE = ["auto", "light", "dark"];
+		var THEME_ICONS = { auto: "fa-adjust", light: "fa-sun", dark: "fa-moon" };
+		var THEME_TITLES = { auto: "Auto (System)", light: "Light Mode", dark: "Dark Mode" };
+
+		/**
+		 * Apply the chosen theme mode: "light", "dark", or "auto".
+		 * Updates the single toolbar toggle icon and title.
+		 */
+		function applyThemeMode(mode) {
+			var $btn = $(".btn-theme-toggle");
+			$btn.attr("data-theme", mode)
+			    .attr("title", THEME_TITLES[mode])
+			    .find("i").attr("class", "fas " + THEME_ICONS[mode]);
+			if (mode === "auto") {
+				applySystemTheme();
+			} else {
+				applyDarkMode(mode === "dark");
+			}
+		}
+
 		// Listen for OS theme changes while the app is running
 		if (window.matchMedia) {
 			window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-				if ($("#chk_useSystemTheme").is(":checked")) {
+				var settings = db_settings.settings.find()[0] || {};
+				var mode = settings["themeMode"] || "auto";
+				if (mode === "auto") {
 					applyDarkMode(e.matches);
 				}
 			});
 		}
 
-		// Settings checkbox toggle - use system theme
-		$(document).on("change", "#chk_useSystemTheme", function() {
-			var useSystem = $(this).is(":checked");
-			saveSetting("chk_useSystemTheme", useSystem);
-			applySystemThemeVisibility(useSystem);
-			if (useSystem) {
-				applySystemTheme();
-			} else {
-				// Restore the persisted manual dark-mode preference
-				var settings = db_settings.settings.find()[0] || {};
-				var darkEnabled = !!settings["chk_darkMode"];
-				applyDarkMode(darkEnabled);
-			}
-		});
-
-		// Toolbar toggle (moon/sun icon) - only visible when system theme is off
-		$(document).on("click", ".btn-dark-mode-toggle", function(e) {
+		// Toolbar theme toggle — cycles auto → light → dark
+		$(document).on("click", ".btn-theme-toggle", function(e) {
 			e.preventDefault();
-			var isNowDark = !$("body").hasClass("dark-mode");
-			applyDarkMode(isNowDark);
-			saveSetting("chk_darkMode", isNowDark);
+			var cur = $(this).attr("data-theme") || "auto";
+			var next = THEME_CYCLE[(THEME_CYCLE.indexOf(cur) + 1) % THEME_CYCLE.length];
+			applyThemeMode(next);
+			saveSetting("themeMode", next);
 		});
 
 		$(document).on("click", ".btn-clearRecentList", function () {
@@ -5506,18 +5548,15 @@
 			//setting - Data Location (read-only, always local/)
 			$(".txt-localDataPath").val(LOCAL_DATA_DIR);
 
-			//setting - Use System Theme (default: true for out-of-box behaviour)
-			var useSystem = settings["chk_useSystemTheme"] !== false;
-			$("#chk_useSystemTheme").prop("checked", useSystem);
-			applySystemThemeVisibility(useSystem);
-
-			//setting - Dark Mode / Night Mode (persisted between sessions)
-			if (useSystem) {
-				applySystemTheme();
-			} else {
-				var darkEnabled = !!settings["chk_darkMode"];
-				applyDarkMode(darkEnabled);
+			//setting - Theme mode (light / dark / auto; default: auto)
+			var themeMode = settings["themeMode"] || "auto";
+			// Migrate legacy settings: if themeMode is not one of the new values, derive from old keys
+			if (themeMode !== "light" && themeMode !== "dark" && themeMode !== "auto") {
+				themeMode = "auto";
+			} else if (themeMode === "system") {
+				themeMode = "auto";
 			}
+			applyThemeMode(themeMode);
 
 			//reset nav bar and hide overflowing nav bar items
 			fitNavBarItems();

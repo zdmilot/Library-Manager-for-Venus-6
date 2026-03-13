@@ -200,18 +200,14 @@
 								<div class="imp-search-autocomplete d-none" id="imp-search-autocomplete"></div>
 							</div>
 
-							<button class="btn btn-sm btn-dark-mode-toggle btn-toolbar-dark-toggle" type="button" title="Toggle Night/Day Mode">
-								<i class="fas fa-moon"></i><i class="fas fa-sun"></i>
-							</button>
-
-							<button class="btn btn-sm btn-update-check" type="button" title="Check for Updates" id="btn-update-check">
-								<i class="fas fa-arrows-rotate"></i>
-								<span class="update-badge d-none" id="update-badge">1</span>
+							<button class="btn btn-sm btn-theme-toggle" type="button" title="Auto (System)" data-theme="auto">
+								<i class="fas fa-adjust"></i>
 							</button>
 
 							<div class="dropdown btn-overflow-menu">
 								<button class="btn btn-sm btn-overflow-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									<i class="fas fa-ellipsis-v"></i>
+									<span class="update-badge d-none" id="update-badge">1</span>
 								</button>
 								<div class="dropdown-menu dropdown-menu-right">
 									<a class="dropdown-item overflow-export" href="#"><i class="fas fa-box-open mr-2"></i>Package Library</a>
@@ -224,7 +220,7 @@
 									<a class="dropdown-item overflow-check-audit" href="#"><i class="fas fa-clipboard-check mr-2"></i>Check Audit File</a>
 									<div class="dropdown-divider"></div>
 									<a class="dropdown-item overflow-export-archive" href="#"><i class="fas fa-file-archive mr-2"></i>Export Archive</a>
-									<a class="dropdown-item overflow-settings" href="#"><i class="fas fa-cog mr-2"></i>Settings</a>
+									<a class="dropdown-item overflow-settings" href="#"><i class="fas fa-cog mr-2"></i>Settings<span class="settings-update-dot d-none"></span></a>
 									<a class="dropdown-item overflow-help" href="#"><i class="fas fa-question-circle mr-2"></i>Help</a>
 									<a class="dropdown-item overflow-report-issue" href="#"><i class="fas fa-bug mr-2"></i>Report Issue</a>
 									<a class="dropdown-item overflow-about" href="#"><i class="fas fa-info-circle mr-2"></i>About</a>
@@ -1588,6 +1584,25 @@
 				<div class="modal-body detail-modal-body">
 					<div class="settings-settings row no-gutters col-md-12">
 						<div class="settings-section col-md-12 p-3 no-gutters">
+							<h6>Software Update</h6>
+							<div class="settings-update-no-update">
+								<div class="d-flex align-items-center">
+									<button class="btn btn-sm btn-outlined" type="button" id="btn-settings-update-check"><i class="fas fa-arrows-rotate mr-1"></i>Check for Updates</button>
+									<span class="text-muted text-sm ml-3 settings-update-status"></span>
+								</div>
+							</div>
+							<div class="settings-update-available d-none">
+								<div class="d-flex align-items-center">
+									<span class="settings-update-dot-inline"></span>
+									<span class="settings-update-available-text">An update is available</span>
+								</div>
+								<div class="d-flex align-items-center mt-2">
+									<button class="btn btn-sm btn-outlined" type="button" id="btn-settings-update-view"><i class="fas fa-arrow-up-right-from-square mr-1"></i>View Update</button>
+									<span class="text-muted text-sm ml-3 settings-update-version"></span>
+								</div>
+							</div>
+						</div>
+						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Installation</h6>
 							<div class="custom-control custom-checkbox">
 								<input type="checkbox" class="custom-control-input" id="chk_confirmBeforeInstall" checked>
@@ -1615,11 +1630,6 @@
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Display</h6>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input" id="chk_useSystemTheme">
-								<label class="custom-control-label" for="chk_useSystemTheme">Use system theme (follows your Windows light/dark setting)</label>
-							</div>
-							<small class="text-muted ml-4 d-block mb-2">Automatically match the operating system's light or dark appearance. When disabled, a day/night toggle icon is shown in the toolbar and the preference is retained between sessions.</small>
 							<div class="custom-control custom-checkbox mt-2">
 								<input type="checkbox" class="custom-control-input" id="chk_hideSystemLibraries">
 								<label class="custom-control-label" for="chk_hideSystemLibraries">Hide system libraries on the front page</label>

@@ -4539,61 +4539,31 @@ body.dark-mode .pkg-com-label {
 
 /* ---- End comprehensive dark mode overrides ---- */
 
-/* Dark mode toggle button styling */
-.btn-dark-mode-toggle {
-	cursor: pointer;
-}
-.btn-dark-mode-toggle .fa-moon {
-	display: inline;
-}
-.btn-dark-mode-toggle .fa-sun {
-	display: none;
-}
-body.dark-mode .btn-dark-mode-toggle .fa-moon {
-	display: none;
-}
-body.dark-mode .btn-dark-mode-toggle .fa-sun {
-	display: inline;
-}
-
-/* Standalone dark mode toggle in toolbar */
-.btn-toolbar-dark-toggle {
+/* Theme toggle button (single icon, cycles auto/light/dark) */
+.btn-theme-toggle {
 	background: transparent;
 	border: none;
 	color: var(--navbar-font);
-	font-size: 15px;
-	padding: 4px 8px;
-	margin-right: 2px;
+	font-size: 16px;
+	padding: 4px 10px;
+	cursor: pointer;
 	border-radius: 4px;
-	line-height: 1;
 }
-.btn-toolbar-dark-toggle:hover,
-.btn-toolbar-dark-toggle:focus {
+.btn-theme-toggle:hover,
+.btn-theme-toggle:focus {
 	background-color: rgba(255,255,255,0.12);
 	color: var(--navbar-font-over);
 	outline: none;
 	box-shadow: none;
 }
 
-/* ── Update Check Button & Badge ──────────────────────────────────────────── */
+/* ── Update Badge (on overflow toggle) ────────────────────────────────────── */
 
-.btn-update-check {
-	background: transparent;
-	border: none;
-	color: var(--navbar-font);
-	font-size: 15px;
-	padding: 4px 8px;
-	margin-right: 2px;
-	border-radius: 4px;
-	line-height: 1;
+.btn-overflow-menu {
 	position: relative;
 }
-.btn-update-check:hover,
-.btn-update-check:focus {
-	background-color: rgba(255,255,255,0.12);
-	color: var(--navbar-font-over);
-	outline: none;
-	box-shadow: none;
+.btn-overflow-toggle {
+	position: relative;
 }
 .update-badge {
 	position: absolute;
@@ -4610,6 +4580,38 @@ body.dark-mode .btn-dark-mode-toggle .fa-sun {
 	border-radius: 3px;
 	padding: 0 3px;
 	pointer-events: none;
+}
+
+/* ── Settings menu item update dot (macOS-style) ─────────────────────────── */
+
+.overflow-settings {
+	position: relative;
+}
+.settings-update-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background: #dc3545;
+	border-radius: 50%;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+/* ── Settings modal update-available state ────────────────────────────────── */
+
+.settings-update-dot-inline {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background: #dc3545;
+	border-radius: 50%;
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+.settings-update-available-text {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--foreground);
 }
 
 /* ── Update Modal ─────────────────────────────────────────────────────────── */
