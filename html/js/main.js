@@ -2817,6 +2817,7 @@
 		var _searchActive = false;
 		var _preSearchGroupId = null; // remembers which tab was active before search
 		var _currentSortOrder = 'az'; // current library sort order: az, za, newest, oldest
+		var _groupingEnabled = true; // whether to show system libraries as a separate group
 		var _searchInlineTokens = [];
 		var _pendingDeleteChipIdx = -1;
 
@@ -5757,6 +5758,20 @@
 
 			//setting - Display: show GitHub repository links (default on)
 			$("#chk_showGitHubLinks").prop("checked", settings["chk_showGitHubLinks"] !== false);
+
+			//setting - Sort order (persisted)
+			var savedSort = settings["sortOrder"] || "az";
+			_currentSortOrder = savedSort;
+			var sortLabels = { az: "Name (A-Z)", za: "Name (Z-A)", newest: "Date Added (Newest)", oldest: "Date Added (Oldest)" };
+			var sortText = sortLabels[savedSort] || "Name (A-Z)";
+			$("#imp-sort-label").html(sortText + ' <i class="fas fa-caret-down ml-1"></i>');
+			$(".imp-sort-option").removeClass("active");
+			$('.imp-sort-option[data-sort="' + savedSort + '"]').addClass("active");
+
+			//setting - Library grouping (default on)
+			_groupingEnabled = settings["chk_groupLibraries"] !== false;
+			$("#imp-group-toggle").toggleClass("active", _groupingEnabled);
+			$("#imp-group-toggle").attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
 
 			//setting - Unsigned libraries
 			var unsignedEnabled = !!settings["chk_includeUnsignedLibs"];
@@ -13391,6 +13406,30 @@
 			$(this).addClass("active");
 			$("#imp-sort-menu").removeClass("show");
 			_currentSortOrder = sortVal;
+			saveSetting('sortOrder', sortVal);
+			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
+			if (activeGroup === 'gRecent') {
+				impBuildLibraryCards(null, true);
+			} else if (activeGroup === 'gSystem') {
+				impBuildLibraryCards(null, false, true);
+			} else if (activeGroup === 'gUnsigned') {
+				impBuildLibraryCards(null, false, false, true);
+			} else if (activeGroup === 'gStarred') {
+				impBuildLibraryCards(null, false, false, false, true);
+			} else if (activeGroup && activeGroup !== 'gAll' && activeGroup !== 'gFolders' && activeGroup !== 'gEditors' && activeGroup !== 'gHistory') {
+				impBuildLibraryCards(activeGroup);
+			} else {
+				impBuildLibraryCards();
+			}
+			fitImporterHeight();
+		});
+
+		// ---- Group toggle button ----
+		$(document).on("click", "#imp-group-toggle", function() {
+			_groupingEnabled = !_groupingEnabled;
+			$(this).toggleClass("active", _groupingEnabled);
+			$(this).attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
+			saveSetting('chk_groupLibraries', _groupingEnabled);
 			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
 			if (activeGroup === 'gRecent') {
 				impBuildLibraryCards(null, true);

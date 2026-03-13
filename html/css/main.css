@@ -2241,6 +2241,48 @@ body.dark-mode .imp-sort-option.active {
 	color: var(--medium);
 }
 
+/* ---- Group Toggle Button ---- */
+.imp-group-toggle {
+	background: transparent;
+	border: 1px solid #dee2e6;
+	color: var(--medium2);
+	border-radius: 4px;
+	padding: 3px 8px;
+	font-size: 0.82rem;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+}
+.imp-group-toggle:hover {
+	background: #f1f3f5;
+	color: var(--medium);
+}
+.imp-group-toggle.active {
+	background: var(--medium2);
+	color: #fff;
+	border-color: var(--medium2);
+}
+.imp-group-toggle.active:hover {
+	background: var(--medium);
+	border-color: var(--medium);
+}
+body.dark-mode .imp-group-toggle {
+	border-color: #2d3d4f;
+	color: #7a8ba0;
+}
+body.dark-mode .imp-group-toggle:hover {
+	background: #263545;
+	color: var(--medium);
+}
+body.dark-mode .imp-group-toggle.active {
+	background: var(--medium2);
+	color: #fff;
+	border-color: var(--medium2);
+}
+body.dark-mode .imp-group-toggle.active:hover {
+	background: var(--medium);
+	border-color: var(--medium);
+}
+
 .imp-lib-card {
 	border-radius: 6px;
 	transition: box-shadow 0.2s ease, transform 0.2s ease;
