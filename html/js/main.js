@@ -5770,7 +5770,7 @@
 
 			//setting - Library grouping (default on)
 			_groupingEnabled = settings["chk_groupLibraries"] !== false;
-			$("#imp-group-toggle").toggleClass("active", _groupingEnabled);
+			$("#imp-group-toggle i").removeClass("fa-layer-group fa-layer-group-slash").addClass(_groupingEnabled ? "fa-layer-group" : "fa-layer-group-slash");
 			$("#imp-group-toggle").attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
 
 			//setting - Unsigned libraries
@@ -10219,20 +10219,22 @@
 
 			// In "Installed" mode, render system library cards after user libraries
 			if (hasSystemCards) {
-				// Separator between user and system libraries
-				if (libs && libs.length > 0) {
-					$container.append(
-						'<div class="col-md-12 mt-3 mb-2">' +
-							'<hr style="border-color:#dee2e6;">' +
-							'<span class="text-muted text-sm"><i class="fas fa-lock mr-1"></i>System Libraries</span>' +
-						'</div>'
-					);
-				} else {
-					$container.append(
-						'<div class="col-md-12 mb-2">' +
-							'<span class="text-muted text-sm"><i class="fas fa-lock mr-1"></i>System Libraries</span>' +
-						'</div>'
-					);
+				// Separator between user and system libraries (only when grouping is enabled)
+				if (_groupingEnabled) {
+					if (libs && libs.length > 0) {
+						$container.append(
+							'<div class="col-md-12 mt-3 mb-2">' +
+								'<hr style="border-color:#dee2e6;">' +
+								'<span class="text-muted text-sm"><i class="fas fa-lock mr-1"></i>System Libraries</span>' +
+							'</div>'
+						);
+					} else {
+						$container.append(
+							'<div class="col-md-12 mb-2">' +
+								'<span class="text-muted text-sm"><i class="fas fa-lock mr-1"></i>System Libraries</span>' +
+							'</div>'
+						);
+					}
 				}
 				visibleSysLibs.forEach(function(sLib) {
 					$container.append(buildSystemLibraryCard(sLib));
@@ -13427,7 +13429,7 @@
 		// ---- Group toggle button ----
 		$(document).on("click", "#imp-group-toggle", function() {
 			_groupingEnabled = !_groupingEnabled;
-			$(this).toggleClass("active", _groupingEnabled);
+			$(this).find("i").removeClass("fa-layer-group fa-layer-group-slash").addClass(_groupingEnabled ? "fa-layer-group" : "fa-layer-group-slash");
 			$(this).attr("title", _groupingEnabled ? "Grouping on" : "Grouping off");
 			saveSetting('chk_groupLibraries', _groupingEnabled);
 			var activeGroup = $(".navbar-custom .nav-item.active, .navbar-custom .dropdown-navitem.active").attr("data-group-id");
