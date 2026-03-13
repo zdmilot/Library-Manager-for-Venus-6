@@ -1697,6 +1697,14 @@
 								<label class="custom-control-label" for="chk_showGitHubLinks">Show GitHub repository links in library details</label>
 							</div>
 							<small class="text-muted ml-4 d-block">External links to source repositories.</small>
+							<div class="custom-control custom-checkbox mt-3">
+								<input type="checkbox" class="custom-control-input" id="chk_retainModalSize" checked>
+								<label class="custom-control-label" for="chk_retainModalSize">Remember modal window size and position</label>
+							</div>
+							<small class="text-muted ml-4 d-block">Retain resized dimensions of detail modals across sessions.</small>
+							<div class="mt-2 ml-4">
+								<button class="btn btn-sm btn-outlined" id="btn-reset-modal-sizes"><i class="fas fa-undo mr-1"></i>Reset Modal Sizes</button>
+							</div>
 						</div>
 						<div class="settings-section col-md-12 p-3 no-gutters">
 							<h6>Data Location</h6>
@@ -1904,7 +1912,7 @@
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body detail-modal-body" style="max-height:65vh; overflow-y:auto;">
+				<div class="modal-body detail-modal-body">
 					<!-- Metadata Section -->
 					<div class="card mb-3 exporter-card">
 						<div class="card-header"><i class="fas fa-info-circle mr-2 color-medium"></i>Package Metadata</div>

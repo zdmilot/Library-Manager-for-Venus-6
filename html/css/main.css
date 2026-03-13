@@ -672,29 +672,98 @@ body {
 	padding: 12px 24px;
 }
 
-/* ---- Resizable Detail Modals ---- */
+/* ---- Draggable & Resizable Detail Modals ---- */
 #detailModal .modal-dialog,
 #libDetailModal .modal-dialog,
 #unsignedLibDetailModal .modal-dialog {
-	max-width: 95vw;
+	max-width: none;
+	width: auto;
 }
 
 #detailModal .detail-modal-content,
 #libDetailModal .detail-modal-content,
 #unsignedLibDetailModal .detail-modal-content {
-	resize: both;
-	overflow: hidden;
-	min-width: 500px;
-	min-height: 300px;
-	width: 800px;
+	display: flex;
+	flex-direction: column;
 }
 
 #detailModal .detail-modal-body,
 #libDetailModal .detail-modal-body,
 #unsignedLibDetailModal .detail-modal-body {
 	flex: 1 1 auto;
-	max-height: none !important;
 	overflow-y: auto;
+	max-height: none;
+}
+
+/* Draggable header grab cursor */
+.resizable-modal .detail-modal-header {
+	cursor: grab;
+}
+.resizable-modal .detail-modal-header:active {
+	cursor: grabbing;
+}
+/* Prevent grab cursor on close button */
+.resizable-modal .detail-modal-header .close {
+	cursor: pointer;
+}
+
+/* jQuery UI resizable handle overrides */
+.resizable-modal .ui-resizable-handle {
+	z-index: 10;
+}
+.resizable-modal .ui-resizable-n,
+.resizable-modal .ui-resizable-s {
+	height: 6px;
+	left: 0;
+	right: 0;
+	cursor: ns-resize;
+}
+.resizable-modal .ui-resizable-e,
+.resizable-modal .ui-resizable-w {
+	width: 6px;
+	top: 0;
+	bottom: 0;
+	cursor: ew-resize;
+}
+.resizable-modal .ui-resizable-se {
+	width: 18px;
+	height: 18px;
+	right: 2px;
+	bottom: 2px;
+	cursor: nwse-resize;
+}
+.resizable-modal .ui-resizable-sw { cursor: nesw-resize; }
+.resizable-modal .ui-resizable-ne { cursor: nesw-resize; }
+.resizable-modal .ui-resizable-nw { cursor: nwse-resize; }
+
+/* Resize grip indicator (3 diagonal lines in bottom-right corner) */
+.modal-resize-grip {
+	position: absolute;
+	bottom: 4px;
+	right: 4px;
+	width: 14px;
+	height: 14px;
+	pointer-events: none;
+	z-index: 11;
+	overflow: hidden;
+}
+.modal-resize-grip::before {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 14px;
+	height: 14px;
+	background:
+		linear-gradient(135deg, transparent 34%, rgba(150,150,150,0.5) 34%, rgba(150,150,150,0.5) 37%, transparent 37%,
+		transparent 50%, rgba(150,150,150,0.5) 50%, rgba(150,150,150,0.5) 53%, transparent 53%,
+		transparent 66%, rgba(150,150,150,0.5) 66%, rgba(150,150,150,0.5) 69%, transparent 69%);
+}
+body.dark-mode .modal-resize-grip::before {
+	background:
+		linear-gradient(135deg, transparent 34%, rgba(200,200,200,0.4) 34%, rgba(200,200,200,0.4) 37%, transparent 37%,
+		transparent 50%, rgba(200,200,200,0.4) 50%, rgba(200,200,200,0.4) 53%, transparent 53%,
+		transparent 66%, rgba(200,200,200,0.4) 66%, rgba(200,200,200,0.4) 69%, transparent 69%);
 }
 
 /* ---- Delete Library Confirmation Modal (GitHub-style) ---- */

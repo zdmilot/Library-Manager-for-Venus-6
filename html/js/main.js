@@ -5758,6 +5758,9 @@
 			//setting - Display: show GitHub repository links (default on)
 			$("#chk_showGitHubLinks").prop("checked", settings["chk_showGitHubLinks"] !== false);
 
+			//setting - Display: remember modal window size (default on)
+			$("#chk_retainModalSize").prop("checked", settings["chk_retainModalSize"] !== false);
+
 			//setting - Unsigned libraries
 			var unsignedEnabled = !!settings["chk_includeUnsignedLibs"];
 			$("#chk_includeUnsignedLibs").prop("checked", unsignedEnabled);
@@ -16694,12 +16697,166 @@
 		$("#unsignedLibDetailModal").on("hidden.bs.modal", function() {
 			ulib_oemAuthorized = false;
 			_ulibExportInProgress = false;
-			$(this).find(".detail-modal-content").css({ width: "", height: "" });
 		});
 
-		// Reset resizable modal size on close
-		$("#detailModal, #libDetailModal").on("hidden.bs.modal", function() {
-			$(this).find(".detail-modal-content").css({ width: "", height: "" });
+		// ---- Draggable & Resizable Detail Modals ----
+		var _RESIZABLE_MODAL_IDS = ["detailModal", "libDetailModal", "unsignedLibDetailModal"];
+		var _modalSizeDefaults = {}; // cache default sizes per modal id
+
+		function _getModalSizeKey() {
+			return "modalSizes";
+		}
+
+		function _getSavedModalSizes() {
+			return getSettingValue(_getModalSizeKey()) || {};
+		}
+
+		function _saveModalSize(modalId, dims) {
+			var sizes = _getSavedModalSizes();
+			sizes[modalId] = dims;
+			saveSetting(_getModalSizeKey(), sizes);
+		}
+
+		function _clearAllModalSizes() {
+			saveSetting(_getModalSizeKey(), {});
+		}
+
+		function _isRetainModalSize() {
+			return getSettingValue("chk_retainModalSize") !== false;
+		}
+
+		function _initResizableModal($modal) {
+			var modalId = $modal.attr("id");
+			var $dialog = $modal.find(".modal-dialog").first();
+			var $content = $dialog.find(".modal-content").first();
+
+			// Already initialized
+			if ($content.hasClass("resizable-modal")) return;
+			$content.addClass("resizable-modal");
+
+			// Add resize grip indicator
+			if (!$content.find(".modal-resize-grip").length) {
+				$content.append('<div class="modal-resize-grip"></div>');
+			}
+
+			// Cache default size
+			if (!_modalSizeDefaults[modalId]) {
+				_modalSizeDefaults[modalId] = {
+					width: $dialog.outerWidth(),
+					height: $content.outerHeight()
+				};
+			}
+
+			// Remove modal-dialog-centered so position: absolute works with dragging
+			$dialog.removeClass("modal-dialog-centered");
+
+			// Position dialog absolutely centered
+			var savedDims = _isRetainModalSize() ? (_getSavedModalSizes()[modalId] || null) : null;
+			var w = savedDims ? savedDims.width : _modalSizeDefaults[modalId].width;
+			var h = savedDims ? savedDims.height : _modalSizeDefaults[modalId].height;
+			var left = savedDims && savedDims.left != null ? savedDims.left : Math.max(0, ($(window).width() - w) / 2);
+			var top = savedDims && savedDims.top != null ? savedDims.top : Math.max(20, ($(window).height() - h) / 2);
+
+			$dialog.css({
+				margin: 0,
+				position: "absolute",
+				left: left + "px",
+				top: top + "px",
+				width: w + "px"
+			});
+			$content.css({
+				width: w + "px",
+				height: h + "px"
+			});
+
+			// Make content resizable via jQuery UI
+			$content.resizable({
+				handles: "n, e, s, w, ne, se, sw, nw",
+				minWidth: 480,
+				minHeight: 280,
+				stop: function(event, ui) {
+					if (_isRetainModalSize()) {
+						var pos = $dialog.position();
+						_saveModalSize(modalId, {
+							width: ui.size.width,
+							height: ui.size.height,
+							left: pos.left,
+							top: pos.top
+						});
+					}
+				}
+			});
+
+			// Make dialog draggable by header
+			$dialog.draggable({
+				handle: ".detail-modal-header",
+				containment: "window",
+				stop: function(event, ui) {
+					if (_isRetainModalSize()) {
+						var dims = _getSavedModalSizes()[modalId] || {};
+						dims.left = ui.position.left;
+						dims.top = ui.position.top;
+						dims.width = dims.width || $content.outerWidth();
+						dims.height = dims.height || $content.outerHeight();
+						_saveModalSize(modalId, dims);
+					}
+				}
+			});
+		}
+
+		function _cleanupResizableModal($modal) {
+			var modalId = $modal.attr("id");
+			var $dialog = $modal.find(".modal-dialog").first();
+			var $content = $dialog.find(".modal-content").first();
+
+			// Destroy jQuery UI widgets if initialized
+			if ($content.data("ui-resizable")) {
+				$content.resizable("destroy");
+			}
+			if ($dialog.data("ui-draggable")) {
+				$dialog.draggable("destroy");
+			}
+
+			$content.removeClass("resizable-modal");
+			$content.find(".modal-resize-grip").remove();
+
+			// Reset inline styles
+			$dialog.css({ margin: "", position: "", left: "", top: "", width: "" });
+			$content.css({ width: "", height: "" });
+
+			// Restore centered class
+			if (!$dialog.hasClass("modal-dialog-centered")) {
+				$dialog.addClass("modal-dialog-centered");
+			}
+		}
+
+		// Initialize on modal show, cleanup on hide
+		_RESIZABLE_MODAL_IDS.forEach(function(id) {
+			var $m = $("#" + id);
+			$m.on("shown.bs.modal", function() {
+				_initResizableModal($(this));
+			});
+			$m.on("hidden.bs.modal", function() {
+				_cleanupResizableModal($(this));
+			});
+		});
+
+		// Settings: retain modal size toggle
+		$(document).on("click", "#chk_retainModalSize", function() {
+			var checked = $(this).prop("checked");
+			saveSetting("chk_retainModalSize", checked);
+			if (!checked) {
+				_clearAllModalSizes();
+			}
+		});
+
+		// Settings: reset modal sizes button
+		$(document).on("click", "#btn-reset-modal-sizes", function() {
+			_clearAllModalSizes();
+			// Brief visual feedback
+			var $btn = $(this);
+			$btn.html('<i class="fas fa-check mr-1"></i>Reset');
+			setTimeout(function() { $btn.html('<i class="fas fa-undo mr-1"></i>Reset Modal Sizes'); }, 1500);
 		});
 
 		// ---- Save unsigned library metadata ----
