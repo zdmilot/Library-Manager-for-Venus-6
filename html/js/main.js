@@ -18762,19 +18762,14 @@
 					escapeHtml(pkg.package_file) + '"><i class="fas fa-download mr-1"></i>Install</button>';
 			}
 
-			var org = escapeHtml(pkg.organization || '');
-			var orgHtml = org ? '<div class="store-card-org">' + org + '</div>' : '';
-
 			var html = '<div class="col-xl-3 col-lg-4 col-md-6 mb-3">' +
 				'<div class="store-card" data-pkg-file="' + escapeHtml(pkg.package_file) + '">' +
 				'  <div class="store-card-header">' + imgHtml +
 				'    <div><div class="store-card-title">' + name + '</div>' +
 				'      <div class="store-card-version">v' + version + '</div></div>' +
 				'  </div>' +
-				'  <div class="store-card-meta">' +
-				'    <div class="store-card-author">' + author + '</div>' +
-				     orgHtml +
-				'  </div>' +
+				'  <div class="store-card-author">' + author + '</div>' +
+			(pkg.organization ? '  <div class="store-card-org">' + escapeHtml(pkg.organization) + '</div>' : '') +
 				'  <div class="store-card-desc">' + desc + '</div>' +
 				'  <div class="store-card-tags">' + tagsHtml + '</div>' +
 				'  <div class="store-card-footer">' + footerHtml + '</div>' +

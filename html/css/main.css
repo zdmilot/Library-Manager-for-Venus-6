@@ -5773,7 +5773,7 @@ body.dark-mode .store-card:hover {
 .store-card-header {
 	display: flex;
 	align-items: flex-start;
-	gap: 12px;
+	gap: 16px;
 	margin-bottom: 8px;
 }
 .store-card-title {
@@ -5788,15 +5788,6 @@ body.dark-mode .store-card:hover {
 	color: #6c757d;
 	font-weight: 500;
 }
-.store-card-meta {
-	margin-top: 4px;
-	padding-top: 8px;
-	border-top: 1px solid rgba(0,0,0,0.06);
-	margin-bottom: 8px;
-}
-body.dark-mode .store-card-meta {
-	border-top-color: rgba(255,255,255,0.06);
-}
 .store-card-author {
 	font-size: 11px;
 	color: #6c757d;
@@ -5805,6 +5796,7 @@ body.dark-mode .store-card-meta {
 .store-card-org {
 	font-size: 11px;
 	color: #6c757d;
+	margin-bottom: 6px;
 	font-style: italic;
 }
 .store-card-desc {
@@ -5821,7 +5813,8 @@ body.dark-mode .store-card-desc {
 	color: #99aabb;
 }
 body.dark-mode .store-card-version,
-body.dark-mode .store-card-author {
+body.dark-mode .store-card-author,
+body.dark-mode .store-card-org {
 	color: #7a8a9a;
 }
 
