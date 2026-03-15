@@ -5736,7 +5736,8 @@ body.dark-mode .store-modal-body {
 .store-toolbar {
 	border-bottom: 1px solid #dce4ed;
 	background: #eef3f8;
-	gap: 8px;
+	gap: 16px;
+	padding: 16px 28px 12px 28px;
 }
 body.dark-mode .store-toolbar {
 	border-bottom-color: #2a3a4a;

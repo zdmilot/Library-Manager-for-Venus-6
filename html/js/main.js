@@ -14859,7 +14859,11 @@
 				} else {
 					$modal.find(".imp-preview-overwrite-warning").addClass("d-none");
 					$modal.find(".imp-preview-overwrite-warning .alert").removeClass("alert-info").addClass("alert-warning");
-					$("#imp-preview-confirm").html('<i class="fas fa-file-import mr-2"></i>Install Library').prop('disabled', false);
+					if (_storeImportActive) {
+						$("#imp-preview-confirm").html('<i class="fas fa-download mr-2"></i>Download and Install').prop('disabled', false);
+					} else {
+						$("#imp-preview-confirm").html('<i class="fas fa-file-import mr-2"></i>Install Library').prop('disabled', false);
+					}
 				}
 
 				// Store data for confirm handler
@@ -14889,6 +14893,7 @@
 		// ---- Reset _isImporting when preview modal is dismissed without confirming ----
 		$(document).on("hidden.bs.modal", "#importPreviewModal", function() {
 			_isImporting = false;
+			_storeImportActive = false;
 		});
 
 		// ---- Confirm install from preview modal ----
@@ -18586,6 +18591,7 @@
 		var STORE_REPO_URL    = 'https://github.com/zdmilot/Library-Manager-Packages';
 
 		var _storeCatalog   = null; // array of catalog entries (cached)
+		var _storeImportActive = false; // true when import preview was triggered from the store
 		var _storeSort      = 'name-asc';
 		var _storeSearchTerm = '';
 
@@ -18963,6 +18969,7 @@
 				}
 
 				// Hand off to the normal import flow (shows over the store)
+				_storeImportActive = true;
 				impLoadAndInstall(tmpPath);
 				// Re-enable card after import finishes
 				var checkFlag = setInterval(function () {
