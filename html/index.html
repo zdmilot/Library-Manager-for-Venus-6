@@ -2843,6 +2843,48 @@
 							<span class="store-detail-overwrite-text"></span>
 						</div>
 					</div>
+					<!-- Ratings & Reviews -->
+					<div class="detail-section store-detail-reviews-section mt-3">
+						<h6 class="detail-section-label"><i class="fas fa-star mr-1" style="color:#f5a623;"></i>Ratings &amp; Reviews</h6>
+						<!-- Rating summary -->
+						<div class="store-review-summary mb-3">
+							<div class="store-review-summary-left">
+								<span class="store-review-avg">—</span>
+								<div class="store-review-stars store-review-stars-summary"></div>
+								<span class="store-review-count text-muted"></span>
+							</div>
+							<button class="btn btn-sm solid-button store-write-review-btn">
+								<i class="fas fa-pen mr-1"></i>Write a Review
+							</button>
+						</div>
+						<!-- Write review form (hidden by default) -->
+						<div class="store-review-form d-none mb-3">
+							<div class="store-review-form-header mb-2">
+								<span class="text-muted">Your Rating</span>
+								<div class="store-review-star-input" data-rating="0">
+									<i class="far fa-star store-review-star-btn" data-value="1"></i>
+									<i class="far fa-star store-review-star-btn" data-value="2"></i>
+									<i class="far fa-star store-review-star-btn" data-value="3"></i>
+									<i class="far fa-star store-review-star-btn" data-value="4"></i>
+									<i class="far fa-star store-review-star-btn" data-value="5"></i>
+								</div>
+							</div>
+							<textarea class="form-control store-review-text" rows="3" placeholder="Write your review (optional)..." maxlength="2000"></textarea>
+							<div class="d-flex justify-content-end mt-2" style="gap:8px;">
+								<button class="btn btn-sm btn-outlined store-review-cancel-btn">Cancel</button>
+								<button class="btn btn-sm solid-button store-review-submit-btn" disabled>
+									<i class="fas fa-paper-plane mr-1"></i>Submit Review
+								</button>
+							</div>
+							<div class="store-review-error text-danger mt-1 d-none" style="font-size:0.8rem;"></div>
+						</div>
+						<!-- Reviews list -->
+						<div class="store-review-list">
+							<div class="store-reviews-loading text-center text-muted py-3">
+								<i class="fas fa-spinner fa-spin mr-1"></i>Loading reviews…
+							</div>
+						</div>
+					</div>
 				</div>
 				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
 					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>

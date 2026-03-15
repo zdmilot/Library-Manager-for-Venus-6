@@ -5,7 +5,8 @@
 		var gui = require('nw.gui');
 		var win = gui.Window.get();
 		var path = require('path');
-		var spawn = require('child_process').spawn; 
+		var spawn = require('child_process').spawn;
+		var storeReviews = require('../lib/store-reviews');
 
 		// ---------------------------------------------------------------------------
 		// Global error boundary - catch unhandled errors to prevent silent failures
@@ -18627,6 +18628,7 @@
 		// ---- Refresh button ----
 		$(document).on("click", ".store-refresh-btn, .store-retry-btn", function () {
 			_storeCatalog = null;
+			_storeRatingsCache = null;
 			storeLoadCatalog();
 		});
 
@@ -18782,6 +18784,9 @@
 			for (var i = 0; i < items.length; i++) {
 				$grid.append(storeBuildCard(items[i]));
 			}
+
+			// Fetch and display star ratings on cards
+			storeFetchAndDisplayCardRatings();
 		}
 
 		function storeBuildCard(pkg) {
@@ -18837,6 +18842,7 @@
 				'  <div class="store-card-author">' + author + '</div>' +
 				'  <div class="store-card-org">' + (org || '&nbsp;') + '</div>' +
 				'  <div class="store-card-desc">' + desc + '</div>' +
+				'  <div class="store-card-rating" data-lib="' + name + '"><span class="store-card-rating-stars"></span><span class="store-card-rating-count"></span></div>' +
 				'  <div class="store-card-tags">' + tagsHtml + '</div>' +
 				'  <div class="store-card-footer">' + footerHtml + '</div>' +
 				'</div></div>';
@@ -19083,6 +19089,9 @@
 			_storePopulateDetailVersion($m, latestVer, pkg.library_name, pkg.library_image_base64, pkg.library_image_mime);
 
 			$m.modal("show");
+
+			// Load reviews for this library
+			storeLoadDetailReviews(pkg.library_name);
 		}
 
 		// ---- Version selector change in store detail ----
@@ -19474,6 +19483,228 @@
 			$('#store-search-input').val('');
 			_storeSearchTerm = '';
 			$('.store-search-clear-wrap').addClass('d-none');
+		});
+
+		// ==================================================================
+		// ====  Star Rating & Review System (GitHub Discussions-backed) ====
+		// ==================================================================
+
+		/** Cached ratings map: { libraryName: { averageRating, totalReviews } } */
+		var _storeRatingsCache = null;
+
+		/** Build star icons HTML for a given rating (0-5, supports halves). */
+		function storeStarsHtml(rating, size) {
+			var cls = size || '';
+			var html = '';
+			var full = Math.floor(rating);
+			var half = (rating - full) >= 0.3 && (rating - full) < 0.8;
+			var empty = 5 - full - (half ? 1 : 0);
+			for (var i = 0; i < full; i++) html += '<i class="fas fa-star ' + cls + '"></i>';
+			if (half) html += '<i class="fas fa-star-half-alt ' + cls + '"></i>';
+			for (var j = 0; j < empty; j++) html += '<i class="far fa-star ' + cls + '"></i>';
+			return html;
+		}
+
+		/** Populate rating stars on store cards after catalog renders. */
+		function storeFetchAndDisplayCardRatings() {
+			if (!_storeCatalog || _storeCatalog.length === 0) return;
+
+			var names = [];
+			for (var i = 0; i < _storeCatalog.length; i++) {
+				names.push(_storeCatalog[i].library_name);
+			}
+
+			// Use cache if available
+			if (_storeRatingsCache) {
+				_storeApplyCardRatings(_storeRatingsCache);
+				return;
+			}
+
+			storeReviews.batchGetRatings(names, function (err, ratings) {
+				if (err) { console.warn('Failed to load ratings:', err.message); return; }
+				_storeRatingsCache = ratings;
+				_storeApplyCardRatings(ratings);
+			});
+		}
+
+		function _storeApplyCardRatings(ratings) {
+			$('.store-card-rating').each(function () {
+				var libName = $(this).attr('data-lib');
+				if (!libName || !ratings[libName]) return;
+				var r = ratings[libName];
+				if (r.totalReviews === 0) {
+					$(this).find('.store-card-rating-stars').html('<span class="text-muted" style="font-size:10px;">No reviews</span>');
+					$(this).find('.store-card-rating-count').text('');
+				} else {
+					$(this).find('.store-card-rating-stars').html(storeStarsHtml(r.averageRating));
+					$(this).find('.store-card-rating-count').text('(' + r.totalReviews + ')');
+				}
+			});
+		}
+
+		/** Load and display reviews in the store detail modal for a library. */
+		function storeLoadDetailReviews(libraryName) {
+			var $section = $('#storeDetailModal .store-detail-reviews-section');
+			var $list = $section.find('.store-review-list');
+			var $summary = $section.find('.store-review-summary');
+
+			// Reset
+			$list.html('<div class="store-reviews-loading text-center text-muted py-3"><i class="fas fa-spinner fa-spin mr-1"></i>Loading reviews\u2026</div>');
+			$summary.find('.store-review-avg').text('\u2014');
+			$summary.find('.store-review-stars-summary').html(storeStarsHtml(0));
+			$summary.find('.store-review-count').text('');
+			$section.find('.store-review-form').addClass('d-none');
+
+			storeReviews.getReviews(libraryName, function (err, data) {
+				if (err) {
+					$list.html('<div class="store-review-empty"><i class="fas fa-exclamation-circle mr-1"></i>Unable to load reviews.</div>');
+					console.warn('Review load error:', err.message);
+					return;
+				}
+
+				// Summary
+				if (data.totalReviews > 0) {
+					$summary.find('.store-review-avg').text(data.averageRating.toFixed(1));
+					$summary.find('.store-review-stars-summary').html(storeStarsHtml(data.averageRating));
+					$summary.find('.store-review-count').text(data.totalReviews + ' review' + (data.totalReviews !== 1 ? 's' : ''));
+				} else {
+					$summary.find('.store-review-avg').text('\u2014');
+					$summary.find('.store-review-stars-summary').html(storeStarsHtml(0));
+					$summary.find('.store-review-count').text('No reviews yet');
+				}
+
+				// Review list
+				if (data.reviews.length === 0) {
+					$list.html('<div class="store-review-empty">No reviews yet. Be the first to leave a review!</div>');
+				} else {
+					var html = '';
+					for (var i = 0; i < data.reviews.length; i++) {
+						var rev = data.reviews[i];
+						var dateStr = '';
+						try {
+							var d = new Date(rev.createdAt || rev.timestamp);
+							dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+						} catch (_) {}
+						html += '<div class="store-review-item">';
+						html += '  <div class="store-review-item-header">';
+						html += '    <div><span class="store-review-item-user">' + escapeHtml(rev.username) + '</span>';
+						html += '    <span class="store-review-item-stars">' + storeStarsHtml(rev.rating) + '</span></div>';
+						html += '    <span class="store-review-item-date">' + escapeHtml(dateStr) + '</span>';
+						html += '  </div>';
+						if (rev.comment) {
+							html += '  <div class="store-review-item-text">' + escapeHtml(rev.comment) + '</div>';
+						}
+						html += '</div>';
+					}
+					$list.html(html);
+				}
+
+				// Update card-level cache
+				if (_storeRatingsCache) {
+					_storeRatingsCache[libraryName] = {
+						averageRating: data.averageRating,
+						totalReviews: data.totalReviews
+					};
+				}
+			});
+		}
+
+		// ---- Write Review button ----
+		$(document).on('click', '.store-write-review-btn', function () {
+			var $form = $('#storeDetailModal .store-review-form');
+			$form.removeClass('d-none');
+			$form.find('.store-review-text').val('');
+			$form.find('.store-review-star-input').attr('data-rating', '0');
+			$form.find('.store-review-star-btn').removeClass('active fas').addClass('far');
+			$form.find('.store-review-submit-btn').prop('disabled', true);
+			$form.find('.store-review-error').addClass('d-none').text('');
+		});
+
+		// ---- Cancel review ----
+		$(document).on('click', '.store-review-cancel-btn', function () {
+			$('#storeDetailModal .store-review-form').addClass('d-none');
+		});
+
+		// ---- Star hover ----
+		$(document).on('mouseenter', '.store-review-star-btn', function () {
+			var val = parseInt($(this).attr('data-value'), 10);
+			$(this).parent().find('.store-review-star-btn').each(function () {
+				var v = parseInt($(this).attr('data-value'), 10);
+				if (v <= val) {
+					$(this).addClass('hovered fas').removeClass('far');
+				} else {
+					$(this).removeClass('hovered fas').addClass('far');
+				}
+			});
+		});
+		$(document).on('mouseleave', '.store-review-star-input', function () {
+			var selected = parseInt($(this).attr('data-rating'), 10) || 0;
+			$(this).find('.store-review-star-btn').each(function () {
+				var v = parseInt($(this).attr('data-value'), 10);
+				$(this).removeClass('hovered');
+				if (v <= selected) {
+					$(this).addClass('active fas').removeClass('far');
+				} else {
+					$(this).removeClass('active fas').addClass('far');
+				}
+			});
+		});
+
+		// ---- Star click ----
+		$(document).on('click', '.store-review-star-btn', function (e) {
+			e.stopPropagation();
+			var val = parseInt($(this).attr('data-value'), 10);
+			var $input = $(this).closest('.store-review-star-input');
+			$input.attr('data-rating', val);
+			$input.find('.store-review-star-btn').each(function () {
+				var v = parseInt($(this).attr('data-value'), 10);
+				if (v <= val) {
+					$(this).addClass('active fas').removeClass('far');
+				} else {
+					$(this).removeClass('active fas').addClass('far');
+				}
+			});
+			$('#storeDetailModal .store-review-submit-btn').prop('disabled', val < 1);
+		});
+
+		// ---- Submit review ----
+		$(document).on('click', '.store-review-submit-btn', function () {
+			var $btn = $(this);
+			if ($btn.prop('disabled')) return;
+
+			var $m = $('#storeDetailModal');
+			var pkg = $m.data('store-pkg');
+			if (!pkg) return;
+
+			var rating = parseInt($m.find('.store-review-star-input').attr('data-rating'), 10) || 0;
+			if (rating < 1 || rating > 5) return;
+
+			var comment = $m.find('.store-review-text').val().trim();
+			var username = '';
+			try { username = getWindowsUsername(); } catch (_) {}
+			if (!username) username = 'Anonymous';
+
+			$btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Submitting\u2026');
+			$m.find('.store-review-error').addClass('d-none');
+
+			storeReviews.submitReview(pkg.library_name, username, rating, comment, function (err) {
+				if (err) {
+					$btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i>Submit Review');
+					$m.find('.store-review-error').removeClass('d-none').text('Failed to submit review: ' + err.message);
+					return;
+				}
+				// Success — hide form, reload reviews
+				$m.find('.store-review-form').addClass('d-none');
+				$btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i>Submit Review');
+				storeLoadDetailReviews(pkg.library_name);
+				// Invalidate card ratings cache
+				_storeRatingsCache = null;
+			});
+		});
+
+		// ---- Clean up review form on modal close ----
+		$('#storeDetailModal').on('hidden.bs.modal', function () {
+			$('#storeDetailModal .store-review-form').addClass('d-none');
 		});
 
         //**************************************************************************************
