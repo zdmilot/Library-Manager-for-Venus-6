@@ -1,7 +1,7 @@
 Terms of Use - Library Manager
 
 Effective date: March 3, 2026
-Last updated: March 3, 2026
+Last updated: March 15, 2026
 
 These Terms of Use ("Terms") govern your use of Library Manager (the "App"). By installing, accessing, or using the App, you agree to these Terms. If you do not agree, do not use the App.
 
@@ -50,6 +50,23 @@ You are solely responsible for determining whether the App is appropriate for us
 8) External links and third-party services
 
 The App may include links that open in your web browser (for example, documentation or issue reporting). Your use of third-party sites or services is governed by their own terms and privacy practices. The developer is not responsible for third-party websites or services.
+
+8a) Library Store and ratings/reviews
+
+The App includes a Library Store feature that retrieves library package information and files from a public GitHub repository. By using the Library Store, you agree that:
+
+- Package catalog data and package files are downloaded from GitHub and are subject to GitHub's terms of service.
+- Packages available in the Library Store are contributed by the community. The developer does not guarantee the safety, quality, fitness, or suitability of any package.
+- You are responsible for evaluating and validating any packages you download and install.
+
+The App includes an optional ratings and reviews feature. By submitting a review, you agree that:
+
+- Your review (including your Windows username, star rating, comment text, Windows version, VENUS version, installed library version, and App version) will be posted publicly to a GitHub Discussion and will be visible to anyone.
+- You will not include sensitive, proprietary, confidential, or personally identifiable information (beyond your Windows username) in review comments.
+- Reviews must not contain offensive, defamatory, abusive, or unlawful content.
+- The developer reserves the right to remove reviews that violate these Terms or are otherwise inappropriate.
+- Once submitted, reviews are stored on GitHub and subject to GitHub's terms. The developer may not be able to delete individual reviews upon request.
+- The developer is not responsible for the content of user-submitted reviews.
 
 9) Third-party components
 

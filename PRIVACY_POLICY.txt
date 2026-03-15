@@ -1,7 +1,7 @@
 Privacy Policy - Library Manager
 
 Effective date: March 1, 2026
-Last updated: March 3, 2026
+Last updated: March 15, 2026
 
 Library Manager ("the App") is a desktop application for managing Hamilton VENUS library packages and related files. This policy explains what information the App processes, where it is stored, and when information may leave your device.
 
@@ -50,11 +50,37 @@ The App does not require a cloud account and does not include built-in analytics
 The App does not transmit your data to the developer's servers.
 The App may access the internet only if you choose actions that inherently involve your browser or external services, such as opening a web page link.
 
+4a) Library Store
+
+The App includes an optional Library Store feature that retrieves a package catalog from a public GitHub repository (https://github.com/zdmilot/Library-Manager-Packages). When you open the Library Store, the App downloads a catalog index file and, if you choose to install a package, the package file itself. These downloads are made over HTTPS directly from GitHub's servers. No personal data is sent to GitHub in catalog or package download requests beyond the standard HTTP headers (IP address, user-agent string) that GitHub processes under its own privacy practices.
+
+4b) Ratings and reviews
+
+The App includes an optional ratings and reviews feature that allows you to rate and review library packages. This feature uses GitHub Discussions on the Library-Manager-Packages repository, accessed through a GitHub App integration.
+
+When you submit a review, the following information is posted publicly to a GitHub Discussion:
+
+- Your Windows username (as returned by your operating system)
+- Your star rating (1-5)
+- Your review comment text (if you enter one)
+- Your Windows version (e.g., "Windows 10 Pro 22H2")
+- Your installed VENUS software version (if detected)
+- The version of the library you are reviewing (if installed)
+- The version of the Library Manager app
+
+This information is transmitted to GitHub via the GitHub API and is publicly visible on the GitHub Discussion page. The App does not store this information itself; it is stored by GitHub under GitHub's terms and privacy practices.
+
+Submitting a review is entirely optional. If you do not submit a review, no personal information is sent.
+
+When you view ratings and reviews, the App retrieves publicly posted review data from GitHub Discussions. No personal data is sent in these read requests beyond standard HTTP headers.
+
+Note: Your Windows username is included so that reviews are attributed. If you prefer not to share your Windows username publicly, do not submit reviews.
+
 5) "Report issue" link (GitHub)
 
 The App may provide a "Report issue" option that opens your default web browser to a GitHub page where you can submit an issue.
 
-The App does not automatically send device details (such as Windows version) or application details (such as VENUS version) to GitHub.
+The App does not automatically send device details (such as Windows version) or application details (such as VENUS version) to GitHub through the issue reporting link.
 
 Any information you enter into the GitHub issue form is submitted by you and may be publicly visible because the repository is public.
 
@@ -62,7 +88,7 @@ GitHub processes information you submit according to GitHub's privacy practices.
 
 Repository: https://github.com/zdmilot/Library-Manager
 
-Recommendation: Do not include sensitive information (such as usernames, machine names, domain names, file paths, license keys, regulated data, or proprietary method/library contents) in public issue reports.
+Recommendation: Do not include sensitive information (such as usernames, machine names, domain names, file paths, license keys, regulated data, or proprietary method/library contents) in public issue reports or reviews.
 
 6) Device, file system, and privilege access
 

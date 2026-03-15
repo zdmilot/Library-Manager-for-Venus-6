@@ -19550,7 +19550,7 @@
 
 			// Reset
 			$list.html('<div class="store-reviews-loading text-center text-muted py-3"><i class="fas fa-spinner fa-spin mr-1"></i>Loading reviews\u2026</div>');
-			$summary.find('.store-review-avg').text('\u2014');
+			$summary.find('.store-review-avg').addClass('d-none').text('');
 			$summary.find('.store-review-stars-summary').html(storeStarsHtml(0));
 			$summary.find('.store-review-count').text('');
 			$section.find('.store-review-form').addClass('d-none');
@@ -19564,11 +19564,11 @@
 
 				// Summary
 				if (data.totalReviews > 0) {
-					$summary.find('.store-review-avg').text(data.averageRating.toFixed(1));
+					$summary.find('.store-review-avg').removeClass('d-none').text(data.averageRating.toFixed(1));
 					$summary.find('.store-review-stars-summary').html(storeStarsHtml(data.averageRating));
 					$summary.find('.store-review-count').text(data.totalReviews + ' review' + (data.totalReviews !== 1 ? 's' : ''));
 				} else {
-					$summary.find('.store-review-avg').text('\u2014');
+					$summary.find('.store-review-avg').addClass('d-none').text('');
 					$summary.find('.store-review-stars-summary').html(storeStarsHtml(0));
 					$summary.find('.store-review-count').text('No reviews yet');
 				}
@@ -19684,10 +19684,22 @@
 			try { username = getWindowsUsername(); } catch (_) {}
 			if (!username) username = 'Anonymous';
 
+			// Gather system details for the review payload
+			var installedLib = null;
+			try { installedLib = db_installed_libs.installed_libs.findOne({"library_name": pkg.library_name}); } catch (_) {}
+			var systemInfo = {
+				windowsVersion: '',
+				venusVersion: _cachedVENUSVersion || '',
+				libraryVersion: (installedLib && installedLib.version) ? installedLib.version : '',
+				appVersion: ''
+			};
+			try { systemInfo.windowsVersion = shared.getWindowsVersion(); } catch (_) {}
+			try { systemInfo.appVersion = require('../../package.json').version; } catch (_) {}
+
 			$btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Submitting\u2026');
 			$m.find('.store-review-error').addClass('d-none');
 
-			storeReviews.submitReview(pkg.library_name, username, rating, comment, function (err) {
+			storeReviews.submitReview(pkg.library_name, username, rating, comment, systemInfo, function (err) {
 				if (err) {
 					$btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i>Submit Review');
 					$m.find('.store-review-error').removeClass('d-none').text('Failed to submit review: ' + err.message);
