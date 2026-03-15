@@ -18759,7 +18759,7 @@
 				}
 			} else {
 				footerHtml = '<button class="btn btn-sm solid-button store-card-install-btn" data-pkg-file="' +
-					escapeHtml(pkg.package_file) + '"><i class="fas fa-download mr-1"></i>Install</button>';
+					escapeHtml(pkg.package_file) + '"><i class="fas fa-download mr-1"></i>Download and Install</button>';
 			}
 
 			var org = pkg.organization ? escapeHtml(pkg.organization) : '';
@@ -18850,7 +18850,7 @@
 			} else if (installed) {
 				$installBtn.html('<i class="fas fa-arrow-up mr-1"></i>Update to v' + escapeHtml(pkg.version));
 			} else {
-				$installBtn.html('<i class="fas fa-download mr-1"></i>Install');
+				$installBtn.html('<i class="fas fa-download mr-1"></i>Download and Install');
 			}
 
 			$m.modal("show");
@@ -18890,7 +18890,7 @@
 			storeDownloadFile(https, downloadUrl, tmpPath, function (err) {
 				if (err) {
 					$btn.removeClass("downloading").prop("disabled", false);
-					$btn.html('<i class="fas fa-download mr-1"></i>Install');
+					$btn.html('<i class="fas fa-download mr-1"></i>Download and Install');
 					alert("Download failed: " + err.message);
 					return;
 				}
@@ -18907,7 +18907,7 @@
 						if (!_isImporting) {
 							clearInterval(checkFlag);
 							$btn.removeClass("downloading").prop("disabled", false);
-							$btn.html('<i class="fas fa-download mr-1"></i>Install');
+							$btn.html('<i class="fas fa-download mr-1"></i>Download and Install');
 							// Refresh catalog installed status on next open
 							_storeCatalog = null;
 						}
