@@ -19056,8 +19056,6 @@
 				statusHtml = '<span class="store-deps-status text-warning"><i class="fas fa-exclamation-circle mr-1"></i>Needs install</span>';
 			}
 
-			var notInCatalog = false;
-			// Check if the dependency is in the catalog (for deps that aren't found)
 			var deps = pkg.dependencies || [];
 
 			var html = '<div class="' + itemClass + '">'

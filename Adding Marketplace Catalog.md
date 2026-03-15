@@ -89,7 +89,7 @@ const CATALOG_FIELDS = [
     'library_name', 'author', 'organization', 'version',
     'description', 'tags', 'venus_compatibility', 'created_date',
     'library_image_base64', 'library_image_mime', 'format_version',
-    'github_url'
+    'github_url', 'dependencies'
 ];
 
 var packagesDir = process.argv[2];

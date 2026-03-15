@@ -1,0 +1,66 @@
+[
+  {
+    "package_file": "TestLibA_v1.0.0.hxlibpkg",
+    "library_name": "TestLibA",
+    "author": "Test Author",
+    "organization": "Test Org",
+    "version": "1.0.0",
+    "description": "Test top-level library that depends on TestLibB.",
+    "tags": [
+      "test",
+      "top-level"
+    ],
+    "dependencies": [
+      "TestLibB"
+    ],
+    "venus_compatibility": "4.7+",
+    "created_date": "2026-03-15T21:51:29.846Z",
+    "format_version": "2.0",
+    "signed": false,
+    "code_signed": false,
+    "package_size": 1230,
+    "package_sha256": "55b7fa7a41ac87cbd6f12c0409b6d3489d2dce3ab03a977c254d848b58d67d3d"
+  },
+  {
+    "package_file": "TestLibB_v1.0.0.hxlibpkg",
+    "library_name": "TestLibB",
+    "author": "Test Author",
+    "organization": "Test Org",
+    "version": "1.0.0",
+    "description": "Test library that depends on TestLibC.",
+    "tags": [
+      "test",
+      "mid-level"
+    ],
+    "dependencies": [
+      "TestLibC"
+    ],
+    "venus_compatibility": "4.7+",
+    "created_date": "2026-03-15T21:51:29.846Z",
+    "format_version": "2.0",
+    "signed": false,
+    "code_signed": false,
+    "package_size": 1221,
+    "package_sha256": "a776212b30958e34d0de6e0fdb8eaa921ecd101d448bd48f851cbcfa6979c031"
+  },
+  {
+    "package_file": "TestLibC_v1.0.0.hxlibpkg",
+    "library_name": "TestLibC",
+    "author": "Test Author",
+    "organization": "Test Org",
+    "version": "1.0.0",
+    "description": "Test leaf library with no dependencies.",
+    "tags": [
+      "test",
+      "leaf"
+    ],
+    "dependencies": [],
+    "venus_compatibility": "4.7+",
+    "created_date": "2026-03-15T21:51:29.846Z",
+    "format_version": "2.0",
+    "signed": false,
+    "code_signed": false,
+    "package_size": 1192,
+    "package_sha256": "a7cc6bac97cdaa7a41f3ebaa76bd9b14379bbd2dfff6924bc68e23fb7dd2784e"
+  }
+]
