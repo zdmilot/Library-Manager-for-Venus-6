@@ -5716,13 +5716,21 @@ body.dark-mode .hampkg-file-dirs .hampkg-file-to i {
 .store-modal-content {
 	min-height: 70vh;
 }
+.store-modal-body {
+	background: #eef3f8;
+}
+body.dark-mode .store-modal-body {
+	background: #0f1c28;
+}
 
 .store-toolbar {
-	border-bottom: 1px solid #e9ecef;
+	border-bottom: 1px solid #dce4ed;
+	background: #eef3f8;
 	gap: 8px;
 }
 body.dark-mode .store-toolbar {
 	border-bottom-color: #2a3a4a;
+	background: #0f1c28;
 }
 
 /* ── Grid cards ──────────────────────────────────────────────────── */
@@ -5756,12 +5764,14 @@ body.dark-mode .store-card:hover {
 	object-fit: contain;
 	border-radius: 6px;
 	flex-shrink: 0;
+	margin-right: 6px;
 }
 .store-card-icon-placeholder {
 	width: 48px;
 	height: 48px;
 	border-radius: 6px;
 	flex-shrink: 0;
+	margin-right: 6px;
 	background: rgba(var(--medium-rgb), 0.10);
 	display: flex;
 	align-items: center;
