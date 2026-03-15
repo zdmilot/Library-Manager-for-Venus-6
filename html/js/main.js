@@ -18528,6 +18528,442 @@
 			}
 		});
 
+		// ====================================================================
+		//  Library Store
+		// ====================================================================
+
+		var STORE_CATALOG_URL = 'https://raw.githubusercontent.com/zdmilot/Library-Manager-Packages/main/catalog.json';
+		var STORE_PKG_BASE    = 'https://raw.githubusercontent.com/zdmilot/Library-Manager-Packages/main/packages/';
+		var STORE_REPO_URL    = 'https://github.com/zdmilot/Library-Manager-Packages';
+
+		var _storeCatalog   = null; // array of catalog entries (cached)
+		var _storeSort      = 'name-asc';
+		var _storeSearchTerm = '';
+
+		// ---- Open Store ----
+		$(document).on("click", "#btn-open-store", function () {
+			$("#storeModal").modal("show");
+		});
+
+		// ---- GitHub repo link ----
+		$(document).on("click", ".store-repo-link", function (e) {
+			e.preventDefault();
+			if (typeof nw !== 'undefined') nw.Shell.openExternal(STORE_REPO_URL);
+		});
+
+		// ---- Load catalog on modal show ----
+		$("#storeModal").on("show.bs.modal", function () {
+			if (!_storeCatalog) {
+				storeLoadCatalog();
+			} else {
+				storeRenderGrid();
+			}
+		});
+
+		// ---- Refresh button ----
+		$(document).on("click", ".store-refresh-btn, .store-retry-btn", function () {
+			_storeCatalog = null;
+			storeLoadCatalog();
+		});
+
+		// ---- Search ----
+		$(document).on("input", "#store-search-input", function () {
+			_storeSearchTerm = $(this).val().trim().toLowerCase();
+			if (_storeSearchTerm) {
+				$(".store-search-clear-wrap").removeClass("d-none");
+			} else {
+				$(".store-search-clear-wrap").addClass("d-none");
+			}
+			storeRenderGrid();
+		});
+		$(document).on("click", ".store-search-clear", function () {
+			$("#store-search-input").val("");
+			_storeSearchTerm = '';
+			$(".store-search-clear-wrap").addClass("d-none");
+			storeRenderGrid();
+		});
+
+		// ---- Sort ----
+		$(document).on("click", ".store-sort-option", function (e) {
+			e.preventDefault();
+			$(".store-sort-option").removeClass("active");
+			$(this).addClass("active");
+			_storeSort = $(this).attr("data-sort");
+			storeRenderGrid();
+		});
+
+		// ---- Fetch catalog.json from GitHub ----
+		function storeLoadCatalog() {
+			$(".store-loading").removeClass("d-none");
+			$(".store-error").addClass("d-none");
+			$(".store-empty").addClass("d-none");
+			$("#store-grid").empty();
+			$(".store-count").text('');
+
+			var https = require('https');
+			var parsedUrl;
+			try { parsedUrl = new URL(STORE_CATALOG_URL); } catch (_) {
+				storeShowError("Invalid catalog URL.");
+				return;
+			}
+
+			var options = {
+				hostname: parsedUrl.hostname,
+				path: parsedUrl.pathname + parsedUrl.search,
+				method: 'GET',
+				headers: { 'User-Agent': 'Library-Manager-Store', 'Accept': 'application/json' },
+				timeout: 20000
+			};
+
+			var req = https.request(options, function (res) {
+				// Handle GitHub redirects
+				if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
+					var location = res.headers.location;
+					if (!location) { storeShowError("Redirect without location."); return; }
+					storeFollowRedirect(location);
+					return;
+				}
+				if (res.statusCode !== 200) { storeShowError("HTTP " + res.statusCode); return; }
+
+				var data = '';
+				res.on('data', function (chunk) { data += chunk; });
+				res.on('end', function () {
+					try {
+						_storeCatalog = JSON.parse(data);
+						$(".store-loading").addClass("d-none");
+						storeRenderGrid();
+					} catch (e) {
+						storeShowError("Invalid JSON: " + e.message);
+					}
+				});
+			});
+
+			req.on('error', function (err) { storeShowError(err.message); });
+			req.on('timeout', function () { req.destroy(); storeShowError("Request timed out."); });
+			req.end();
+		}
+
+		function storeFollowRedirect(url) {
+			var https = require('https');
+			var parsedUrl;
+			try { parsedUrl = new URL(url); } catch (_) { storeShowError("Invalid redirect URL."); return; }
+
+			var opts = {
+				hostname: parsedUrl.hostname,
+				path: parsedUrl.pathname + parsedUrl.search,
+				method: 'GET',
+				headers: { 'User-Agent': 'Library-Manager-Store' },
+				timeout: 20000
+			};
+
+			var req = https.request(opts, function (res) {
+				if (res.statusCode !== 200) { storeShowError("HTTP " + res.statusCode + " after redirect"); return; }
+				var data = '';
+				res.on('data', function (chunk) { data += chunk; });
+				res.on('end', function () {
+					try {
+						_storeCatalog = JSON.parse(data);
+						$(".store-loading").addClass("d-none");
+						storeRenderGrid();
+					} catch (e) { storeShowError("Invalid JSON: " + e.message); }
+				});
+			});
+			req.on('error', function (err) { storeShowError(err.message); });
+			req.on('timeout', function () { req.destroy(); storeShowError("Redirect timed out."); });
+			req.end();
+		}
+
+		function storeShowError(msg) {
+			$(".store-loading").addClass("d-none");
+			$(".store-error").removeClass("d-none");
+			$(".store-error-msg").text("Failed to load catalog: " + msg);
+		}
+
+		// ---- Render the grid of package cards ----
+		function storeRenderGrid() {
+			if (!_storeCatalog) return;
+
+			var items = _storeCatalog.slice(); // clone
+
+			// Filter by search
+			if (_storeSearchTerm) {
+				items = items.filter(function (p) {
+					var haystack = (p.library_name + ' ' + p.author + ' ' + p.organization + ' ' +
+						p.description + ' ' + (p.tags || []).join(' ')).toLowerCase();
+					return haystack.indexOf(_storeSearchTerm) !== -1;
+				});
+			}
+
+			// Sort
+			items.sort(function (a, b) {
+				switch (_storeSort) {
+					case 'name-desc': return b.library_name.localeCompare(a.library_name);
+					case 'date-desc': return (b.created_date || '').localeCompare(a.created_date || '');
+					case 'date-asc':  return (a.created_date || '').localeCompare(b.created_date || '');
+					default:          return a.library_name.localeCompare(b.library_name);
+				}
+			});
+
+			var $grid = $("#store-grid");
+			$grid.empty();
+
+			if (items.length === 0) {
+				$(".store-empty").removeClass("d-none");
+			} else {
+				$(".store-empty").addClass("d-none");
+			}
+
+			$(".store-count").text(items.length + ' package' + (items.length !== 1 ? 's' : ''));
+
+			for (var i = 0; i < items.length; i++) {
+				$grid.append(storeBuildCard(items[i]));
+			}
+		}
+
+		function storeBuildCard(pkg) {
+			var name     = escapeHtml(pkg.library_name);
+			var version  = escapeHtml(pkg.version);
+			var author   = escapeHtml(pkg.author || 'Unknown');
+			var desc     = escapeHtml(pkg.description || '');
+			var tags     = pkg.tags || [];
+			var imgHtml  = '';
+
+			if (pkg.library_image_base64 && pkg.library_image_mime) {
+				imgHtml = '<img class="store-card-icon" src="data:' + escapeHtml(pkg.library_image_mime) +
+					';base64,' + pkg.library_image_base64 + '" alt="">';
+			} else {
+				imgHtml = '<div class="store-card-icon-placeholder"><i class="fas fa-book"></i></div>';
+			}
+
+			// Check if installed
+			var installed = null;
+			try { installed = db_installed_libs.installed_libs.findOne({"library_name": pkg.library_name}); } catch (_) {}
+
+			var tagsHtml = '';
+			var maxTags = 4;
+			for (var t = 0; t < Math.min(tags.length, maxTags); t++) {
+				tagsHtml += '<span class="store-card-tag">' + escapeHtml(tags[t]) + '</span>';
+			}
+			if (tags.length > maxTags) {
+				tagsHtml += '<span class="store-card-tag">+' + (tags.length - maxTags) + '</span>';
+			}
+
+			var footerHtml = '';
+			if (installed) {
+				var installedVer = installed.version || '';
+				footerHtml = '<span class="store-card-installed"><i class="fas fa-check-circle mr-1"></i>Installed v' + escapeHtml(installedVer) + '</span>';
+				// Show update button if versions differ
+				if (installedVer !== pkg.version) {
+					footerHtml += '<button class="btn btn-sm solid-button store-card-install-btn" data-pkg-file="' +
+						escapeHtml(pkg.package_file) + '"><i class="fas fa-arrow-up mr-1"></i>Update</button>';
+				}
+			} else {
+				footerHtml = '<button class="btn btn-sm solid-button store-card-install-btn" data-pkg-file="' +
+					escapeHtml(pkg.package_file) + '"><i class="fas fa-download mr-1"></i>Install</button>';
+			}
+
+			var html = '<div class="col-xl-3 col-lg-4 col-md-6 mb-3">' +
+				'<div class="store-card" data-pkg-file="' + escapeHtml(pkg.package_file) + '">' +
+				'  <div class="store-card-header">' + imgHtml +
+				'    <div><div class="store-card-title">' + name + '</div>' +
+				'      <div class="store-card-version">v' + version + '</div></div>' +
+				'  </div>' +
+				'  <div class="store-card-author">' + author + '</div>' +
+				'  <div class="store-card-desc">' + desc + '</div>' +
+				'  <div class="store-card-tags">' + tagsHtml + '</div>' +
+				'  <div class="store-card-footer">' + footerHtml + '</div>' +
+				'</div></div>';
+
+			return html;
+		}
+
+		// ---- Card click → show detail ----
+		$(document).on("click", ".store-card", function (e) {
+			if ($(e.target).closest(".store-card-install-btn").length) return; // don't open detail when clicking Install
+			var pkgFile = $(this).attr("data-pkg-file");
+			var pkg = null;
+			for (var i = 0; i < _storeCatalog.length; i++) {
+				if (_storeCatalog[i].package_file === pkgFile) { pkg = _storeCatalog[i]; break; }
+			}
+			if (!pkg) return;
+			storeShowDetail(pkg);
+		});
+
+		function storeShowDetail(pkg) {
+			var $m = $("#storeDetailModal");
+			$m.find(".store-detail-name").text(pkg.library_name);
+			$m.find(".store-detail-version").text('v' + pkg.version);
+			$m.find(".store-detail-author").text(pkg.author || 'Unknown');
+
+			if (pkg.organization) {
+				$m.find(".store-detail-org-wrap").show();
+				$m.find(".store-detail-org").text(pkg.organization);
+			} else {
+				$m.find(".store-detail-org-wrap").hide();
+			}
+
+			$m.find(".store-detail-venus").text(pkg.venus_compatibility || 'N/A');
+
+			var dateStr = '';
+			if (pkg.created_date) {
+				try { dateStr = new Date(pkg.created_date).toLocaleDateString(); } catch (_) { dateStr = pkg.created_date; }
+			}
+			$m.find(".store-detail-date").text(dateStr || 'N/A');
+
+			$m.find(".store-detail-description").text(pkg.description || '');
+
+			// Tags
+			var tagsHtml = '';
+			var tags = pkg.tags || [];
+			for (var t = 0; t < tags.length; t++) {
+				tagsHtml += '<span class="badge badge-secondary mr-1 mb-1">' + escapeHtml(tags[t]) + '</span>';
+			}
+			$m.find(".store-detail-tags").html(tagsHtml);
+
+			// GitHub link
+			if (pkg.github_url) {
+				$m.find(".store-detail-github").removeClass("d-none");
+				$m.find(".store-detail-github-link").attr("href", pkg.github_url).text(pkg.github_url);
+			} else {
+				$m.find(".store-detail-github").addClass("d-none");
+			}
+
+			// Icon
+			if (pkg.library_image_base64 && pkg.library_image_mime) {
+				$m.find(".store-detail-icon").attr("src", "data:" + pkg.library_image_mime + ";base64," + pkg.library_image_base64).show();
+			} else {
+				$m.find(".store-detail-icon").hide();
+			}
+
+			// Install button state
+			var $installBtn = $m.find(".store-detail-install-btn");
+			$installBtn.removeClass("downloading").prop("disabled", false);
+			$installBtn.attr("data-pkg-file", pkg.package_file);
+
+			var installed = null;
+			try { installed = db_installed_libs.installed_libs.findOne({"library_name": pkg.library_name}); } catch (_) {}
+			if (installed && installed.version === pkg.version) {
+				$installBtn.html('<i class="fas fa-check-circle mr-1"></i>Already Installed').prop("disabled", true);
+			} else if (installed) {
+				$installBtn.html('<i class="fas fa-arrow-up mr-1"></i>Update to v' + escapeHtml(pkg.version));
+			} else {
+				$installBtn.html('<i class="fas fa-download mr-1"></i>Install');
+			}
+
+			$m.modal("show");
+		}
+
+		// ---- GitHub link in detail modal ----
+		$(document).on("click", ".store-detail-github-link", function (e) {
+			e.preventDefault();
+			var href = $(this).attr("href");
+			if (href && typeof nw !== 'undefined') nw.Shell.openExternal(href);
+		});
+
+		// ---- Install from Store (download .hxlibpkg then hand to importer) ----
+		$(document).on("click", ".store-card-install-btn, .store-detail-install-btn", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var pkgFile = $(this).attr("data-pkg-file");
+			if (!pkgFile) return;
+			storeDownloadAndInstall(pkgFile, $(this));
+		});
+
+		function storeDownloadAndInstall(pkgFile, $btn) {
+			if (_isImporting) {
+				alert("An import is already in progress. Please wait for it to complete.");
+				return;
+			}
+
+			$btn.addClass("downloading").prop("disabled", true);
+			$btn.html('<i class="fas fa-spinner fa-spin mr-1"></i>Downloading\u2026');
+
+			var downloadUrl = STORE_PKG_BASE + encodeURIComponent(pkgFile);
+			var tmpDir = path.join(os.tmpdir(), 'LibMgr-Store');
+			try { if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true }); } catch (_) {}
+			var tmpPath = path.join(tmpDir, pkgFile);
+
+			var https = require('https');
+			storeDownloadFile(https, downloadUrl, tmpPath, function (err) {
+				if (err) {
+					$btn.removeClass("downloading").prop("disabled", false);
+					$btn.html('<i class="fas fa-download mr-1"></i>Install');
+					alert("Download failed: " + err.message);
+					return;
+				}
+
+				// Close store modals so the import preview can show
+				$("#storeDetailModal").modal("hide");
+				$("#storeModal").modal("hide");
+
+				// Hand off to the normal import flow
+				setTimeout(function () {
+					impLoadAndInstall(tmpPath);
+					// Re-enable button after import finishes (the flag resets automatically)
+					var checkFlag = setInterval(function () {
+						if (!_isImporting) {
+							clearInterval(checkFlag);
+							$btn.removeClass("downloading").prop("disabled", false);
+							$btn.html('<i class="fas fa-download mr-1"></i>Install');
+							// Refresh catalog installed status on next open
+							_storeCatalog = null;
+						}
+					}, 500);
+				}, 300);
+			});
+		}
+
+		function storeDownloadFile(https, url, destPath, callback) {
+			var parsedUrl;
+			try { parsedUrl = new URL(url); } catch (_) { return callback(new Error("Invalid URL")); }
+
+			var opts = {
+				hostname: parsedUrl.hostname,
+				path: parsedUrl.pathname + parsedUrl.search,
+				method: 'GET',
+				headers: { 'User-Agent': 'Library-Manager-Store' },
+				timeout: 120000
+			};
+
+			var req = https.request(opts, function (res) {
+				// Follow redirects
+				if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307) {
+					var location = res.headers.location;
+					if (!location) return callback(new Error("Redirect without location"));
+					return storeDownloadFile(https, location, destPath, callback);
+				}
+				if (res.statusCode !== 200) return callback(new Error("HTTP " + res.statusCode));
+
+				var fileStream = fs.createWriteStream(destPath);
+				res.pipe(fileStream);
+				fileStream.on('finish', function () {
+					fileStream.close(function () { callback(null); });
+				});
+				fileStream.on('error', function (err) {
+					try { fs.unlinkSync(destPath); } catch (_) {}
+					callback(err);
+				});
+			});
+
+			req.on('error', function (err) {
+				try { fs.unlinkSync(destPath); } catch (_) {}
+				callback(err);
+			});
+			req.on('timeout', function () {
+				req.destroy();
+				try { fs.unlinkSync(destPath); } catch (_) {}
+				callback(new Error("Download timed out"));
+			});
+			req.end();
+		}
+
+		// ---- Clean up on modal close ----
+		$('#storeModal').on('hidden.bs.modal', function () {
+			$('#store-search-input').val('');
+			_storeSearchTerm = '';
+			$('.store-search-clear-wrap').addClass('d-none');
+		});
+
         //**************************************************************************************
         //******  FUNCTION DECLARATIONS END ****************************************************
         //**************************************************************************************

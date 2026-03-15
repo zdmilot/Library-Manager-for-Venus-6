@@ -16,8 +16,11 @@
 <h2>Getting Started</h2>
 <ul>
   <li><a href="Overview.html">Overview</a> - Features, capabilities, and system requirements</li>
+  <li><a href="Installation.html">Installation</a> - Installer wizard, silent install, and upgrade behavior</li>
+  <li><a href="Uninstallation.html">Uninstallation</a> - Three-tier removal options</li>
   <li><a href="GettingStarted.html">Getting Started</a> - First-time setup and basic workflows</li>
   <li><a href="GUIOverview.html">GUI Overview</a> - Navigating the desktop application</li>
+  <li><a href="SystemArchitecture.html">System Architecture</a> - Component diagrams, data flows, and process documentation</li>
 </ul>
 
 <h2>Core Concepts</h2>
@@ -27,17 +30,27 @@
   <li><a href="PackageSpecSchema.html">Package Spec JSON Schema</a> - Specification file format for CLI packaging</li>
   <li><a href="HSLFileArchitecture.html">HSL File Architecture</a> - Hamilton metadata footer format</li>
   <li><a href="DataModel.html">Data Model</a> - Database collections and record structures</li>
+  <li><a href="FileStorage.html">File Storage &amp; Data Management</a> - Directory layout, package store, and data migration</li>
   <li><a href="IntegrityVerification.html">Integrity Verification</a> - Multi-layered integrity: container HMAC, package signing, SHA-256, and footer verification</li>
+  <li><a href="CodeSigning.html">Code Signing</a> - Ed25519 publisher certificates and package authentication</li>
+  <li><a href="VisualIdentity.html">Visual Identity &amp; Assets</a> - Package icon compositing and archive icons</li>
+  <li><a href="SuccessDialogs.html">Success Dialogs</a> - Post-action confirmation modals</li>
+  <li><a href="SplashScreen.html">Splash Screen</a> - Application startup screen and pipeline</li>
 </ul>
 
 <h2>Workflows</h2>
 <ul>
   <li><a href="ImportingLibraries.html">Importing Libraries</a> - Install packages via GUI or CLI</li>
+  <li><a href="ImportingHamPkg.html">Importing from VENUS Packages (.pkg)</a> - Import libraries from Hamilton .pkg installers</li>
   <li><a href="ExportingLibraries.html">Exporting Libraries</a> - Export installed libraries as packages</li>
   <li><a href="CreatingPackages.html">Creating Packages</a> - Build .hxlibpkg from source files</li>
+  <li><a href="GitHubRepository.html">GitHub Repository Link</a> - Library source repository linking</li>
   <li><a href="DeletingLibraries.html">Deleting Libraries</a> - Remove installed libraries</li>
   <li><a href="VersionRollback.html">Version Rollback</a> - Revert to a previously cached version</li>
   <li><a href="LibraryGrouping.html">Library Grouping</a> - Organize libraries into groups</li>
+  <li><a href="UnsignedLibraries.html">Unsigned Libraries</a> - Discover and manage untracked library files</li>
+  <li><a href="SearchFeatures.html">Search &amp; Filtering</a> - Advanced search, tag chips, and author filtering</li>
+  <li><a href="LibraryAuditLog.html">Library Audit Log</a> - Audit trail and signed audit files</li>
   <li><a href="VENUSIntegration.html">VENUS Integration</a> - Tool shortcuts and directory shortcuts</li>
 </ul>
 
@@ -56,6 +69,15 @@
   <li><a href="CLIGenerateSyslibHashes.html">generate-syslib-hashes</a> - Generate system library baseline</li>
   <li><a href="CLIVerifySyslibHashes.html">verify-syslib-hashes</a> - Verify system library integrity</li>
   <li><a href="CLIVerifyPackage.html">verify-package</a> - Verify package integrity signature</li>
+  <li><a href="CLIGenerateKeypair.html">generate-keypair</a> - Generate an Ed25519 signing key pair</li>
+  <li><a href="CLIListPublishers.html">list-publishers</a> - List registered publisher certificates</li>
+  <li><a href="CLIVerifyMarkers.html">verify-markers</a> - Verify .libmgr marker integrity</li>
+  <li><a href="CLIScanMarkers.html">scan-markers</a> - Scan directories for .libmgr markers</li>
+</ul>
+
+<h2>Developer Reference</h2>
+<ul>
+  <li><a href="COMReference.html">COM Object Reference</a> - COM automation interface for VENUS integration</li>
 </ul>
 
 <h2>Support</h2>

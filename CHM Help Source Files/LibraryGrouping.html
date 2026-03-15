@@ -13,13 +13,14 @@
 <p>Library Manager supports organizing installed libraries into custom groups for easier navigation and management. Groups appear as tabs in the main window, allowing you to filter the library view to show only libraries assigned to a specific group.</p>
 
 <h2>Default Groups (Hardcoded)</h2>
-<p>The application defines six built-in groups. These groups are always present and cannot be removed. They are resolved at runtime and are never stored in <code>groups.json</code>.</p>
+<p>The application defines seven built-in groups. These groups are always present and cannot be removed. They are resolved at runtime and are never stored in <code>groups.json</code>.</p>
 
 <table>
 <thead><tr><th>Name</th><th>Purpose</th></tr></thead>
 <tbody>
 <tr><td>All</td><td>Shows all installed (non-deleted) libraries</td></tr>
 <tr><td>Recent</td><td>Recently imported libraries</td></tr>
+<tr><td>Starred</td><td>User-favorited libraries (protected, non-deletable)</td></tr>
 <tr><td>OEM</td><td>Protected OEM-authored libraries</td></tr>
 <tr><td>Import</td><td>Import workflow tab</td></tr>
 <tr><td>Export</td><td>Export workflow tab</td></tr>
@@ -72,7 +73,7 @@
 <p>Groups can be shown or hidden in the navigation using the favorite/show-hide toggle. Hidden groups and their assigned libraries still exist but are not displayed as navigation tabs.</p>
 
 <h2>Data Persistence</h2>
-<p>Default groups (All, Recent, OEM, Import, Export, History) are <b>not</b> stored in <code>groups.json</code>. They are defined within the application and resolved in-memory. Only user-created custom groups are stored in <code>groups.json</code>.</p>
+<p>Default groups (All, Recent, Starred, OEM, Import, Export, History) are <b>not</b> stored in <code>groups.json</code>. They are defined within the application and resolved in-memory. Only user-created custom groups are stored in <code>groups.json</code>.</p>
 <p>Group-to-library assignments are stored in <code>tree.json</code> within the user data directory. See <a href="DataModel.html">Data Model &amp; Persistence</a> for details.</p>
 
 <h2>Group Record Structure (User-Created Groups)</h2>

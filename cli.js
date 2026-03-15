@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Library Manager CLI  v1.93.25
+ * Library Manager CLI  v2.98.84
  * Command-line interface for managing Hamilton VENUS libraries.
  *
  * Copyright (c) 2026 Zachary Milot
@@ -25,6 +25,8 @@
  *   verify-syslib-hashes   Verify system libraries against baseline
  *   generate-keypair       Generate an Ed25519 signing key pair for code signing
  *   list-publishers        List registered publisher certificates
+ *   verify-markers         Verify .libmgr marker integrity for installed libraries
+ *   scan-markers           Scan directories for .libmgr markers and report status
  *
  * Run `node cli.js help` for full usage.
  */

@@ -51,19 +51,33 @@
 
 <h2>Documentation Sections</h2>
 <ul>
-  <li><a href="SystemArchitecture.html">System Architecture</a> - Comprehensive architectural reference with component diagrams, data flows, and process documentation</li>
+  <li><a href="Installation.html">Installation</a> - Installer wizard, silent install, and upgrade behavior</li>
+  <li><a href="Uninstallation.html">Uninstallation</a> - Three-tier removal options</li>
   <li><a href="GettingStarted.html">Getting Started</a> - First-time setup and basic workflows</li>
   <li><a href="GUIOverview.html">GUI Overview</a> - Navigating the graphical user interface</li>
+  <li><a href="SystemArchitecture.html">System Architecture</a> - Comprehensive architectural reference with component diagrams, data flows, and process documentation</li>
   <li><a href="PackageFormats.html">Package Formats</a> - Structure of <code>.hxlibpkg</code> and <code>.hxlibarch</code> files</li>
+  <li><a href="BinaryContainerFormat.html">Binary Container Format</a> - Technical specification for <code>.hxlibpkg</code> and <code>.hxlibarch</code> file format</li>
+  <li><a href="PackageSpecSchema.html">Package Spec JSON Schema</a> - Specification file format for <code>create-package</code></li>
+  <li><a href="HSLFileArchitecture.html">HSL File Architecture</a> - Hamilton metadata footer and read-only flags</li>
+  <li><a href="DataModel.html">Data Model &amp; Persistence</a> - Local database structure and storage</li>
+  <li><a href="FileStorage.html">File Storage &amp; Data Management</a> - Directory layout, package store, and data migration</li>
+  <li><a href="IntegrityVerification.html">Integrity Verification</a> - File hashing and tamper detection</li>
+  <li><a href="CodeSigning.html">Code Signing</a> - Ed25519 publisher certificates and package authentication</li>
   <li><a href="ImportingLibraries.html">Importing Libraries</a> - Import single packages and archives</li>
+  <li><a href="ImportingHamPkg.html">Importing from VENUS Packages (.pkg)</a> - Import libraries from Hamilton .pkg installers</li>
   <li><a href="ExportingLibraries.html">Exporting Libraries</a> - Export installed libraries to packages and archives</li>
   <li><a href="CreatingPackages.html">Creating Packages</a> - Build packages from raw source files</li>
+  <li><a href="GitHubRepository.html">GitHub Repository Link</a> - Library source repository linking</li>
   <li><a href="DeletingLibraries.html">Deleting Libraries</a> - Safe library removal and COM deregistration</li>
   <li><a href="VersionRollback.html">Version Rollback</a> - Package caching and version management</li>
-  <li><a href="IntegrityVerification.html">Integrity Verification</a> - File hashing and tamper detection</li>
-  <li><a href="HSLFileArchitecture.html">HSL File Architecture</a> - Hamilton metadata footer and read-only flags</li>
   <li><a href="LibraryGrouping.html">Library Grouping</a> - Organizing libraries into custom groups</li>
+  <li><a href="UnsignedLibraries.html">Unsigned Libraries</a> - Discovering and managing untracked library files</li>
+  <li><a href="SearchFeatures.html">Search &amp; Filtering</a> - Advanced search, tag chips, and author filtering</li>
+  <li><a href="LibraryAuditLog.html">Library Audit Log</a> - Audit trail and signed audit files</li>
   <li><a href="VisualIdentity.html">Visual Identity &amp; Assets</a> - Package icon compositing, archive icons, and static asset management</li>
+  <li><a href="SuccessDialogs.html">Success Dialogs</a> - Post-action confirmation modals</li>
+  <li><a href="SplashScreen.html">Splash Screen</a> - Application startup screen</li>
   <li><a href="VENUSIntegration.html">VENUS Integration</a> - Tool launching and path resolution</li>
   <li><a href="CLIReference.html">CLI Reference</a> - Complete command-line interface documentation</li>
   <li><a href="CLIListLibs.html">CLI: list-libs</a></li>
@@ -77,16 +91,12 @@
   <li><a href="CLIRollbackLib.html">CLI: rollback-lib</a></li>
   <li><a href="CLIGenerateSyslibHashes.html">CLI: generate-syslib-hashes</a></li>
   <li><a href="CLIVerifySyslibHashes.html">CLI: verify-syslib-hashes</a></li>
-  <li><a href="PackageSpecSchema.html">Package Spec JSON Schema</a> - Specification file format for <code>create-package</code></li>
-  <li><a href="DataModel.html">Data Model &amp; Persistence</a> - Local database structure and storage</li>
   <li><a href="CLIVerifyPackage.html">CLI: verify-package</a></li>
-  <li><a href="UnsignedLibraries.html">Unsigned Libraries</a> - Discovering and managing untracked library files</li>
-  <li><a href="BinaryContainerFormat.html">Binary Container Format</a> - Technical specification for <code>.hxlibpkg</code> and <code>.hxlibarch</code> file format</li>
-  <li><a href="SuccessDialogs.html">Success Dialogs</a> - Post-action confirmation modals</li>
-  <li><a href="SplashScreen.html">Splash Screen</a> - Application startup screen</li>
-  <li><a href="SearchFeatures.html">Search Features</a> - Advanced search and filtering</li>
-  <li><a href="LibraryAuditLog.html">Library Audit Log</a> - Audit trail and signed audit files</li>
-  <li><a href="GitHubRepository.html">GitHub Repository Link</a> - Library source repository linking</li>
+  <li><a href="CLIGenerateKeypair.html">CLI: generate-keypair</a></li>
+  <li><a href="CLIListPublishers.html">CLI: list-publishers</a></li>
+  <li><a href="CLIVerifyMarkers.html">CLI: verify-markers</a></li>
+  <li><a href="CLIScanMarkers.html">CLI: scan-markers</a></li>
+  <li><a href="COMReference.html">COM Object Reference</a> - COM automation interface for VENUS integration</li>
   <li><a href="Troubleshooting.html">Troubleshooting</a> - Common issues and solutions</li>
 </ul>
 </div>

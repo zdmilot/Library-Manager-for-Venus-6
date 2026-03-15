@@ -195,22 +195,24 @@
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="verify-package">
 				<param name="Local" value="CLIVerifyPackage.html">
-				</OBJECT>		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="generate-keypair">
-			<param name="Local" value="CLIGenerateKeypair.html">
-			</OBJECT>
-		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="list-publishers">
-			<param name="Local" value="CLIListPublishers.html">
-			</OBJECT>
-		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="verify-markers">
-			<param name="Local" value="CLIVerifyMarkers.html">
-			</OBJECT>
-		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="scan-markers">
-			<param name="Local" value="CLIScanMarkers.html">
-			</OBJECT>		</UL>
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="generate-keypair">
+				<param name="Local" value="CLIGenerateKeypair.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="list-publishers">
+				<param name="Local" value="CLIListPublishers.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="verify-markers">
+				<param name="Local" value="CLIVerifyMarkers.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="scan-markers">
+				<param name="Local" value="CLIScanMarkers.html">
+				</OBJECT>
+		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="COM Object Reference">
 			<param name="Local" value="COMReference.html">

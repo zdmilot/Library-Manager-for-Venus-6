@@ -447,7 +447,7 @@
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="publisher registry">
-		<param name="Local" value="SearchFeatures.html">
+		<param name="Local" value="CodeSigning.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="RegAsm">

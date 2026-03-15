@@ -232,6 +232,10 @@
 								<i class="fas fa-search"></i>
 							</button>
 
+							<button class="btn btn-sm btn-navbar-store" type="button" id="btn-open-store" title="Library Store">
+								<i class="fas fa-shopping-basket"></i>
+							</button>
+
 							<button class="btn btn-sm btn-navbar-import" type="button" id="imp-browse" title="Import Library">
 								<i class="fas fa-file-import"></i>
 							</button>
@@ -2632,6 +2636,130 @@
 		</div>
 	</div>
 	<!---- Modal Search end --->
+
+	<!---- Modal Store start --->
+	<div class="modal" tabindex="-1" role="dialog" id="storeModal">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:85%; width:85%;">
+			<div class="modal-content detail-modal-content store-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3">
+							<i class="fas fa-shopping-basket fa-3x" style="color:var(--medium)"></i>
+						</div>
+						<div>
+							<h5 class="modal-title mb-0">Library Store</h5>
+							<span class="text-muted text-sm">Browse and install community libraries</span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body" style="padding:0; background:var(--method-background);">
+					<!-- Toolbar: search + filters + count -->
+					<div class="store-toolbar d-flex align-items-center flex-wrap px-3 pt-3 pb-2">
+						<div class="store-search-bar" style="flex:1; min-width:200px; max-width:400px;">
+							<div class="input-group input-group-sm">
+								<div class="input-group-prepend">
+									<span class="input-group-text"><i class="fas fa-search"></i></span>
+								</div>
+								<input type="text" class="form-control" id="store-search-input" placeholder="Search packages..." autocomplete="off">
+								<div class="input-group-append store-search-clear-wrap d-none">
+									<button class="btn btn-outline-secondary store-search-clear" type="button"><i class="fas fa-times"></i></button>
+								</div>
+							</div>
+						</div>
+						<div class="store-toolbar-right ml-auto d-flex align-items-center" style="gap:12px;">
+							<div class="dropdown store-sort-dropdown">
+								<button class="btn btn-sm btn-outlined store-sort-btn" type="button" data-toggle="dropdown">
+									<i class="fas fa-sort-amount-down mr-1"></i>Sort
+								</button>
+								<div class="dropdown-menu dropdown-menu-right">
+									<a class="dropdown-item store-sort-option active" href="#" data-sort="name-asc"><i class="fas fa-sort-alpha-down mr-2"></i>Name (A-Z)</a>
+									<a class="dropdown-item store-sort-option" href="#" data-sort="name-desc"><i class="fas fa-sort-alpha-up mr-2"></i>Name (Z-A)</a>
+									<a class="dropdown-item store-sort-option" href="#" data-sort="date-desc"><i class="fas fa-calendar-alt mr-2"></i>Newest First</a>
+									<a class="dropdown-item store-sort-option" href="#" data-sort="date-asc"><i class="fas fa-calendar-alt mr-2"></i>Oldest First</a>
+								</div>
+							</div>
+							<span class="text-muted text-sm store-count"></span>
+							<button class="btn btn-sm btn-outlined store-refresh-btn" type="button" title="Refresh catalog">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+						</div>
+					</div>
+					<!-- Store grid -->
+					<div class="store-grid-container" style="max-height:65vh; overflow-y:auto; padding:12px 18px;">
+						<div class="store-loading text-center py-5">
+							<i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+							<p class="text-muted mt-2">Loading catalog&hellip;</p>
+						</div>
+						<div class="store-error d-none text-center py-5">
+							<i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+							<p class="text-muted mt-2 store-error-msg">Failed to load catalog.</p>
+							<button class="btn btn-sm btn-outlined store-retry-btn mt-2">Retry</button>
+						</div>
+						<div class="store-empty d-none text-center py-5">
+							<i class="fas fa-box-open fa-2x text-muted"></i>
+							<p class="text-muted mt-2">No packages match your search.</p>
+						</div>
+						<div class="store-grid row" id="store-grid"></div>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer d-flex justify-content-between">
+					<span class="text-muted text-sm store-footer-info">
+						<i class="fas fa-info-circle mr-1"></i>Packages are downloaded from
+						<a href="#" class="store-repo-link" style="color:var(--medium);">GitHub</a>
+					</span>
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Store Package Detail overlay (nested inside storeModal conceptually) -->
+	<div class="modal" tabindex="-1" role="dialog" id="storeDetailModal" data-backdrop="false">
+		<div class="modal-dialog modal-dialog-centered" role="document" style="max-width:620px;">
+			<div class="modal-content detail-modal-content">
+				<div class="modal-header detail-modal-header">
+					<div class="d-flex align-items-center">
+						<div class="mr-3 store-detail-icon-wrap">
+							<img class="store-detail-icon" src="" alt="" style="width:48px; height:48px; object-fit:contain;">
+						</div>
+						<div>
+							<h5 class="modal-title mb-0 store-detail-name"></h5>
+							<span class="text-muted text-sm store-detail-version"></span>
+						</div>
+					</div>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body detail-modal-body" style="max-height:55vh; overflow-y:auto;">
+					<div class="store-detail-meta mb-3">
+						<div class="d-flex flex-wrap text-sm" style="gap:16px;">
+							<span><strong>Author:</strong> <span class="store-detail-author"></span></span>
+							<span class="store-detail-org-wrap"><strong>Organization:</strong> <span class="store-detail-org"></span></span>
+							<span><strong>VENUS:</strong> <span class="store-detail-venus"></span></span>
+							<span><strong>Created:</strong> <span class="store-detail-date"></span></span>
+						</div>
+					</div>
+					<div class="store-detail-description mb-3"></div>
+					<div class="store-detail-tags mb-3"></div>
+					<div class="store-detail-github mb-3 d-none">
+						<i class="fab fa-github mr-1"></i>
+						<a href="#" class="store-detail-github-link" target="_blank" style="color:var(--medium);"></a>
+					</div>
+				</div>
+				<div class="modal-footer detail-modal-footer">
+					<button type="button" class="btn btn-outlined" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn solid-button store-detail-install-btn">
+						<i class="fas fa-download mr-1"></i>Install
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!---- Modal Store end --->
 
 	<!---- Modal Event History start --->
 	<div class="modal" tabindex="-1" role="dialog" id="eventHistoryModal">

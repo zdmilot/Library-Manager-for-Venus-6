@@ -24,9 +24,14 @@
 <tr><td><code>cli.js</code></td><td>Command-line interface entry point (all CLI commands)</td></tr>
 <tr><td><code>cli-schema.json</code></td><td>JSON Schema for package specification files</td></tr>
 <tr><td><code>cli-spec-example.json</code></td><td>Example package specification file</td></tr>
+<tr><td><code>com-bridge.js</code></td><td>COM Bridge dispatcher for COM object integration</td></tr>
 <tr><td><code>html/</code></td><td>GUI application HTML, CSS, and JavaScript files</td></tr>
+<tr><td><code>lib/</code></td><td>Shared library modules (search index, package extractor, updater)</td></tr>
 <tr><td><code>db/</code></td><td>Application database: settings, system library definitions, baseline hashes</td></tr>
-<tr><td><code>docs/</code></td><td>Technical reference documentation</td></tr>
+<tr><td><code>local/</code></td><td>Mutable user data: installed library records, groups, audit trail, and package store</td></tr>
+<tr><td><code>com/</code></td><td>COM object DLL and registration scripts for VENUS interop</td></tr>
+<tr><td><code>assets/</code></td><td>Application asset images</td></tr>
+<tr><td><code>icons/</code></td><td>Application icons</td></tr>
 </tbody>
 </table>
 
@@ -40,7 +45,7 @@
 
 <h3>Command-Line Interface</h3>
 <p>Open a terminal (Command Prompt or PowerShell) and navigate to the Library Manager directory:</p>
-<div class="code"><pre>cd "C:\Users\admin\Documents\GitHub\Library Manager"
+<div class="code"><pre>cd "C:\Program Files (x86)\Library Manager"
 node cli.js help</pre></div>
 <p>This displays the full list of available CLI commands and options. See <a href="CLIReference.html">CLI Reference</a> for complete documentation.</p>
 
