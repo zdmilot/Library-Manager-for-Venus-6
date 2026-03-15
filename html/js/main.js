@@ -18833,7 +18833,7 @@
 
 			var org = pkg.organization ? escapeHtml(pkg.organization) : '';
 
-			var html = '<div class="col-xl-3 col-lg-4 col-md-6 mb-3">' +
+			var html = '<div class="col-xl-3 col-lg-4 col-md-6">' +
 				'<div class="store-card" data-pkg-file="' + escapeHtml(pkg.package_file) + '">' +
 				'  <div class="store-card-header">' + imgHtml +
 				'    <div><div class="store-card-title">' + name + '</div>' +

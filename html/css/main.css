@@ -5739,11 +5739,22 @@ body.dark-mode .store-modal-body {
 	border-bottom: 1px solid #dce4ed;
 	background: #eef3f8;
 	gap: 16px;
-	padding: 16px 28px 12px 28px;
+	padding: 14px 24px;
 }
 body.dark-mode .store-toolbar {
 	border-bottom-color: #2a3a4a;
 	background: #0f1c28;
+}
+
+/* ── Grid layout ─────────────────────────────────────────────────── */
+.store-grid.row {
+	margin-left: -10px;
+	margin-right: -10px;
+}
+.store-grid.row > [class*="col-"] {
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-bottom: 20px;
 }
 
 /* ── Grid cards ──────────────────────────────────────────────────── */
