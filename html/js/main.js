@@ -18664,7 +18664,7 @@
 			$(".store-error").addClass("d-none");
 			$(".store-empty").addClass("d-none");
 			$("#store-grid").empty();
-			$(".store-count").text('');
+			
 
 			var https = require('https');
 			var parsedUrl;
@@ -18779,7 +18779,7 @@
 				$(".store-empty").addClass("d-none");
 			}
 
-			$(".store-count").text(items.length + ' package' + (items.length !== 1 ? 's' : ''));
+			
 
 			for (var i = 0; i < items.length; i++) {
 				$grid.append(storeBuildCard(items[i]));
