@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings Reference</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Settings Reference</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Settings Reference</div>
+
+<h2>Overview</h2>
+<p>The Settings modal provides centralized configuration for all application preferences. Open it from <b>Overflow Menu &rarr; Settings</b> (vertical ellipsis button in the top-right navigation bar).</p>
+<img src="images/settings-panel.png" alt="Settings modal" class="doc-screenshot">
+
+<h2>Software Update</h2>
+<p>The Software Update section shows current application and system information and provides update management.</p>
+
+<h3>Version Information</h3>
+<p>The top of the section displays:</p>
+<ul>
+  <li><b>Version</b> &mdash; Currently installed application version</li>
+  <li><b>Build</b> &mdash; Build identifier</li>
+  <li><b>OS</b> &mdash; Windows edition and version</li>
+  <li><b>VENUS</b> &mdash; Detected Hamilton VENUS version</li>
+</ul>
+
+<h3>Update Check</h3>
+<p>Click <b>Check for Updates</b> to query the GitHub releases page for a newer version. If an update is available, the section changes to show the new version number and a <b>View Update</b> button that opens the update detail modal with release notes and an <b>Update Now</b> button.</p>
+
+<h3>Update Settings</h3>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Automatically check for updates on startup</b></td><td>On</td><td>When enabled, Library Manager checks GitHub for new releases each time the application starts. If an update is found, the update badge and <b>View Update</b> button appear in Settings.</td></tr>
+<tr><td><b>Show release notes after updates</b></td><td>On</td><td>When enabled, a release notes overlay is displayed the first time the application launches after an update has been installed.</td></tr>
+</tbody>
+</table>
+
+<h3>Update Process</h3>
+<ol>
+  <li>Click <b>View Update</b> (or <b>Check for Updates</b> if not yet checked)</li>
+  <li>Review the release notes in the update modal</li>
+  <li>Click <b>Update Now</b> to download the installer</li>
+  <li>A full-screen progress overlay shows the download percentage</li>
+  <li>Once downloaded, the installer is launched automatically and the application closes</li>
+  <li>The installer runs and restarts Library Manager with the new version</li>
+</ol>
+
+<div class="note">
+<p><b>Note:</b> Updates are only available for installed versions of Library Manager. If you are running a portable or development build, the update controls are disabled and a "Not available (portable version)" message is shown.</p>
+</div>
+
+<h2>Installation</h2>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Show preview and confirmation before installing a library</b></td><td>On</td><td>When enabled, a preview modal is displayed before each library import showing metadata, file lists, install paths, and signature verification status. When disabled, libraries are installed immediately after file selection.</td></tr>
+</tbody>
+</table>
+
+<h2>Audit Trail</h2>
+<p>These settings control whether additional accountability information is required when performing destructive or impactful actions such as deleting a library, performing a rollback, overwriting an existing library, or making archive overwrite decisions.</p>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Require comment for destructive and impactful actions</b></td><td>Off</td><td>When enabled, a comment field is presented before the action is executed. The comment is recorded in the audit history alongside the event details.</td></tr>
+<tr><td><b>Require user signature for destructive and impactful actions</b></td><td>Off</td><td>When enabled, the operator must type their Windows username to confirm the action. The signature is recorded in the audit history for traceability.</td></tr>
+</tbody>
+</table>
+<p>Actions are always logged in the event history regardless of these settings. These options add additional metadata to each audit record for environments that require formal accountability.</p>
+<p>See <a href="LibraryAuditLog.html">Library Audit Log</a> for details on the audit trail system.</p>
+
+<h2>Display</h2>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Hide system libraries on the front page</b></td><td>Off</td><td>When enabled, Hamilton system libraries are hidden from the All tab. System libraries with integrity warnings or errors are still shown regardless of this setting. The System tab remains accessible for viewing all system libraries.</td></tr>
+</tbody>
+</table>
+
+<h2>Data Location</h2>
+<p>Displays the path to the <code>local/</code> directory where all application data is stored, including settings, the library registry database, audit trail, package backups, and exports. This location is globally accessible to all users on the PC.</p>
+<p>Click <b>Open Folder</b> to open the data directory in Windows Explorer.</p>
+<p>See <a href="FileStorage.html">File Storage &amp; Data Management</a> for details on the directory layout.</p>
+
+<h2>Unsigned Libraries</h2>
+<table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Include existing unsigned libraries on the front page</b></td><td>Off</td><td>When enabled, scans the VENUS Library folder for <code>.hsl</code> and <code>.smt</code> files that are not tracked by any installed or system library. Discovered files appear in the <b>Unsigned</b> tab and can be registered, exported as packages, or removed. Files and folders starting with <code>~</code> or <code>.</code> are automatically excluded.</td></tr>
+</tbody>
+</table>
+<p>When enabled, a <b>Scan Now</b> button appears. Click it to perform an immediate scan. A spinning indicator is shown during the scan and a green checkmark appears on completion.</p>
+<p>See <a href="UnsignedLibraries.html">Unsigned Libraries</a> for details on the discovery and management workflow.</p>
+
+<h2>Code Signing</h2>
+<p>Configure a default publisher identity for signing exported packages. Signed packages allow recipients to verify the publisher's identity and detect tampering.</p>
+
+<h3>Key and Certificate Selection</h3>
+<table>
+<thead><tr><th>Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Private Key (.key.pem)</b></td><td>Browse to select an Ed25519 private key file. This key is used to sign packages during export.</td></tr>
+<tr><td><b>Certificate (.cert.json)</b></td><td>Browse to select the corresponding publisher certificate file. The certificate contains the public key, holder name, and organization.</td></tr>
+</tbody>
+</table>
+<p>When both files are configured and valid, a publisher summary is displayed showing the holder name, key ID, and organization.</p>
+
+<h3>Generate Key Pair</h3>
+<p>Click <b>Generate Key Pair...</b> to create a new Ed25519 signing key pair. You will be asked to select an output directory and provide holder information. Two files are generated:</p>
+<ul>
+  <li><code>&lt;name&gt;.key.pem</code> &mdash; Private key (keep secure, do not share)</li>
+  <li><code>&lt;name&gt;.cert.json</code> &mdash; Public certificate (distribute with packages)</li>
+</ul>
+
+<h3>Clear</h3>
+<p>Click <b>Clear</b> to remove the configured signing key and certificate. This does not delete the files from disk.</p>
+<p>See <a href="CodeSigning.html">Code Signing</a> for the full technical documentation.</p>
+
+<h2>Recent</h2>
+<p>Controls the maximum number of entries shown in the Recent tab.</p>
+<table>
+<thead><tr><th>Control</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Display last</b> dropdown</td><td>10</td><td>Choose from 5, 10, 20, 50, or 100 entries</td></tr>
+<tr><td><b>Clear Recent List</b> button</td><td>&mdash;</td><td>Removes all entries from the Recent tab</td></tr>
+</tbody>
+</table>
+
+<h2>About</h2>
+<p>Shows the application author, with links to the <b>Privacy Policy</b> and <b>Terms of Use</b>.</p>
+
+<h2>Report a Bug</h2>
+<p>Click <b>Open GitHub Issues</b> to open the Library Manager GitHub issues page in your web browser, where you can report bugs, request features, or ask questions.</p>
+
+<div class="warning">
+<p><b>Warning:</b> Do not include sensitive information in public issue reports.</p>
+</div>
+
+<h2>Third-Party Licenses</h2>
+<p>Lists all third-party components and their licenses, including Bootstrap, jQuery, jQuery UI, Popper.js, Font Awesome, adm-zip, diskdb, and NW.js.</p>
+
+<h2>Related Topics</h2>
+<ul>
+  <li><a href="GUIOverview.html">GUI Overview</a> &mdash; Overall interface navigation</li>
+  <li><a href="CodeSigning.html">Code Signing</a> &mdash; Ed25519 publisher certificates and package authentication</li>
+  <li><a href="LibraryAuditLog.html">Library Audit Log</a> &mdash; Audit trail system</li>
+  <li><a href="UnsignedLibraries.html">Unsigned Libraries</a> &mdash; Unsigned library discovery and management</li>
+  <li><a href="FileStorage.html">File Storage &amp; Data Management</a> &mdash; Directory layout and data location</li>
+</ul>
+</div>
+<div class="footer">
+<p>Library Manager Help</p>
+</div>
+<script src="help.js"></script>
+</body>
+</html>

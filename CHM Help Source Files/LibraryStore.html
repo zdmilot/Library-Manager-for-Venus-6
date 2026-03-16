@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Store</title>
+    <link rel="stylesheet" type="text/css" href="help.css">
+</head>
+<body>
+<div class="header">Library Store</div>
+<div class="main">
+<div class="breadcrumb"><a href="Overview.html">Library Manager</a> &raquo; Library Store</div>
+
+<h2>Overview</h2>
+<p>The Library Store provides a built-in marketplace for browsing, downloading, and installing community-curated library packages directly from within Library Manager. The store connects to a public GitHub repository that hosts a catalog of available libraries, and offers one-click installation with automatic dependency resolution.</p>
+<p>The store is accessible from the <b>Store</b> button (<i class="fas fa-shopping-basket"></i>) in the navigation bar, located between the search and import buttons.</p>
+<img src="images/store-button.png" alt="Library Store button in navigation bar" class="doc-screenshot">
+
+<h2>Opening the Store</h2>
+<p>Click the <b>Store</b> button in the navigation bar to open the Library Store modal. On first open, the application fetches the package catalog from GitHub over HTTPS. A loading spinner is shown while the catalog is being retrieved. Subsequent opens use the cached catalog unless you click <b>Refresh</b>.</p>
+
+<h2>Browsing Libraries</h2>
+<p>The store displays available libraries as cards in a grid layout. Each card shows:</p>
+<ul>
+  <li><b>Library icon</b> (or a default book icon if no image is provided)</li>
+  <li><b>Library name</b> and <b>version</b></li>
+  <li><b>Author</b> and <b>organization</b></li>
+  <li><b>Description</b></li>
+  <li><b>Star ratings</b> (community average and review count)</li>
+  <li><b>Tags</b> (up to four displayed, with a count for additional tags)</li>
+  <li><b>Install status:</b>
+    <ul>
+      <li><b>Download and Install</b> button &mdash; library is not installed</li>
+      <li><b>Installed</b> (green, disabled) &mdash; the same version is already installed</li>
+      <li><b>Update available</b> badge &mdash; a newer version is available in the store</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>Update Badge</h3>
+<p>When the store catalog contains newer versions of libraries you already have installed, a red badge appears on the Store button in the navigation bar showing the count of available updates. Individual cards also show an orange update badge with the new version number.</p>
+
+<h3>Search</h3>
+<p>The store toolbar includes a search bar that filters the library grid in real time. The search matches against library names, authors, organizations, descriptions, and tags. A clear button (<b>&times;</b>) resets the search.</p>
+
+<h3>Sorting</h3>
+<p>The store toolbar provides sort options:</p>
+<table>
+<thead><tr><th>Sort Option</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><b>Name A&ndash;Z</b></td><td>Alphabetical by library name (default)</td></tr>
+<tr><td><b>Name Z&ndash;A</b></td><td>Reverse alphabetical by library name</td></tr>
+<tr><td><b>Newest First</b></td><td>Most recently created packages first</td></tr>
+<tr><td><b>Oldest First</b></td><td>Oldest packages first</td></tr>
+</tbody>
+</table>
+
+<h2>Library Detail View</h2>
+<p>Click any library card to open a detailed view showing comprehensive information about the package:</p>
+<ul>
+  <li><b>Library icon and name</b></li>
+  <li><b>Version selector</b> &mdash; a dropdown listing all available versions, with the latest marked as "(latest)"</li>
+  <li><b>Author</b> and <b>organization</b></li>
+  <li><b>VENUS compatibility</b> and <b>created date</b></li>
+  <li><b>Description</b></li>
+  <li><b>GitHub repository link</b> (opens in external browser)</li>
+  <li><b>Package file link</b> (opens in external browser, points to the GitHub repository)</li>
+  <li><b>Tags</b></li>
+  <li><b>Library files</b> &mdash; full file list with destination install paths and COM registration badges</li>
+  <li><b>Demo method files</b> &mdash; full file list with destination install paths</li>
+  <li><b>Help files</b> &mdash; included <code>.chm</code> help files</li>
+  <li><b>Bin files</b> &mdash; binary files to be installed to the Hamilton Bin directory</li>
+  <li><b>Dependencies</b> &mdash; list of required libraries with install status (installed, available in store, or not in store)</li>
+  <li><b>Overwrite warning</b> &mdash; shown if the library is already installed, noting version differences</li>
+  <li><b>Community reviews and ratings</b></li>
+</ul>
+<img src="images/store-detail-modal.png" alt="Library Store detail modal showing library information" class="doc-screenshot">
+
+<h3>Version Selector</h3>
+<p>The version dropdown in the detail view header lists all available versions of the library in the store. Selecting a different version refreshes the detail view with that version's metadata, file lists, and install paths. The latest version is always listed first and marked with "(latest)".</p>
+
+<h2>Installing from the Store</h2>
+<p>There are two ways to install a library from the store:</p>
+
+<h3>Quick Install (From Card)</h3>
+<p>Click the <b>Download and Install</b> button directly on a library card. The package is downloaded from GitHub and handed to the standard import workflow.</p>
+
+<h3>Install from Detail View</h3>
+<p>Open the library detail modal, review the package information, optionally select a specific version, and click the <b>Download and Install</b> or <b>Update</b> button at the bottom of the modal.</p>
+
+<h3>What Happens During Install</h3>
+<ol>
+  <li>The <code>.hxlibpkg</code> file is downloaded from the GitHub packages repository to a temporary directory</li>
+  <li>If the library is an update to an existing installation, a <b>breaking changes check</b> is performed (see below)</li>
+  <li>The downloaded package is handed to the standard import flow, which shows the pre-install preview modal</li>
+  <li>The remainder of the process is identical to a normal <a href="ImportingLibraries.html">library import</a>: signature verification, file extraction, COM registration, integrity hashing, and database recording</li>
+</ol>
+
+<h3>Breaking Changes Detection</h3>
+<p>When installing an update to an already-installed library, Library Manager automatically compares the public HSL function signatures between the installed version and the incoming package. It detects:</p>
+<ul>
+  <li><b>Removed functions</b> &mdash; public functions that existed in the old version but are absent from the new version</li>
+  <li><b>Changed signatures</b> &mdash; functions where the parameter count, parameter types, parameter names, pass-by-reference status, or return type have changed</li>
+</ul>
+<p>If breaking changes are detected, a confirmation modal is displayed listing all affected functions with their old and new signatures. You must type <b>I ACCEPT</b> to proceed with the installation. This safeguard ensures you are aware that existing VENUS methods using these functions may need to be updated.</p>
+
+<h2>Dependency Resolution</h2>
+<p>When installing a library that declares dependencies, Library Manager checks whether each dependency is already installed. If any dependencies are missing, a <b>dependency confirmation modal</b> is displayed showing:</p>
+<ul>
+  <li>The primary library you selected</li>
+  <li>A full recursive dependency tree with install status for each library:
+    <ul>
+      <li><b>Installed</b> (green checkmark) &mdash; already installed on your system</li>
+      <li><b>Needs install</b> (warning) &mdash; not installed but available in the store</li>
+      <li><b>Not in store</b> (grey) &mdash; not installed and not available for automatic download</li>
+    </ul>
+  </li>
+</ul>
+<p>Click <b>Download All and Install</b> to download and install all missing dependencies in the correct order (dependencies first, then the primary library). Each package goes through the full import flow sequentially.</p>
+
+<div class="note">
+<p><b>Note:</b> Circular dependencies are handled automatically. The dependency resolution algorithm tracks visited libraries to prevent infinite loops.</p>
+</div>
+
+<h2>Ratings and Reviews</h2>
+<p>The Library Store includes a community rating and review system. Star ratings are displayed on both the library cards and in the detail view.</p>
+
+<h3>Viewing Reviews</h3>
+<p>Open a library's detail view and scroll to the <b>Reviews</b> section to see community reviews with star ratings and comments.</p>
+
+<h3>Submitting a Review</h3>
+<p>Click the <b>Write a Review</b> button in the detail view to submit your own rating and comment. Reviews include your Windows username and basic system information for context.</p>
+
+<h2>Refreshing the Catalog</h2>
+<p>Click the <b>Refresh</b> button in the store toolbar to reload the catalog from GitHub. This clears the cached catalog and ratings data and fetches the latest available packages.</p>
+
+<h2>GitHub Repository</h2>
+<p>The Library Store is backed by a public GitHub repository at:</p>
+<div class="code"><pre>https://github.com/zdmilot/Library-Manager-Packages</pre></div>
+<p>Click the repository link in the store toolbar to open the repository in your web browser. The repository contains:</p>
+<ul>
+  <li><code>catalog.json</code> &mdash; the package catalog that Library Manager reads</li>
+  <li><code>packages/&lt;LibraryName&gt;/</code> &mdash; subdirectories containing <code>.hxlibpkg</code> package files</li>
+</ul>
+<p>A GitHub Actions workflow automatically rebuilds <code>catalog.json</code> whenever packages are added or updated in the repository.</p>
+
+<h2>Network Requirements</h2>
+<p>The Library Store requires an internet connection to:</p>
+<ul>
+  <li>Fetch the package catalog from GitHub (HTTPS)</li>
+  <li>Download <code>.hxlibpkg</code> package files from GitHub (HTTPS)</li>
+  <li>Load and submit community ratings and reviews</li>
+</ul>
+<p>If the catalog cannot be loaded (network error, timeout, or invalid response), an error message is displayed with the option to retry.</p>
+
+<h2>Related Topics</h2>
+<ul>
+  <li><a href="ImportingLibraries.html">Importing Libraries</a> &mdash; Standard import workflow used after store downloads</li>
+  <li><a href="IntegrityVerification.html">Integrity Verification</a> &mdash; Package signature verification during import</li>
+  <li><a href="VersionRollback.html">Version Rollback</a> &mdash; Reverting to a previously installed version</li>
+</ul>
+</div>
+<div class="footer">
+<p>Library Manager Help</p>
+</div>
+<script src="help.js"></script>
+</body>
+</html>

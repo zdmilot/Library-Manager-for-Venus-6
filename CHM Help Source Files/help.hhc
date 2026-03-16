@@ -214,6 +214,14 @@
 				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Library Store">
+			<param name="Local" value="LibraryStore.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Settings Reference">
+			<param name="Local" value="SettingsReference.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="COM Object Reference">
 			<param name="Local" value="COMReference.html">
 			</OBJECT>

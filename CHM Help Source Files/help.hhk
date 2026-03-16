@@ -487,7 +487,7 @@
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="settings">
-		<param name="Local" value="DataModel.html">
+		<param name="Local" value="SettingsReference.html">
 		</OBJECT>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="SHA-256">
@@ -912,6 +912,66 @@
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="publisher verification">
 		<param name="Local" value="CodeSigning.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="library store">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="store">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="marketplace">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="catalog">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="dependency resolution">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="breaking changes">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="ratings">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="reviews">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="update badge">
+		<param name="Local" value="LibraryStore.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="settings reference">
+		<param name="Local" value="SettingsReference.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="software update">
+		<param name="Local" value="SettingsReference.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="auto-update">
+		<param name="Local" value="SettingsReference.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="release notes">
+		<param name="Local" value="SettingsReference.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="audit trail settings">
+		<param name="Local" value="SettingsReference.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="preferences">
+		<param name="Local" value="SettingsReference.html">
 		</OBJECT>
 </UL>
 </BODY></HTML>
